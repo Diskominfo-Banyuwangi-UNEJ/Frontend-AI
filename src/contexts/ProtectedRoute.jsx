@@ -6,15 +6,8 @@ export default function ProtectedRoute({ children }) {
     const { isAuthenticated, isLoading } = useContext(AuthContext);
 
     if (isLoading) {
-        return <div>Loading...</div>; // Atau kasih spinner animasi biar keren
+        return <div>Loading...</div>;
     }
 
-    return isAuthenticated ? (
-        children
-    ) : (
-        <Navigate
-            to="/"
-            replace
-        />
-    );
+    return isAuthenticated ? children : <Navigate to="/" />;
 }
