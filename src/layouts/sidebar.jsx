@@ -5,7 +5,7 @@ import { navbarLinks } from "@/constants";
 
 import logoLight from "@/assets/logo-light.svg";
 import logoDark from "@/assets/logo-dark.svg";
-
+import bwiRemove from "../assets/bwi-remove.png";
 import { cn } from "@/utils/cn";
 
 import PropTypes from "prop-types";
@@ -22,14 +22,9 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
         >
             <div className="flex gap-x-3 p-3">
                 <img
-                    src={logoLight}
-                    alt="Logoipsum"
-                    className="dark:hidden"
-                />
-                <img
-                    src={logoDark}
-                    alt="Logoipsum"
-                    className="hidden dark:block"
+                    src={bwiRemove}
+                    alt="Logo BWI"
+                    className="h-8 w-auto"
                 />
                 {!collapsed && <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">Diskominfo</p>}
             </div>

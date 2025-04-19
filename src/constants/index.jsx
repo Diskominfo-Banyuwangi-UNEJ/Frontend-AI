@@ -2,6 +2,7 @@ import { ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, Shoppin
 
 import ProfileImage from "@/assets/profile-image.jpg";
 import ProductImage from "@/assets/product-image.jpg";
+import "leaflet/dist/leaflet.css";
 
 export const navbarLinks = [
     {
@@ -31,37 +32,7 @@ export const navbarLinks = [
             {
                 label: "Akun",
                 icon: Users,
-                path: "/customers",
-            },
-            {
-                label: "New customer",
-                icon: UserPlus,
-                path: "/new-customer",
-            },
-            {
-                label: "Verified customers",
-                icon: UserCheck,
-                path: "/verified-customers",
-            },
-        ],
-    },
-    {
-        title: "Products",
-        links: [
-            {
-                label: "Products",
-                icon: Package,
-                path: "/products",
-            },
-            {
-                label: "New product",
-                icon: PackagePlus,
-                path: "/new-product",
-            },
-            {
-                label: "Inventory",
-                icon: ShoppingBag,
-                path: "/inventory",
+                path: "/akun",
             },
         ],
     },
