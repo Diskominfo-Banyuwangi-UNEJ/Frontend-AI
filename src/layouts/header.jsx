@@ -178,7 +178,6 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 </button>
 
                 {/* Profile button */}
-                {/* Profile button */}
                 <div
                     className="relative"
                     ref={profileRef}
@@ -200,8 +199,6 @@ export const Header = ({ collapsed, setCollapsed }) => {
                                 <p className="text-sm font-medium text-slate-900 dark:text-white">Nama Pimpinan : Pak Aziz M.Pd.</p>
                                 <p className="text-sm font-medium text-slate-900 dark:text-slate-300">Nama Instansi : Diskominfo</p>
                                 <p className="text-sm font-medium text-green-500">Status: Admin</p>
-                                {/* </div>
-                            <div className="mb-4 text-slate-800 dark:text-slate-200"> */}
                                 <p className="text-sm font-medium">
                                     Username: <span className="font-medium">admin1234</span>
                                 </p>

@@ -3,6 +3,7 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { useTheme } from "@/hooks/use-theme";
 
 import { overviewData, recentSalesData, topProducts } from "@/constants";
+import { motion } from "framer-motion";
 
 import { Footer } from "@/layouts/footer";
 import * as XLSX from "xlsx";
@@ -95,21 +96,31 @@ const AnalitikSampahPage = () => {
             <h1 className="title">Analytics Tumpukan Sampah</h1>
             <h2 className="font-semibold">Status Tumpukan Sampah</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div className="card">
+                <motion.div
+                    whileHover={{ y: -10, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="card"
+                >
                     <div className="card-header">
                         <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowBigDown size={26} />
                         </div>
                         <p className="card-title">Status Low</p>
                     </div>
-                    <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileHover={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="card-body bg-slate-100 transition-colors dark:bg-slate-950"
+                    >
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">295</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             0-50% kapasitas
                         </span>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
+
                 <div className="card">
                     <div className="card-header">
                         <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">

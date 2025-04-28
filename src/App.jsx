@@ -1,4 +1,3 @@
-// App.jsx
 import React from "react";
 import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
 import LoginForm from "./routes/login/login";

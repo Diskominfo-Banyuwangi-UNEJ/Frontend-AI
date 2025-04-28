@@ -12,7 +12,7 @@ export default function LoginForm() {
     // src/routes/login/login.jsx
     const handleLogin = (e) => {
         e.preventDefault();
-        if (username === "admin" && password === "admin") {
+        if (username === "admin" && password === "admin123") {
             login();
             console.log("Login successful"); // Menambahkan log untuk memastikan login berhasil
             nav("/dashboard", { replace: true });
