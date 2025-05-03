@@ -3,12 +3,12 @@ import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "rec
 import { useTheme } from "@/hooks/use-theme";
 
 import { overviewData, recentSalesData, topProducts } from "@/constants";
-
+import { motion } from "framer-motion";
 import { Footer } from "@/layouts/footer";
 import * as XLSX from "xlsx";
+import { ArrowLeftRight, ArrowBigUp, PencilLine, Star, Trash, TrendingUp, Download, ArrowBigDown, CctvIcon } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { ArrowLeftRight, DollarSign, ArrowBigUp, PencilLine, Star, Trash, TrendingUp, Users, ArrowBigDown, CctvIcon, Download } from "lucide-react";
 import L from "leaflet";
 
 const pieData = [
@@ -43,7 +43,7 @@ const lokasiPentings = [
 
 const COLORS = ["#2563eb", "#10b981", "#f59e0b"]; // biru, hijau, kuning
 
-const AnalitikKeramaianPage = () => {
+const AnalitikSampahPage = () => {
     const { theme } = useTheme();
     const handleDownload = () => {
         const worksheetData = topProducts.map((item) => ({
@@ -63,39 +63,76 @@ const AnalitikKeramaianPage = () => {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data CCTV");
         XLSX.writeFile(workbook, "data_cctv.xlsx");
     };
+    const handleDownload1 = () => {
+        const worksheetData = dataSampahLain.map((item, index) => ({
+            No: index + 1,
+            Bulan: item.name, // name dari X-axis (misalnya bulan)
+            Total_Tumpukan: item.total, // total dari Y-axis (jumlah tumpukan)
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data 2");
+        XLSX.writeFile(workbook, "Grafik Per Bulan Tumpukan Sampah.xlsx");
+    };
+
+    const handleDownload2 = () => {
+        const worksheetData = dataStatistik.map((item, index) => ({
+            No: index + 1,
+            Status: item.name,
+            Jumlah: item.value,
+            Persentase: `${((item.value / pieData.reduce((sum, d) => sum + d.value, 0)) * 100).toFixed(2)}%`,
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Data 3");
+        XLSX.writeFile(workbook, "Presentase Status Tumpukan Sampah.xlsx");
+    };
 
     return (
         <div className="flex flex-col gap-y-4">
-            <h1 className="title">Analytics Keramaian</h1>
-            <h2 className="font-semibold">Status Keramaian</h2>
+            <h1 className="title">Analytics Tumpukan Sampah</h1>
+            <h2 className="font-semibold">Status Tumpukan Sampah</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <div className="card">
+                <motion.div
+                    whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="card"
+                >
                     <div className="card-header">
                         <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowBigDown size={26} />
                         </div>
-                        <p className="card-title">Sepi</p>
+                        <p className="card-title">Status Low</p>
                     </div>
-                    <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">90 titik</p>
+
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }} // Card body dimulai dengan opacity 0 dan bergeser ke bawah
+                        whileHover={{ opacity: 1, y: 0 }} // Body muncul dan naik saat hover
+                        transition={{ duration: 0.3 }}
+                        className="card-body bg-slate-100 transition-colors dark:bg-slate-950"
+                    >
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">295</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Users size={18} />
-                            1-20 orang
+                            <Trash size={18} />
+                            0-50% kapasitas
                         </span>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
+
                 <div className="card">
                     <div className="card-header">
                         <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowLeftRight size={26} />
                         </div>
-                        <p className="card-title">Normal</p>
+                        <p className="card-title">Status Normal</p>
                     </div>
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">70 titik</p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Users size={18} />
-                            21-50 orang
+                            <Trash size={18} />
+                            50-100% kapasitas
                         </span>
                     </div>
                 </div>
@@ -104,13 +141,13 @@ const AnalitikKeramaianPage = () => {
                         <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowBigUp size={26} />
                         </div>
-                        <p className="card-title">Padat</p>
+                        <p className="card-title">Status High</p>
                     </div>
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">25 titik</p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">25</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Users size={18} />
-                            diatas 50 orang
+                            <Trash size={18} />
+                            over kapasitas
                         </span>
                     </div>
                 </div>
@@ -118,7 +155,14 @@ const AnalitikKeramaianPage = () => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="card col-span-1 md:col-span-2 lg:col-span-4">
                     <div className="card-header">
-                        <p className="card-title">Grafik Keramaian</p>
+                        <p className="card-title">Grafik Per Bulan Tumpukan</p>
+                        <button
+                            onClick={handleDownload1}
+                            className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                        >
+                            <Download className="h-4 w-4" />
+                            Download
+                        </button>
                     </div>
                     <div className="card-body p-0">
                         <ResponsiveContainer
@@ -144,12 +188,12 @@ const AnalitikKeramaianPage = () => {
                                     >
                                         <stop
                                             offset="5%"
-                                            stopColor="#2563eb"
+                                            stopColor="#22c55e"
                                             stopOpacity={0.8}
                                         />
                                         <stop
                                             offset="95%"
-                                            stopColor="#2563eb"
+                                            stopColor="#22c55e"
                                             stopOpacity={0}
                                         />
                                     </linearGradient>
@@ -176,7 +220,7 @@ const AnalitikKeramaianPage = () => {
                                 <Area
                                     type="monotone"
                                     dataKey="total"
-                                    stroke="#2563eb"
+                                    stroke="#22c55e"
                                     fillOpacity={1}
                                     fill="url(#colorTotal)"
                                 />
@@ -187,13 +231,13 @@ const AnalitikKeramaianPage = () => {
                 <div className="card col-span-1 md:col-span-2 lg:col-span-3">
                     <div className="card-header">
                         <p className="card-title">Presentase Status</p>
-                        {/* <button
+                        <button
                             onClick={handleDownload2}
                             className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
                         >
                             <Download className="h-4 w-4" />
                             Download
-                        </button> */}
+                        </button>
                     </div>
                     <div className="card-body h-[300px] p-0">
                         <ResponsiveContainer
@@ -310,66 +354,10 @@ const AnalitikKeramaianPage = () => {
                     </div>
                 </div>
             </div>
+
             <Footer />
         </div>
     );
 };
 
-// const AccountPage = () => {
-//     return (
-//         <div className="card">
-//             <div className="card-header">
-//                 <p className="card-title">Data Akun</p>
-//             </div>
-//             <div className="card-body p-0">
-//                 <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
-//                     <table className="table">
-//                         <thead className="table-header">
-//                             <tr className="table-row">
-//                                 <th className="table-head">#</th>
-//                                 <th className="table-head">Nama Instansi</th>
-//                                 <th className="table-head">Nama Pimpinan</th>
-//                                 <th className="table-head">Status</th>
-//                                 <th className="table-head">Username</th>
-//                                 <th className="table-head">Email</th>
-//                                 <th className="table-head">Password</th>
-//                                 <th className="table-head">Akses</th>
-//                                 <th className="table-head">Actions</th>
-//                             </tr>
-//                         </thead>
-//                         <tbody className="table-body">
-//                             {accountData.map((akun) => (
-//                                 <tr
-//                                     key={akun.id}
-//                                     className="table-row"
-//                                 >
-//                                     <td className="table-cell">{akun.id}</td>
-//                                     <td className="table-cell">{akun.namaInstansi}</td>
-//                                     <td className="table-cell">{akun.namaPimpinan}</td>
-//                                     <td className="table-cell">{akun.status}</td>
-//                                     <td className="table-cell">{akun.username}</td>
-//                                     <td className="table-cell">{akun.email}</td>
-//                                     <td className="table-cell">{akun.password}</td>
-//                                     <td className="table-cell">{akun.akses}</td>
-//                                     <td className="table-cell">
-//                                         <div className="flex items-center gap-x-4">
-//                                             <button className="text-blue-500 dark:text-blue-600">
-//                                                 <PencilLine size={20} />
-//                                             </button>
-//                                             <button className="text-red-500">
-//                                                 <Trash size={20} />
-//                                             </button>
-//                                         </div>
-//                                     </td>
-//                                 </tr>
-//                             ))}
-//                         </tbody>
-//                     </table>
-//                 </div>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default AccountPage;
-export default AnalitikKeramaianPage;
+export default AnalitikSampahPage;

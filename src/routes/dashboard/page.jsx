@@ -3,6 +3,9 @@ import { CctvIcon, Bell, Users, BarChart, Trash, Eye, CameraOff, MapIcon } from 
 import { Footer } from "@/layouts/footer";
 import { useEffect, useState } from "react";
 import { FaVideo, FaSearch, FaMapMarkedAlt, FaBell, FaChartLine } from "react-icons/fa";
+import { Link } from "react-router-dom";
+import AnalitikKeramaianPage from "./analitikkeramaian";
+import AnalitikSampahPage from "./analitiksampah";
 
 const LandingPage = () => {
     const [currentImage, setCurrentImage] = useState(0);
@@ -48,13 +51,18 @@ const LandingPage = () => {
                     </p>
                 </div>
             </section>
-            <section className="p-6">
+            <motion.section
+                className="p-6"
+                initial={{ opacity: 0, x: -100 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: false, amount: 0.2 }}
+            >
                 {/* Flexbox untuk menyandingkan Tentang Sistem dan Fitur Utama */}
                 <div className="flex flex-col gap-6 md:flex-row">
                     {/* Tentang Sistem */}
                     <div className="flex-1">
                         <p className="mb-6 text-left text-2xl font-medium text-blue-500">Tentang Sistem</p>
-                        {/* <p className="mb-6 text-left text-2xl font-bold text-gray-900">Fitur Unggulan CCTV Analytics</p> */}
                         <p className="mt-2 text-justify text-lg text-gray-700">
                             Sistem ini adalah sistem berbasis AI yang dirancang untuk mendukung pemerintah dan masyarakat dalam meningkatkan
                             pengawasan publik, efisiensi layanan, serta mitigasi risiko lingkungan. Dengan memanfaatkan teknologi analitik video
@@ -63,7 +71,14 @@ const LandingPage = () => {
                         </p>
                     </div>
 
-                    <div className="flex-1">
+                    {/* Tujuan Dashboard */}
+                    <motion.div
+                        className="flex-1"
+                        initial={{ opacity: 0, x: -100 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.8 }}
+                        viewport={{ once: false, amount: 0.2 }}
+                    >
                         <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">Tujuan Dashboard</h2>
                         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-1">
                             {[
@@ -93,37 +108,47 @@ const LandingPage = () => {
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
-            </section>
+            </motion.section>
+
             <section className="p-6">
                 <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">Fitur Utama</h2>
                 <div className="grid grid-cols-1 gap-6 p-6 text-center md:grid-cols-2 lg:grid-cols-3">
                     {/* Container untuk memusatkan card */}
                     <div className="col-span-1 flex items-center justify-center gap-6 md:col-span-2 lg:col-span-3">
-                        {/* Card Pertama */}
                         <div className="flex flex-col items-center justify-between rounded-lg bg-white p-4 shadow-lg">
-                            <img
-                                src="/image/keramaian.jpeg" // Ganti dengan path gambar yang sesuai
-                                alt="Fitur 1"
-                                className="h-48 w-full rounded-t-lg object-cover"
-                            />
-                            <div className="mt-4">
-                                <h3 className="text-lg font-semibold text-gray-800">Analisis Keramaian Otomatis</h3>
-                                <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
-                            </div>
+                            <Link
+                                to="analytics"
+                                className="w-full"
+                            >
+                                <img
+                                    src="/image/keramaian.jpeg" // Ganti dengan path gambar yang sesuai
+                                    alt="Fitur 1"
+                                    className="h-48 w-full rounded-t-lg object-cover"
+                                />
+                                <div className="mt-4">
+                                    <h3 className="text-lg font-semibold text-gray-800">Analisis Keramaian Otomatis</h3>
+                                    <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
+                                </div>
+                            </Link>
                         </div>
                         {/* Card Kedua */}
                         <div className="flex flex-col items-center justify-between rounded-lg bg-white p-4 shadow-lg">
-                            <img
-                                src="image/sampah.jpg" // Ganti dengan path gambar yang sesuai
-                                alt="Fitur 2"
-                                className="h-48 w-full rounded-t-lg object-cover"
-                            />
-                            <div className="mt-4">
-                                <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
-                                <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
-                            </div>
+                            <Link
+                                to="reports"
+                                className="w-full"
+                            >
+                                <img
+                                    src="/image/sampah.jpg" // Ganti dengan path gambar yang sesuai
+                                    alt="Fitur 2"
+                                    className="h-48 w-full rounded-t-lg object-cover"
+                                />
+                                <div className="mt-4">
+                                    <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
+                                    <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
@@ -150,20 +175,24 @@ const LandingPage = () => {
                     ))}
                 </div>
             </section> */}
-            {/* Dinas Kominfo Section */}
-            <section className="p-6">
+            <motion.section
+                className="p-6"
+                initial={{ opacity: 0, y: -100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                viewport={{ once: false, amount: 0.2 }}
+            >
                 <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">Dinas Komunikasi, Informatika dan Persandian Banyuwangi</h2>
+
                 <div className="flex flex-col items-center gap-6 md:flex-row">
-                    {/* Gambar Dinas Kominfo */}
                     <div className="w-full md:w-1/2">
                         <img
-                            src="/image/diskominfo.jpg" // Ganti dengan path gambar Dinas Kominfo
+                            src="/image/diskominfo.jpg"
                             alt="Dinas Kominfo"
                             className="w-full rounded-lg object-cover shadow-md"
                         />
                     </div>
 
-                    {/* Informasi Dinas */}
                     <div className="w-full text-left md:w-1/2">
                         <h3 className="text-xl font-semibold text-gray-800">Tentang kami</h3>
                         <p className="mt-2 text-gray-600">
@@ -178,7 +207,7 @@ const LandingPage = () => {
                         </p>
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
             {/* Dinas Terkait */}
             {/* Dinas Terkait */}

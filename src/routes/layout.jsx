@@ -8,7 +8,7 @@ import { Header } from "@/layouts/header";
 
 import { cn } from "@/utils/cn";
 import { useEffect, useRef, useState } from "react";
-import ProtectedRoute from "../contexts/ProtectedRoute";
+// import ProtectedRoute from "../contexts/ProtectedRoute";
 
 const Layout = () => {
     const isDesktopDevice = useMediaQuery("(min-width: 768px)");

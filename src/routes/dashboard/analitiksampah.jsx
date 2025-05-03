@@ -4,7 +4,6 @@ import { useTheme } from "@/hooks/use-theme";
 
 import { overviewData, recentSalesData, topProducts } from "@/constants";
 import { motion } from "framer-motion";
-
 import { Footer } from "@/layouts/footer";
 import * as XLSX from "xlsx";
 import { ArrowLeftRight, ArrowBigUp, PencilLine, Star, Trash, TrendingUp, Download, ArrowBigDown, CctvIcon } from "lucide-react";
@@ -97,7 +96,7 @@ const AnalitikSampahPage = () => {
             <h2 className="font-semibold">Status Tumpukan Sampah</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <motion.div
-                    whileHover={{ y: -10, opacity: 1 }}
+                    whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
                     transition={{ type: "spring", stiffness: 300 }}
                     className="card"
                 >
@@ -107,9 +106,10 @@ const AnalitikSampahPage = () => {
                         </div>
                         <p className="card-title">Status Low</p>
                     </div>
+
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileHover={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 20 }} // Card body dimulai dengan opacity 0 dan bergeser ke bawah
+                        whileHover={{ opacity: 1, y: 0 }} // Body muncul dan naik saat hover
                         transition={{ duration: 0.3 }}
                         className="card-body bg-slate-100 transition-colors dark:bg-slate-950"
                     >
