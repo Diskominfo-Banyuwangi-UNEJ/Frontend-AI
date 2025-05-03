@@ -75,7 +75,7 @@ const AkunPage = () => {
                             onSubmit={handleSubmit}
                         >
                             <div>
-                                <label className="block">Nama Instansi</label>
+                                <label className="block font-medium">Nama Instansi</label>
                                 <select
                                     name="nama_instansi"
                                     value={formData.nama_instansi}
@@ -89,7 +89,7 @@ const AkunPage = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block">Nama Pimpinan</label>
+                                <label className="block font-medium">Nama Pimpinan</label>
                                 <input
                                     type="text"
                                     name="nama_pimpinan"
@@ -99,7 +99,7 @@ const AkunPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block">Status</label>
+                                <label className="block font-medium">Status</label>
                                 <select
                                     name="status"
                                     value={formData.status}
@@ -111,7 +111,7 @@ const AkunPage = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block">Username</label>
+                                <label className="block font-medium">Username</label>
                                 <input
                                     type="text"
                                     name="username"
@@ -121,7 +121,7 @@ const AkunPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block">Email</label>
+                                <label className="block font-medium">Email</label>
                                 <input
                                     type="email"
                                     name="email"
@@ -131,7 +131,7 @@ const AkunPage = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block">Password</label>
+                                <label className="block font-medium">Password</label>
                                 <input
                                     type="password"
                                     name="password"
@@ -150,6 +150,7 @@ const AkunPage = () => {
                     </div>
                 )}
 
+                {/* TABEL ISIAN DATA AKUN */}
                 <div className="card-body p-0">
                     <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
                         <table className="table">

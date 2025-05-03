@@ -29,6 +29,39 @@ const LandingPage = () => {
         setShowPopup(false); // Menutup pop-up
     };
 
+    // pengaduan
+    const [formData, setFormData] = useState({
+        judul: "",
+        kategori: "keramaian",
+        isi: "",
+        tanggal: new Date().toISOString().slice(0, 16), // default ke sekarang
+        status: "terkirim",
+        lokasi: "",
+    });
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value,
+        });
+    };
+
+    const handleKirim = () => {
+        const nomorAdmin = "6285930088301";
+        const pesan = `
+          *Pengaduan Baru*
+          📌 *Judul:* ${formData.judul}
+          📂 *Kategori:* ${formData.kategori}
+          📝 *Isi:* ${formData.isi}
+          🗓️ *Tanggal:* ${formData.tanggal}
+          📍 *Lokasi:* ${formData.lokasi}
+          🚦 *Status:* ${formData.status}
+        `.replace(/\n\s+/g, "\n"); // remove extra spaces
+
+        const linkWA = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
+        window.open(linkWA, "_blank");
+    };
+
     return (
         <div className="flex flex-col gap-y-8">
             {/* Hero Section */}
@@ -175,6 +208,104 @@ const LandingPage = () => {
                     ))}
                 </div>
             </section> */}
+
+            <div className="flex min-h-screen items-center justify-center p-4">
+                <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
+                    <h2 className="mb-4 text-2xl font-semibold text-gray-800">Form Pengaduan Keramaian / Sampah</h2>
+
+                    <div className="mb-4">
+                        <label className="block font-semibold">Nama</label>
+                        <input
+                            type="text"
+                            name="judul"
+                            value={formData.nama}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                            placeholder="Nama"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block font-semibold">Kategori</label>
+                        <select
+                            name="kategori"
+                            value={formData.kategori}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                        >
+                            <option value="keramaian">Keramaian</option>
+                            <option value="sampah">Sampah</option>
+                        </select>
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block font-semibold">Isi Pengaduan</label>
+                        <textarea
+                            name="isi"
+                            value={formData.isi}
+                            onChange={handleChange}
+                            rows={4}
+                            className="w-full rounded border border-gray-300 p-2"
+                            placeholder="Deskripsikan pengaduan Anda"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block font-semibold">Tanggal Kejadian</label>
+                        <input
+                            type="datetime-local"
+                            name="tanggal"
+                            value={formData.tanggal}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                        />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block font-semibold">Lokasi</label>
+                        <input
+                            type="text"
+                            name="lokasi"
+                            value={formData.lokasi}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                            placeholder="Lokasi "
+                        />
+                    </div>
+
+                    {/* <div className="mb-6">
+                        <label className="block font-semibold">Status</label>
+                        <select
+                            name="status"
+                            value={formData.status}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                        >
+                            <option value="terkirim">Terkirim</option>
+                            <option value="diproses">Diproses</option>
+                            <option value="selesai">Selesai</option>
+                        </select>
+                    </div> */}
+
+                    <div className="mb-6">
+                        <label className="block font-semibold">Bukti Pengajuan</label>
+                        <input
+                            type="file"
+                            name="bukti"
+                            accept="image/*"
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2"
+                        />
+                    </div>
+
+                    <button
+                        onClick={handleKirim}
+                        className="w-full rounded bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
+                    >
+                        Kirim ke WhatsApp
+                    </button>
+                </div>
+            </div>
             <motion.section
                 className="p-6"
                 initial={{ opacity: 0, y: -100 }}

@@ -107,18 +107,13 @@ const AnalitikSampahPage = () => {
                         <p className="card-title">Status Low</p>
                     </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }} // Card body dimulai dengan opacity 0 dan bergeser ke bawah
-                        whileHover={{ opacity: 1, y: 0 }} // Body muncul dan naik saat hover
-                        transition={{ duration: 0.3 }}
-                        className="card-body bg-slate-100 transition-colors dark:bg-slate-950"
-                    >
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">295</p>
+                    <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
-                            0-50% kapasitas
+                            50-100% kapasitas
                         </span>
-                    </motion.div>
+                    </div>
                 </motion.div>
 
                 <div className="card">
@@ -230,7 +225,7 @@ const AnalitikSampahPage = () => {
                 </div>
                 <div className="card col-span-1 md:col-span-2 lg:col-span-3">
                     <div className="card-header">
-                        <p className="card-title">Presentase Status</p>
+                        <p className="card-title">Presentase Status Per Hari</p>
                         <button
                             onClick={handleDownload2}
                             className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
