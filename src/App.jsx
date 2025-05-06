@@ -49,6 +49,9 @@ import DashboardPage from "@/routes/dashboard/page";
 import AkunPage from "./routes/dashboard/akun";
 import AnalitikKeramaianPage from "./routes/dashboard/analitikkeramaian";
 import AnalitikSampahPage from "./routes/dashboard/analitiksampah";
+import Notifikasi from "./routes/dashboard/notifikasi";
+import LaporanPage from "./routes/dashboard/laporan";
+import { Header } from "./layouts/header";
 
 function App() {
     const router = createBrowserRouter([
@@ -60,6 +63,8 @@ function App() {
                 { path: "akun", element: <AkunPage /> },
                 { path: "analytics", element: <AnalitikKeramaianPage /> },
                 { path: "reports", element: <AnalitikSampahPage /> },
+                { path: "laporan", element: <LaporanPage /> },
+                { path: "notifikasi", element: <Notifikasi /> },
             ],
         },
         {

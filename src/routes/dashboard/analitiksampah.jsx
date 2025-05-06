@@ -116,13 +116,18 @@ const AnalitikSampahPage = () => {
                     </div>
                 </motion.div>
 
-                <div className="card">
+                <motion.div
+                    whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="card"
+                >
                     <div className="card-header">
-                        <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                        <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowLeftRight size={26} />
                         </div>
                         <p className="card-title">Status Normal</p>
                     </div>
+
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
@@ -130,22 +135,27 @@ const AnalitikSampahPage = () => {
                             50-100% kapasitas
                         </span>
                     </div>
-                </div>
-                <div className="card">
+                </motion.div>
+                <motion.div
+                    whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="card"
+                >
                     <div className="card-header">
-                        <div className="rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                        <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
                             <ArrowBigUp size={26} />
                         </div>
-                        <p className="card-title">Status High</p>
+                        <p className="card-title">Status Normal</p>
                     </div>
+
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">25</p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             over kapasitas
                         </span>
                     </div>
-                </div>
+                </motion.div>
             </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="card col-span-1 md:col-span-2 lg:col-span-4">
@@ -240,6 +250,7 @@ const AnalitikSampahPage = () => {
                             height="100%"
                         >
                             <PieChart>
+                                <Tooltip formatter={(value, name) => [`${value}`, `${name}`]} />
                                 <Pie
                                     data={pieData}
                                     cx="50%"

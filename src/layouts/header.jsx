@@ -4,6 +4,7 @@ import profileImg from "@/assets/profile-image.jpg";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import React, { useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const Header = ({ collapsed, setCollapsed }) => {
     const profileRef = useRef(null);
@@ -23,6 +24,11 @@ export const Header = ({ collapsed, setCollapsed }) => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setEditData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const navigate = useNavigate();
+    const handleBellClick = () => {
+        navigate("/notifikasi");
     };
 
     const handleSave = () => {
@@ -173,9 +179,16 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     />
                 </button>
 
-                <button className="btn-ghost size-10">
-                    <Bell size={20} />
-                </button>
+                <div className="relative">
+                    <button
+                        className="btn-ghost size-10"
+                        onClick={handleBellClick}
+                    >
+                        <Bell size={20} />
+                    </button>
+                    {/* Tanda notifikasi jika ada */}
+                    {true && <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>}
+                </div>
 
                 {/* Profile button */}
                 <div

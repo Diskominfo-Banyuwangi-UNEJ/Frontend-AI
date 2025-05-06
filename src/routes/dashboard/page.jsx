@@ -37,17 +37,28 @@ const LandingPage = () => {
         tanggal: new Date().toISOString().slice(0, 16), // default ke sekarang
         status: "terkirim",
         lokasi: "",
+        bukti: null,
     });
 
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        const { name, value, files } = e.target;
+        if (name === "bukti") {
+            setFormData({
+                ...formData,
+                [name]: files[0], // ambil file pertama
+            });
+        } else {
+            setFormData({
+                ...formData,
+                [name]: value,
+            });
+        }
     };
 
     const handleKirim = () => {
         const nomorAdmin = "6285930088301";
+        const buktiNama = formData.bukti ? formData.bukti.name : "Tidak ada";
+
         const pesan = `
           *Pengaduan Baru*
           📌 *Judul:* ${formData.judul}
@@ -56,10 +67,11 @@ const LandingPage = () => {
           🗓️ *Tanggal:* ${formData.tanggal}
           📍 *Lokasi:* ${formData.lokasi}
           🚦 *Status:* ${formData.status}
-        `.replace(/\n\s+/g, "\n"); // remove extra spaces
+          📎 *Bukti:* ${buktiNama}
+        `.replace(/\n\s+/g, "\n");
 
-        const linkWA = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
-        window.open(linkWA, "_blank");
+        const url = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
+        window.open(url, "_blank");
     };
 
     return (
@@ -210,6 +222,28 @@ const LandingPage = () => {
             </section> */}
 
             <div className="flex min-h-screen items-center justify-center p-4">
+                <div className="mb-6 text-left">
+                    <h1 className="text-3xl font-bold text-blue-700">Layanan Pengaduan Masyarakat</h1>
+                    <p className="mt-2 px-6 text-gray-600">
+                        Silakan isi formulir di bawah ini untuk melaporkan kejadian keramaian atau masalah sampah di lingkungan Anda.
+                    </p>
+                    <div className="mx-auto mt-4 max-w-md px-6 text-left">
+                        <ol className="list-decimal space-y-1 pl-5 text-sm text-gray-700 md:text-base">
+                            <li>
+                                Isi <strong>nama lengkap</strong> pelapor untuk identifikasi dan tindak lanjut.
+                            </li>
+                            <li>
+                                Pilih <strong>kategori</strong> pengaduan sesuai dengan jenis permasalahan (keramaian atau sampah).
+                            </li>
+                            <li>
+                                Tulis <strong>deskripsi lengkap</strong> pengaduan, sertakan waktu dan lokasi kejadian.
+                            </li>
+                            <li>
+                                Unggah <strong>bukti pendukung</strong> (foto) jika tersedia, lalu klik tombol <em>Kirim ke WhatsApp</em>.
+                            </li>
+                        </ol>
+                    </div>
+                </div>
                 <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
                     <h2 className="mb-4 text-2xl font-semibold text-gray-800">Form Pengaduan Keramaian / Sampah</h2>
 
@@ -306,6 +340,7 @@ const LandingPage = () => {
                     </button>
                 </div>
             </div>
+
             <motion.section
                 className="p-6"
                 initial={{ opacity: 0, y: -100 }}
@@ -324,17 +359,18 @@ const LandingPage = () => {
                         />
                     </div>
 
-                    <div className="w-full text-left md:w-1/2">
-                        <h3 className="text-xl font-semibold text-gray-800">Tentang kami</h3>
-                        <p className="mt-2 text-gray-600">
-                            Dinas Komunikasi, Informatika dan Persandian Banyuwangi memiliki peran penting dalam pengelolaan teknologi informasi dan
-                            komunikasi di tingkat daerah. Sebagai lembaga yang mengatur infrastruktur digital dan penyebaran informasi publik, Kominfo
-                            juga bertanggung jawab dalam peningkatan kualitas layanan publik melalui teknologi.
+                    <div className="w-full md:w-1/2">
+                        <h3 className="text-center text-xl font-bold text-gray-800">Tentang Kami</h3>
+                        <p className="mt-2 text-justify text-gray-600">
+                            Dinas Komunikasi, Informatika, dan Persandian Kabupaten Banyuwangi merupakan garda terdepan dalam transformasi digital di
+                            tingkat daerah. Kami berperan strategis dalam merancang, mengelola, dan mengembangkan infrastruktur teknologi informasi
+                            dan komunikasi (TIK) guna mendukung terciptanya pemerintahan yang efisien, transparan, dan responsif
                         </p>
-                        <p className="mt-2 text-gray-600">
-                            Dinas Kominfo berperan penting dalam mendukung implementasi kebijakan pemerintah daerah yang berbasis digital. Dengan
-                            adanya dukungan infrastruktur digital yang baik, diharapkan dapat meningkatkan efisiensi dalam pelayanan publik dan
-                            membuka akses yang lebih luas bagi masyarakat terhadap berbagai informasi dan layanan.
+                        <p className="mt-2 text-justify text-gray-600">
+                            Sebagai penghubung antara pemerintah dan masyarakat, Dinas Kominfo tidak hanya memastikan tersedianya akses informasi
+                            publik yang akurat dan terpercaya, tetapi juga mendorong pemanfaatan teknologi digital dalam berbagai aspek pelayanan
+                            publik. Melalui digitalisasi layanan dan peningkatan literasi digital, kami berkomitmen untuk menciptakan sistem
+                            pemerintahan yang adaptif terhadap perkembangan zaman dan mampu memenuhi kebutuhan masyarakat.
                         </p>
                     </div>
                 </div>
@@ -349,17 +385,17 @@ const LandingPage = () => {
                         {
                             title: "Dinas Perhubungan",
                             desc: "Mengatur lalu lintas dan fasilitas transportasi kota untuk kenyamanan warga.",
-                            img: "/image/kantor.jpeg",
+                            img: "/image/perhubungan.png",
                         },
                         {
                             title: "Dinas Lingkungan Hidup",
                             desc: "Menerapkan kebijakan pelestarian lingkungan dan pengelolaan sampah kota.",
-                            img: "/image/banyuwangi_1.jpg",
+                            img: "/image/dlh.png",
                         },
                         {
                             title: "Satuan Polisi Pamong Praja",
                             desc: "Mengelola infrastruktur dan pembangunan kota untuk peningkatan kualitas hidup.",
-                            img: "/image/satpolpp.jpeg", // Gambar untuk kartu ketiga
+                            img: "/image/satpol1.jpg",
                         },
                     ].map((dinas, index) => (
                         <motion.div
@@ -375,7 +411,7 @@ const LandingPage = () => {
                                 <img
                                     src={dinas.img}
                                     alt={`Gambar ${dinas.title}`}
-                                    className="h-full w-full object-cover"
+                                    className="h-full w-full object-contain"
                                 />
                             </div>
                         </motion.div>
