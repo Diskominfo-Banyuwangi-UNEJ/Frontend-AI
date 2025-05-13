@@ -107,7 +107,7 @@ const LandingPage = () => {
                 <div className="flex flex-col gap-6 md:flex-row">
                     {/* Tentang Sistem */}
                     <div className="flex-1">
-                        <p className="mb-6 text-left text-2xl font-medium text-blue-500">Tentang Sistem</p>
+                        <p className="mb-6 text-left text-2xl font-bold text-blue-500">Tentang Sistem</p>
                         <p className="mt-2 text-justify text-lg text-gray-700">
                             Sistem ini adalah sistem berbasis AI yang dirancang untuk mendukung pemerintah dan masyarakat dalam meningkatkan
                             pengawasan publik, efisiensi layanan, serta mitigasi risiko lingkungan. Dengan memanfaatkan teknologi analitik video
@@ -124,7 +124,7 @@ const LandingPage = () => {
                         transition={{ duration: 0.8 }}
                         viewport={{ once: false, amount: 0.2 }}
                     >
-                        <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">Tujuan Dashboard</h2>
+                        <h2 className="mb-6 text-center text-2xl font-bold text-blue-500">Tujuan Dashboard</h2>
                         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-1">
                             {[
                                 {

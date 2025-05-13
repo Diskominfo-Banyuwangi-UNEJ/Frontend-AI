@@ -1,16 +1,28 @@
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
+import { Area, LineChart, Bar, BarChart, Line, CartesianGrid, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useTheme } from "@/hooks/use-theme";
-
 import { overviewData, recentSalesData, topProducts } from "@/constants";
 import { motion } from "framer-motion";
 import { Footer } from "@/layouts/footer";
 import * as XLSX from "xlsx";
-import { ArrowLeftRight, ArrowBigUp, PencilLine, Star, Trash, TrendingUp, Download, ArrowBigDown, CctvIcon } from "lucide-react";
+import {
+    ArrowLeftRight,
+    ArrowBigUp,
+    PencilLine,
+    Star,
+    Trash,
+    TrendingUp,
+    Download,
+    ArrowBigDown,
+    CctvIcon,
+    Clock,
+    AlertTriangle,
+    Calendar,
+} from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useState } from "react";
+
 const pieData = [
     { name: "Low", value: 200 },
     { name: "Normal", value: 750 },
@@ -27,6 +39,16 @@ const customMarker = new L.Icon({
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
 });
+
+// Data sample untuk chart
+const trafficData = [
+    { time: "08:00", visitors: 120 },
+    { time: "10:00", visitors: 350 },
+    { time: "12:00", visitors: 420 },
+    { time: "14:00", visitors: 380 },
+    { time: "16:00", visitors: 200 },
+    { time: "18:00", visitors: 150 },
+];
 
 const lokasiPentings = [
     {
@@ -90,11 +112,24 @@ const AnalitikSampahPage = () => {
         XLSX.writeFile(workbook, "Presentase Status Tumpukan Sampah.xlsx");
     };
     const [showJavanaTable, setShowJavanaTable] = useState(false);
+    const peakHour = trafficData.reduce((prev, current) => (prev.visitors > current.visitors ? prev : current));
+    // Data sample untuk chart sampah saja
+    const wasteData = [
+        { time: "08:00", waste: 30 },
+        { time: "10:00", waste: 75 },
+        { time: "12:00", waste: 90 },
+        { time: "14:00", waste: 80 },
+        { time: "16:00", waste: 50 },
+        { time: "18:00", waste: 40 },
+    ];
+    // Data statistik teks
+    const peakWasteTime = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).time;
+    const maxWaste = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).waste + "kg";
 
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Tumpukan Sampah</h1>
-            <h2 className="font-semibold">Status Tumpukan Sampah</h2>
+            <h1 className="mt-3 text-center font-bold">Status Tumpukan Sampah</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <motion.div
                     whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
@@ -158,6 +193,81 @@ const AnalitikSampahPage = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Section 1: Grafik Volume Sampah */}
+            <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
+
+            <div className="card">
+                <h2 className="mb-4 font-semibold">Trend Volume Sampah</h2>
+                <div className="h-80 w-full">
+                    <ResponsiveContainer
+                        width="100%"
+                        height="100%"
+                    >
+                        <LineChart data={wasteData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="time" />
+                            <YAxis label={{ value: "Volume Sampah (kg)", angle: -90, position: "insideLeft" }} />
+                            <Tooltip />
+                            <Line
+                                type="monotone"
+                                dataKey="waste"
+                                name="Volume Sampah"
+                                stroke="#ef4444"
+                                strokeWidth={3}
+                                activeDot={{ r: 6 }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Section 3: Statistik Teks */}
+            <h1 className="text-center font-semibold">Statistik</h1>
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <motion.div
+                    whileHover={{ y: -5 }}
+                    className="flex items-center gap-4 rounded-lg border bg-red-50 p-4 dark:bg-red-900/20"
+                >
+                    <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
+                        <AlertTriangle size={24} />
+                    </div>
+                    <div>
+                        <p className="font-medium text-slate-500 dark:text-slate-400">Puncak Volume Sampah</p>
+                        <p className="text-2xl font-bold">{peakWasteTime}</p>
+                        <p className="text-sm text-red-500">{maxWaste}</p>
+                    </div>
+                </motion.div>
+
+                <motion.div
+                    whileHover={{ y: -5 }}
+                    className="flex items-center gap-4 rounded-lg border bg-orange-50 p-4 dark:bg-orange-900/20"
+                >
+                    <div className="rounded-lg bg-orange-500/20 p-3 text-orange-500">
+                        <Clock size={24} />
+                    </div>
+                    <div>
+                        <p className="font-medium text-slate-500 dark:text-slate-400">Rata-rata Per Jam</p>
+                        <p className="text-2xl font-bold">{Math.round(wasteData.reduce((acc, curr) => acc + curr.waste, 0) / wasteData.length)}kg</p>
+                    </div>
+                </motion.div>
+
+                <motion.div
+                    whileHover={{ y: -5 }}
+                    className="flex items-center gap-4 rounded-lg border bg-green-50 p-4 dark:bg-green-900/20"
+                >
+                    <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
+                        <Calendar size={24} />
+                    </div>
+                    <div>
+                        <p className="font-medium text-slate-500 dark:text-slate-400">Rekomendasi</p>
+                        <p className="text-lg font-semibold">Pengangkutan sampah jam {peakWasteTime}</p>
+                    </div>
+                </motion.div>
+            </div>
+
+            <h1 className="mt-4 text-center font-bold">Analisis Volume Sampah Harian dan Bulanan</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
                 <div className="card col-span-1 md:col-span-2 lg:col-span-4">
                     <div className="card-header">
@@ -278,10 +388,11 @@ const AnalitikSampahPage = () => {
                     </div>
                 </div>
             </div>
+            <h1 className="mb-2 mt-8 text-center font-bold">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</h1>
             <div className="card col-span-full">
-                <div className="card-header">
+                {/* <div className="card-header">
                     <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
-                </div>
+                </div> */}
                 <div className="card-body h-[400px] overflow-hidden p-0">
                     <MapContainer
                         center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
@@ -306,14 +417,19 @@ const AnalitikSampahPage = () => {
                     </MapContainer>
                 </div>
             </div>
-
-            <button
-                onClick={() => setShowJavanaTable(true)}
-                className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-            >
-                Javana
-            </button>
-
+            {!showJavanaTable && (
+                <div className="flex justify-center">
+                    <div className="card p-6 text-center">
+                        <p className="mb-4 text-lg font-medium text-gray-700">Informasi aku siap makan apa saja</p>
+                        <button
+                            onClick={() => setShowJavanaTable(true)}
+                            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                        >
+                            Javana
+                        </button>
+                    </div>
+                </div>
+            )}
             {showJavanaTable && (
                 <div className="card">
                     <div className="card-header">
@@ -371,7 +487,6 @@ const AnalitikSampahPage = () => {
                     </div>
                 </div>
             )}
-
             <Footer />
         </div>
     );
