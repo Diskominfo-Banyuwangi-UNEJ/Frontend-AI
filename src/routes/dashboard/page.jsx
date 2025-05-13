@@ -173,8 +173,7 @@ const LandingPage = () => {
                                     className="h-48 w-full rounded-t-lg object-cover"
                                 />
                                 <div className="mt-4">
-                                    <h3 className="text-lg font-semibold text-gray-800">Analisis Keramaian Otomatis</h3>
-                                    <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
+                                    <h3 className="text-lg font-semibold text-gray-800">Pemantauan Keramaian </h3>
                                 </div>
                             </Link>
                         </div>
@@ -185,13 +184,12 @@ const LandingPage = () => {
                                 className="w-full"
                             >
                                 <img
-                                    src="/image/sampah.jpg" // Ganti dengan path gambar yang sesuai
+                                    src="/image/sampah.jpg"
                                     alt="Fitur 2"
                                     className="h-48 w-full rounded-t-lg object-cover"
                                 />
                                 <div className="mt-4">
                                     <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
-                                    <p className="mt-1 text-xl text-gray-700">Keterangan singkat tentang fitur ini.</p>
                                 </div>
                             </Link>
                         </div>
@@ -245,7 +243,7 @@ const LandingPage = () => {
                     </div>
                 </div>
                 <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
-                    <h2 className="mb-4 text-2xl font-semibold text-gray-800">Form Pengaduan Keramaian / Sampah</h2>
+                    <h3 className="mb-4 text-center text-2xl font-semibold text-gray-800">Form Pengaduan Keramaian dan Sampah</h3>
 
                     <div className="mb-4">
                         <label className="block font-semibold">Nama</label>
@@ -377,7 +375,6 @@ const LandingPage = () => {
             </motion.section>
 
             {/* Dinas Terkait */}
-            {/* Dinas Terkait */}
             <div className="mt-10">
                 <h2 className="mb-4 text-center text-2xl font-bold text-blue-600">DINAS TERKAIT DASHBOARD CCTV</h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -386,38 +383,49 @@ const LandingPage = () => {
                             title: "Dinas Perhubungan",
                             desc: "Mengatur lalu lintas dan fasilitas transportasi kota untuk kenyamanan warga.",
                             img: "/image/perhubungan.png",
+                            link: "https://dishub.banyuwangikab.go.id/",
                         },
                         {
                             title: "Dinas Lingkungan Hidup",
                             desc: "Menerapkan kebijakan pelestarian lingkungan dan pengelolaan sampah kota.",
                             img: "/image/dlh.png",
+                            link: "https://dlh.banyuwangikab.go.id/",
                         },
                         {
                             title: "Satuan Polisi Pamong Praja",
                             desc: "Mengelola infrastruktur dan pembangunan kota untuk peningkatan kualitas hidup.",
                             img: "/image/satpol1.jpg",
+                            link: "https://satpolpp.banyuwangikab.go.id/#",
                         },
                     ].map((dinas, index) => (
-                        <motion.div
+                        <a
                             key={index}
-                            className="flex flex-col overflow-hidden rounded-xl bg-white p-6 shadow-md transition-shadow duration-300 hover:shadow-lg"
-                            initial={{ y: 0 }} // Initial position
-                            whileHover={{ y: -10 }} // Move up when hovered
-                            transition={{ type: "spring", stiffness: 300 }} // Smooth spring transition
+                            href={dinas.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="no-underline"
                         >
-                            <h3 className="text-xl font-semibold text-gray-800">{dinas.title}</h3>
-                            <p className="mt-2 text-gray-600">{dinas.desc}</p>
-                            <div className="mt-4 h-48 w-full overflow-hidden rounded-lg">
-                                <img
-                                    src={dinas.img}
-                                    alt={`Gambar ${dinas.title}`}
-                                    className="h-full w-full object-contain"
-                                />
-                            </div>
-                        </motion.div>
+                            <motion.div
+                                className="flex flex-col overflow-hidden rounded-xl bg-white p-6 shadow-md transition-shadow duration-300 hover:shadow-lg"
+                                initial={{ y: 0 }}
+                                whileHover={{ y: -10 }}
+                                transition={{ type: "spring", stiffness: 300 }}
+                            >
+                                <h3 className="text-xl font-semibold text-gray-800">{dinas.title}</h3>
+                                <p className="mt-2 text-gray-600">{dinas.desc}</p>
+                                <div className="mt-4 h-48 w-full overflow-hidden rounded-lg">
+                                    <img
+                                        src={dinas.img}
+                                        alt={`Gambar ${dinas.title}`}
+                                        className="h-full w-full object-contain"
+                                    />
+                                </div>
+                            </motion.div>
+                        </a>
                     ))}
                 </div>
             </div>
+
             {/* <section className="px-6 py-10">
                 <h2 className="mb-4 text-2xl font-bold text-gray-800">Berita Insight</h2>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

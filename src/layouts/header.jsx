@@ -1,6 +1,6 @@
 import { useTheme } from "@/hooks/use-theme";
 import { Bell, ChevronsLeft, Moon, Search, Sun } from "lucide-react";
-import profileImg from "@/assets/profile-image.jpg";
+import profileImg from "@/assets/saya.jpg";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import React, { useRef, useEffect } from "react";
@@ -50,7 +50,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
     }, []);
 
     return (
-        <header className="relative z-10 flex h-[60px] items-center justify-between bg-white px-4 shadow-md transition-colors dark:bg-slate-900">
+        <header className="relative z-10 flex h-[60px] items-center justify-between bg-blue-500 px-4 shadow-md transition-colors dark:bg-slate-900">
             {showEditForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="w-[400px] rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
@@ -201,7 +201,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     >
                         <img
                             src={profileImg}
-                            alt="profile image"
+                            alt="saya"
                             className="size-full object-cover"
                         />
                     </button>

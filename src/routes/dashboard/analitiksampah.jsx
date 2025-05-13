@@ -10,7 +10,7 @@ import { ArrowLeftRight, ArrowBigUp, PencilLine, Star, Trash, TrendingUp, Downlo
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-
+import { useState } from "react";
 const pieData = [
     { name: "Low", value: 200 },
     { name: "Normal", value: 750 },
@@ -89,6 +89,7 @@ const AnalitikSampahPage = () => {
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data 3");
         XLSX.writeFile(workbook, "Presentase Status Tumpukan Sampah.xlsx");
     };
+    const [showJavanaTable, setShowJavanaTable] = useState(false);
 
     return (
         <div className="flex flex-col gap-y-4">
@@ -305,61 +306,71 @@ const AnalitikSampahPage = () => {
                     </MapContainer>
                 </div>
             </div>
-            <div className="card">
-                <div className="card-header">
-                    <p className="card-title"> Informasi CCTV</p>
-                    <button
-                        onClick={handleDownload}
-                        className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                    >
-                        <Download className="h-4 w-4" />
-                        Download
-                    </button>
-                </div>
-                <div className="card-body p-0">
-                    <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
-                        <table className="table">
-                            <thead className="table-header">
-                                <tr className="table-row">
-                                    <th className="table-head">No</th>
-                                    <th className="table-head">Timestamp</th>
-                                    <th className="table-head">Nama CCTV</th>
-                                    <th className="table-head">Jenis Deteksi</th>
-                                    <th className="table-head">Latitude</th>
-                                    <th className="table-head">Longitude</th>
-                                    <th className="table-head">Presentase Sampah</th>
-                                    <th className="table-head">Status Sampah</th>
-                                    <th className="table-head">Live CCTV</th>
-                                </tr>
-                            </thead>
-                            <tbody className="table-body">
-                                {topProducts.map((product) => (
-                                    <tr
-                                        key={product.number}
-                                        className="table-row"
-                                    >
-                                        <td className="table-cell">{product.number}</td>
-                                        <td className="table-cell">{product.name}</td>
-                                        <td className="table-cell">${product.price}</td>
-                                        <td className="table-cell">{product.status}</td>
-                                        <td className="table-cell">{product.rating}</td>
-                                        <td className="table-cell">-</td>
-                                        <td className="table-cell">-</td>
-                                        <td className="table-cell">{product.status}</td>
-                                        <td className="table-cell">
-                                            <div className="flex items-center gap-x-4">
-                                                <button className="text-blue-500 dark:text-blue-600">
-                                                    <CctvIcon size={20} />
-                                                </button>
-                                            </div>
-                                        </td>
+
+            <button
+                onClick={() => setShowJavanaTable(true)}
+                className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+            >
+                Javana
+            </button>
+
+            {showJavanaTable && (
+                <div className="card">
+                    <div className="card-header">
+                        <p className="card-title"> Informasi CCTV</p>
+                        <button
+                            onClick={handleDownload}
+                            className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                        >
+                            <Download className="h-4 w-4" />
+                            Download
+                        </button>
+                    </div>
+                    <div className="card-body p-0">
+                        <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
+                            <table className="table">
+                                <thead className="table-header">
+                                    <tr className="table-row">
+                                        <th className="table-head">No</th>
+                                        <th className="table-head">Timestamp</th>
+                                        <th className="table-head">Nama CCTV</th>
+                                        <th className="table-head">Jenis Deteksi</th>
+                                        <th className="table-head">Latitude</th>
+                                        <th className="table-head">Longitude</th>
+                                        <th className="table-head">Presentase Sampah</th>
+                                        <th className="table-head">Status Sampah</th>
+                                        <th className="table-head">Live CCTV</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody className="table-body">
+                                    {topProducts.map((product) => (
+                                        <tr
+                                            key={product.number}
+                                            className="table-row"
+                                        >
+                                            <td className="table-cell">{product.number}</td>
+                                            <td className="table-cell">{product.name}</td>
+                                            <td className="table-cell">${product.price}</td>
+                                            <td className="table-cell">{product.status}</td>
+                                            <td className="table-cell">{product.rating}</td>
+                                            <td className="table-cell">-</td>
+                                            <td className="table-cell">-</td>
+                                            <td className="table-cell">{product.status}</td>
+                                            <td className="table-cell">
+                                                <div className="flex items-center gap-x-4">
+                                                    <button className="text-blue-500 dark:text-blue-600">
+                                                        <CctvIcon size={20} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             <Footer />
         </div>
