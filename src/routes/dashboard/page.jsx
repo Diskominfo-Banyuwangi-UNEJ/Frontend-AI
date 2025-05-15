@@ -1,11 +1,14 @@
 import { motion } from "framer-motion";
 import { CctvIcon, Bell, Users, BarChart, Trash, Eye, CameraOff, MapIcon } from "lucide-react";
 import { Footer } from "@/layouts/footer";
-import { useEffect, useState } from "react";
+import { useEffect, useState,useCallback } from "react";
 import { FaVideo, FaSearch, FaMapMarkedAlt, FaBell, FaChartLine } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import AnalitikKeramaianPage from "./analitikkeramaian";
 import AnalitikSampahPage from "./analitiksampah";
+import { GoogleMap,Marker, useJsApiLoader  } from '@react-google-maps/api';
+
+
 
 const LandingPage = () => {
     const [currentImage, setCurrentImage] = useState(0);
@@ -28,6 +31,70 @@ const LandingPage = () => {
     const handleClosePopup = () => {
         setShowPopup(false); // Menutup pop-up
     };
+
+//     // Peta Lokasi
+//     const containerStyle = {
+//     width: '100%',
+//     height: '400px',
+//     };
+
+//     const center = {
+//     lat: -8.2192, // Titik tengah Banyuwangi
+//     lng: 114.3692,
+//     };
+
+//     // Bounding box Kabupaten Banyuwangi (kira-kira)
+//     const BANYUWANGI_BOUNDS = {
+//     north: -7.9,
+//     south: -8.6,
+//     east: 114.6,
+//     west: 113.8,
+//     };
+
+//     const { isLoaded } = useJsApiLoader({
+//     id: 'google-map-script',
+//     googleMapsApiKey: 'AIzaSyCGgX6yOCfLBdpbp0Q80HX9sqF5j_RZRzk', // ganti dengan API key kamu
+//     libraries: ['places'],
+//     });
+
+//     const [selectedLocation, setSelectedLocation] = useState(null);
+//     const [address, setAddress] = useState('');
+
+//     const isWithinBanyuwangi = (lat, lng) => {
+//         return (
+//         lat <= BANYUWANGI_BOUNDS.north &&
+//         lat >= BANYUWANGI_BOUNDS.south &&
+//         lng <= BANYUWANGI_BOUNDS.east &&
+//         lng >= BANYUWANGI_BOUNDS.west
+//         );
+//     };
+
+//   const reverseGeocode = (lat, lng) => {
+//     const geocoder = new window.google.maps.Geocoder();
+//     const latlng = { lat, lng };
+
+//     geocoder.geocode({ location: latlng }, (results, status) => {
+//       if (status === 'OK' && results[0]) {
+//         setAddress(results[0].formatted_address);
+//       } else {
+//         setAddress('Alamat tidak ditemukan');
+//       }
+//     });
+//   };
+
+//   const handleMapClick = useCallback((e) => {
+//     const lat = e.latLng.lat();
+//     const lng = e.latLng.lng();
+
+//     if (isWithinBanyuwangi(lat, lng)) {
+//       setSelectedLocation({ lat, lng });
+//       reverseGeocode(lat, lng);
+//     } else {
+//       alert('Lokasi di luar Kabupaten Banyuwangi!');
+//     }
+//   }, []);
+
+
 
     // pengaduan
     const [formData, setFormData] = useState({
@@ -61,13 +128,13 @@ const LandingPage = () => {
 
         const pesan = `
           *Pengaduan Baru*
-          📌 *Judul:* ${formData.judul}
-          📂 *Kategori:* ${formData.kategori}
-          📝 *Isi:* ${formData.isi}
-          🗓️ *Tanggal:* ${formData.tanggal}
-          📍 *Lokasi:* ${formData.lokasi}
-          🚦 *Status:* ${formData.status}
-          📎 *Bukti:* ${buktiNama}
+          Judul: ${formData.judul}
+          Kategori: ${formData.kategori}
+          Isi: ${formData.isi}
+          Tanggal: ${formData.tanggal}
+          Lokasi: ${formData.lokasi}
+          Status: ${formData.status}
+          Bukti: ${buktiNama}
         `.replace(/\n\s+/g, "\n");
 
         const url = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
@@ -127,18 +194,19 @@ const LandingPage = () => {
                         <h2 className="mb-6 text-center text-2xl font-bold text-blue-500">Tujuan Dashboard</h2>
                         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-1">
                             {[
-                                {
-                                    icon: <Users size={26} />,
-                                    title: "Mempercepat respons terhadap insiden, meningkatkan kewaspadaan, dan mengurangi kemungkinan terlewatnya kejadian penting",
-                                },
-                                {
-                                    icon: <Trash size={26} />,
-                                    title: "Memudahkan pengambilan keputusan terkait pengelolaan ruang, misalnya untuk keamanan publik, pengaturan lalu lintas, atau pengendalian akses.",
-                                },
-                                {
-                                    icon: <BarChart size={26} />,
-                                    title: "Mengurangi ketergantungan pada pemantauan manual dan memberikan peringatan dini tentang kejadian-kejadian yang memerlukan tindakan segera.",
-                                },
+                            {
+                            icon: <Users size={26} />,
+                            title: "Analitik sampah untuk respons cepat dan pencegahan penumpukan.",
+                            },
+                            {
+                            icon: <Trash size={26} />,
+                            title: "Pantau keramaian demi keamanan dan pengaturan ruang publik.",
+                            },
+                            {
+                            icon: <BarChart size={26} />,
+                            title: "Pelaporan otomatis untuk deteksi dini dan tindak lanjut insiden.",
+                            },
+
                             ].map((item, index) => (
                                 <div
                                     key={index}
@@ -162,37 +230,39 @@ const LandingPage = () => {
                 <div className="grid grid-cols-1 gap-6 p-6 text-center md:grid-cols-2 lg:grid-cols-3">
                     {/* Container untuk memusatkan card */}
                     <div className="col-span-1 flex items-center justify-center gap-6 md:col-span-2 lg:col-span-3">
-                        <div className="flex flex-col items-center justify-between rounded-lg bg-white p-4 shadow-lg">
-                            <Link
-                                to="analytics"
-                                className="w-full"
-                            >
-                                <img
-                                    src="/image/keramaian.jpeg" // Ganti dengan path gambar yang sesuai
-                                    alt="Fitur 1"
-                                    className="h-48 w-full rounded-t-lg object-cover"
-                                />
-                                <div className="mt-4">
-                                    <h3 className="text-lg font-semibold text-gray-800">Pemantauan Keramaian </h3>
-                                </div>
-                            </Link>
-                        </div>
+                         <motion.div
+                        whileHover={{ scale: 1.05 }} // Zoom out sedikit saat hover
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
+                        >
+                        <Link to="analytics" className="flex flex-col h-full">
+                            <img
+                            src="/image/keramaian.jpeg"
+                            alt="Fitur 1"
+                            className="h-48 w-full rounded-t-lg object-cover"
+                            />
+                            <div className="mt-4 flex-grow">
+                            <h3 className="text-lg font-semibold text-gray-800">Pemantauan Keramaian</h3>
+                            </div>
+                        </Link>
+                        </motion.div>
                         {/* Card Kedua */}
-                        <div className="flex flex-col items-center justify-between rounded-lg bg-white p-4 shadow-lg">
-                            <Link
-                                to="reports"
-                                className="w-full"
-                            >
-                                <img
-                                    src="/image/sampah.jpg"
-                                    alt="Fitur 2"
-                                    className="h-48 w-full rounded-t-lg object-cover"
-                                />
-                                <div className="mt-4">
-                                    <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
-                                </div>
-                            </Link>
-                        </div>
+                        <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                        className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
+                        >
+                        <Link to="reports" className="flex flex-col h-full">
+                            <img
+                            src="/image/sampah.jpg"
+                            alt="Fitur 2"
+                            className="h-48 w-full rounded-t-lg object-cover"
+                            />
+                            <div className="mt-4 flex-grow">
+                            <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
+                            </div>
+                        </Link>
+                        </motion.div>
                     </div>
                 </div>
             </section>
@@ -294,16 +364,50 @@ const LandingPage = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label className="block font-semibold">Lokasi</label>
-                        <input
-                            type="text"
-                            name="lokasi"
-                            value={formData.lokasi}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                            placeholder="Lokasi "
-                        />
-                    </div>
+    <label className="block font-semibold">Lokasi Kejadian</label>
+    <a
+        href="https://www.google.com/maps"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 underline text-sm"
+    >
+        Buka Google Maps untuk menyalin lokasi
+    </a>
+    <input
+        type="text"
+        name="lokasi"
+        value={formData.lokasi}
+        onChange={handleChange}
+        className="w-full rounded border border-gray-300 p-2 mt-1"
+        placeholder="Tempelkan lokasi dari Google Maps"
+    />
+</div>
+
+
+
+                     {/* <div className="p-4">
+                        <h1 className="text-xl font-semibold mb-4">Pilih Lokasi di Banyuwangi</h1>
+                        {isLoaded ? (
+                            <GoogleMap
+                            mapContainerStyle={containerStyle}
+                            center={center}
+                            zoom={10}
+                            onClick={handleMapClick}
+                            >
+                            {selectedLocation && <Marker position={selectedLocation} />}
+                            </GoogleMap>
+                        ) : (
+                            <p>Memuat peta...</p>
+                        )}
+                        {address && (
+                            <p className="mt-4">
+                            <strong>Alamat:</strong> {address}
+                            </p>
+                        )}
+                    </div> */}
+
+                    
+
 
                     {/* <div className="mb-6">
                         <label className="block font-semibold">Status</label>

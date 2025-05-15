@@ -419,13 +419,13 @@ const AnalitikSampahPage = () => {
             </div>
             {!showJavanaTable && (
                 <div className="flex justify-center">
-                    <div className="card p-6 text-center">
-                        <p className="mb-4 text-lg font-medium text-gray-700">Informasi aku siap makan apa saja</p>
+                    <div className="card p-6 text-center bg-blue-100">
+                        <p className="mb-4 text-lg font-medium text-gray-700">Klik tombol di bawah ini untuk melihat detail informasi dari CCTV</p>
                         <button
                             onClick={() => setShowJavanaTable(true)}
-                            className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+                            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-800"
                         >
-                            Javana
+                            Informasi CCTV
                         </button>
                     </div>
                 </div>

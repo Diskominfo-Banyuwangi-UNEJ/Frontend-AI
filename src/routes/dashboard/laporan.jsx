@@ -152,71 +152,89 @@ const LaporanPage = () => {
             </button>
 
             {filteredLaporan.length === 0 ? (
-                <p className="text-gray-500">Laporan tidak ditemukan.</p>
-            ) : (
-                <div className="space-y-4">
-                    {filteredLaporan.map((laporan) => (
-                        <div
-                            key={laporan.id}
-                            className="rounded border bg-white p-4 shadow-md"
-                        >
-                            <h3 className="font-semibold uppercase">{laporan.judul}</h3>
-                            <p className="truncate text-sm text-gray-600">{laporan.isi}</p>
-                            <p className="mt-2 text-sm uppercase">Status: {laporan.status}</p>
-                            <p className="mt-1 text-sm uppercase">Tanggal: {laporan.tanggal.replace("T", " ")}</p>{" "}
-                            <p className="mt-1 text-sm uppercase">Jenis: {laporan.jenis}</p>
-                            {/* Tambahkan ini untuk menampilkan link ke PDF */}
-                            {laporan.filePdf && (
-                                <a
-                                    href={laporan.filePdf.data}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-2 block text-sm text-blue-600 hover:underline"
-                                >
-                                    Lihat Lampiran PDF ({laporan.filePdf.name})
-                                </a>
-                            )}
-                            <div className="mt-2 flex gap-2">
-                                <button
-                                    onClick={() => handleDetail(laporan)}
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    Detail
-                                </button>
-
-                                {/* Dropdown untuk memilih status */}
-                                {/* pemerintah */}
-                                <div className="mt-2">
+            <p className="text-gray-500">Laporan tidak ditemukan.</p>
+        ) : (
+            <div className="overflow-auto rounded border">
+                <table className="min-w-full table-auto text-sm">
+                    <thead className="bg-gray-100">
+                        <tr>
+                            <th className="px-4 py-2">No.</th>
+                            <th className="px-4 py-2">Judul</th>
+                            <th className="px-4 py-2">Isi</th>
+                            <th className="px-4 py-2">File</th>
+                            <th className="px-4 py-2">Jenis</th>
+                            <th className="px-4 py-2">Status</th>
+                            <th className="px-4 py-2">Tanggal</th>
+                            <th className="px-4 py-2">Detail</th>
+                            <th className="px-4 py-2">Akses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredLaporan.map((laporan, index) => (
+                            <tr key={laporan.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
+                                <td className="border px-4 py-2 text-center">{index + 1}</td>
+                                <td className="border px-4 py-2">{laporan.judul}</td>
+                                <td className="border px-4 py-2 whitespace-pre-wrap">{laporan.isi}</td>
+                                <td className="border px-4 py-2 text-center">
+                                    {laporan.filePdf ? (
+                                        <a
+                                            href={laporan.filePdf.data}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 underline"
+                                        >
+                                            {laporan.filePdf.name}
+                                        </a>
+                                    ) : (
+                                        "-"
+                                    )}
+                                </td>
+                                <td className="border px-4 py-2 text-center capitalize">{laporan.jenis}</td>
+                                <td className="border px-4 py-2 text-center capitalize">
                                     <select
                                         value={laporan.status}
                                         onChange={(e) => handleStatusChange(e, laporan.id)}
-                                        className="rounded border p-2"
+                                        className="rounded border p-1"
                                     >
                                         <option value="diterima">Diterima</option>
                                         <option value="dalam pengerjaan">Dalam Pengerjaan</option>
                                         <option value="selesai">Selesai</option>
                                     </select>
-                                </div>
+                                </td>
+                                <td className="border px-4 py-2">
+                                {new Date(laporan.tanggal).toLocaleDateString("id-ID")}
+                                </td>
 
-                                {/* admin */}
-                                <button
-                                    onClick={() => handleEdit(laporan)}
-                                    className="text-yellow-600 hover:underline"
-                                >
-                                    Edit
-                                </button>
-                                {/* admin */}
-                                <button
-                                    onClick={() => handleDelete(laporan.id)}
-                                    className="text-red-600 hover:underline"
-                                >
-                                    Hapus
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                                
+                                <td className="border px-4 py-2 text-center">
+                                    <button
+                                        onClick={() => handleDetail(laporan)}
+                                        className="text-blue-600 hover:underline"
+                                    >
+                                        Detail
+                                    </button>
+                                </td>
+                                <td className="border px-4 py-2 text-center">
+                                    <button
+                                        onClick={() => handleEdit(laporan)}
+                                        className="text-yellow-600 hover:underline mr-2"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(laporan.id)}
+                                        className="text-red-600 hover:underline"
+                                    >
+                                        Hapus
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        )}
+
 
             {showForm && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -289,11 +307,11 @@ const LaporanPage = () => {
                                 <option value="selesai">Selesai</option>
                             </select>
                             <input
-                                type="datetime-local"
-                                name="tanggal"
-                                value={formData.tanggal}
-                                onChange={handleFormChange}
-                                className="rounded border p-2"
+                            type="date"
+                            name="tanggal"
+                            value={formData.tanggal}
+                            onChange={handleFormChange}
+                            className="rounded border p-2"
                             />
                             <div className="flex justify-end gap-2">
                                 <button

@@ -10,9 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@react-google-maps/api": "^2.20.6",
     "@uidotdev/usehooks": "^2.4.1",
     "axios": "^1.8.4",
     "clsx": "^2.1.1",
+    "esbuild": "^0.25.4",
     "framer-motion": "^12.7.4",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.488.0",

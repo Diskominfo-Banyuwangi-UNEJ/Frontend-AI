@@ -33,6 +33,12 @@ const AkunPage = () => {
             [e.target.name]: e.target.value,
         });
     };
+    const handleDelete = (id) => {
+    const confirmed = window.confirm("Apakah Anda yakin ingin menghapus akun ini?");
+    if (confirmed) {
+        setAkunList(akunList.filter((akun) => akun.id !== id));
+    }
+};
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -198,7 +204,8 @@ const AkunPage = () => {
                                     <button className="text-blue-500">
                                         <PencilLine size={20} />
                                     </button>
-                                    <button className="ml-2 text-red-500">
+                                    <button className="ml-2 text-red-500"
+                                        onClick={() => handleDelete(akun.id)}>
                                         <Trash size={20} />
                                     </button>
                                 </td>
