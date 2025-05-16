@@ -1,4 +1,8 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+
 
 const LaporanPage = () => {
     const [laporanList, setLaporanList] = useState([]);
@@ -26,29 +30,78 @@ const LaporanPage = () => {
         );
     });
 
+    // ✅ SweetAlert jika data tidak ditemukan
+    useEffect(() => {
+        if (
+            (filter.tanggal || filter.status || filter.jenis) &&
+            filteredLaporan.length === 0
+        ) {
+            Swal.fire({
+                icon: "info",
+                title: "Laporan tidak ditemukan.",
+                toast: true,
+                position: "top",
+                timer: 2500,
+                showConfirmButton: false,
+            });
+        }
+    }, [filteredLaporan, filter]);
+
     const handleFormChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSimpan = () => {
-        const { judul, isi, jenis, status, tanggal, filePdf } = formData;
-        if (!judul || !isi || !jenis || !status || !tanggal) {
-            alert("Semua field wajib diisi!");
-            return;
-        }
+    const MySwal = withReactContent(Swal);
+ 
+const handleSimpan = () => {
+  const { judul, isi, jenis, status, tanggal } = formData;
 
-        if (isEditing) {
-            setLaporanList((prev) => prev.map((lap) => (lap.id === selectedLaporan.id ? { ...formData, id: lap.id } : lap)));
-            alert("Laporan berhasil diperbarui.");
-        } else {
-            const newLaporan = {
-                ...formData,
-                id: Date.now(),
-                filePdf: formData.filePdf, // tambahkan ini
-            };
-            setLaporanList([newLaporan, ...laporanList]);
-            alert("Laporan berhasil dibuat.");
-        }
+  // Cek field kosong
+  if (!judul || !isi || !jenis || !status || !tanggal) {
+    MySwal.fire({
+      icon: 'error',
+      title: 'Data tidak lengkap',
+      text: 'Semua field wajib diisi!',
+      timer: 3000,
+      showConfirmButton: false,
+      position: 'top',
+      toast: true,
+    });
+    return;
+  }
+
+  if (isEditing) {
+    setLaporanList((prev) =>
+      prev.map((lap) =>
+        lap.id === selectedLaporan.id ? { ...formData, id: lap.id } : lap
+      )
+    );
+    MySwal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: 'Laporan berhasil diperbarui.',
+      timer: 3000,
+      showConfirmButton: false,
+      position: 'top',
+      toast: true,
+    });
+  } else {
+    const newLaporan = {
+      ...formData,
+      id: Date.now(),
+    };
+    setLaporanList([newLaporan, ...laporanList]);
+    MySwal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: 'Laporan berhasil dibuat.',
+      timer: 3000,
+      showConfirmButton: false,
+      position: 'top',
+      toast: true,
+    });
+  }
+
 
         setFormData({
             judul: "",
@@ -69,12 +122,27 @@ const LaporanPage = () => {
     };
 
     const handleDelete = (id) => {
-        const confirmDelete = window.confirm("Apakah Anda yakin ingin menghapus laporan ini?");
-        if (confirmDelete) {
-            setLaporanList((prev) => prev.filter((lap) => lap.id !== id));
-            alert("Laporan berhasil dihapus.");
-        }
-    };
+        Swal.fire({
+            title: "Apakah Anda yakin ingin menghapus laporan ini?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Ya, hapus!",
+            cancelButtonText: "Batal"
+          }).then((result) => {
+            if (result.isConfirmed) {
+              setLaporanList(laporanList.filter((laporan) => laporan.id !== id));
+              Swal.fire({
+                icon: "success",
+                title: "Terhapus!",
+                text: "Laporan berhasil dihapus.",
+                timer: 2000,
+                showConfirmButton: false,
+              });
+            }
+          });
+        };
 
     const handleDetail = (laporan) => {
         alert(`
@@ -331,6 +399,7 @@ const LaporanPage = () => {
                     </div>
                 </div>
             )}
+
         </div>
     );
 };

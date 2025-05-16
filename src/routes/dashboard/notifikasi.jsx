@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState,useEffect} from "react";
+import Swal from "sweetalert2";
 
 const Notifikasi = () => {
     // Contoh data notifikasi (bisa diambil dari API atau state global)
@@ -8,6 +9,17 @@ const Notifikasi = () => {
         { id: 3, message: "Info: Anda memiliki tugas baru yang perlu diselesaikan.", read: true },
     ]);
 
+    // Tampilkan SweetAlert jika tidak ada notifikasi
+    useEffect(() => {
+        if (notifikasi.length === 0) {
+            Swal.fire({
+                title: "Tidak ada notifikasi baru saat ini.",
+                icon: "info",
+                confirmButtonText: "Tutup",
+            });
+        }
+    }, [notifikasi]);
+
     // Fungsi untuk menandai notifikasi sebagai dibaca
     const tandaiDibaca = (id) => {
         setNotifikasi(notifikasi.map((item) => (item.id === id ? { ...item, read: true } : item)));
@@ -15,8 +27,42 @@ const Notifikasi = () => {
 
     // Fungsi untuk menghapus notifikasi
     const hapusNotifikasi = (id) => {
-        setNotifikasi(notifikasi.filter((item) => item.id !== id));
+        const target = notifikasi.find((n) => n.id === id);
+
+        Swal.fire({
+            title: "Apakah Anda yakin ingin menghapus notifikasi ini?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Ya",
+            cancelButtonText: "Batal",
+            position: "top",
+            toast: "true",
+             customClass: {
+    popup: "rounded-xl",
+    title: "text-center" // ✅ rata tengah
+  }     
+           
+        })
+        .then((result) => {
+            if (result.isConfirmed) {
+                // Simulasi penghapusan dari database
+                setNotifikasi(notifikasi.filter((item) => item.id !== id));
+
+                // Tampilkan pesan berhasil
+                Swal.fire({
+                    title: "Notifikasi berhasil dihapus.",
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false,
+                    toast: "true",
+                    position : "top"
+                });
+            }
+            // Jika dibatalkan, tidak melakukan apa-apa (otomatis kembali ke daftar)
+        });
     };
+
+    
 
     return (
         <div className="p-6">

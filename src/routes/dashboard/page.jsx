@@ -32,67 +32,80 @@ const LandingPage = () => {
         setShowPopup(false); // Menutup pop-up
     };
 
-//     // Peta Lokasi
-//     const containerStyle = {
-//     width: '100%',
-//     height: '400px',
-//     };
+    // Peta Lokasi
+    const containerStyle = {
+    width: '100%',
+    height: '400px',
+    };
 
-//     const center = {
-//     lat: -8.2192, // Titik tengah Banyuwangi
-//     lng: 114.3692,
-//     };
+    const [mapCenter, setMapCenter] = useState({
+    lat: -8.2192,
+    lng: 114.3692,
+    });
 
-//     // Bounding box Kabupaten Banyuwangi (kira-kira)
-//     const BANYUWANGI_BOUNDS = {
-//     north: -7.9,
-//     south: -8.6,
-//     east: 114.6,
-//     west: 113.8,
-//     };
+    // Bounding box Kabupaten Banyuwangi (kira-kira)
+    const BANYUWANGI_BOUNDS = {
+    north: -7.9,
+    south: -8.6,
+    east: 114.6,
+    west: 113.8,
+    };
 
-//     const { isLoaded } = useJsApiLoader({
-//     id: 'google-map-script',
-//     googleMapsApiKey: 'AIzaSyCGgX6yOCfLBdpbp0Q80HX9sqF5j_RZRzk', // ganti dengan API key kamu
-//     libraries: ['places'],
-//     });
+    const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: 'AIzaSyBP1AngIK-e-F3YN1INaeDKGtH9waiGHvA', // ganti dengan API key kamu
+    libraries: ['places'],
+    });
 
-//     const [selectedLocation, setSelectedLocation] = useState(null);
-//     const [address, setAddress] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState(null);
+    const [address, setAddress] = useState('');
 
-//     const isWithinBanyuwangi = (lat, lng) => {
-//         return (
-//         lat <= BANYUWANGI_BOUNDS.north &&
-//         lat >= BANYUWANGI_BOUNDS.south &&
-//         lng <= BANYUWANGI_BOUNDS.east &&
-//         lng >= BANYUWANGI_BOUNDS.west
-//         );
-//     };
+    const isWithinBanyuwangi = (lat, lng) => {
+        return (
+        lat <= BANYUWANGI_BOUNDS.north &&
+        lat >= BANYUWANGI_BOUNDS.south &&
+        lng <= BANYUWANGI_BOUNDS.east &&
+        lng >= BANYUWANGI_BOUNDS.west
+        );
+    };
 
-//   const reverseGeocode = (lat, lng) => {
-//     const geocoder = new window.google.maps.Geocoder();
-//     const latlng = { lat, lng };
+  const reverseGeocode = (lat, lng) => {
+  if (!window.google || !window.google.maps || !window.google.maps.Geocoder) {
+    console.error('Google Maps belum siap');
+    setAddress('Google Maps belum siap, coba lagi.');
+    return;
+  }
 
-//     geocoder.geocode({ location: latlng }, (results, status) => {
-//       if (status === 'OK' && results[0]) {
-//         setAddress(results[0].formatted_address);
-//       } else {
-//         setAddress('Alamat tidak ditemukan');
-//       }
-//     });
-//   };
+  const geocoder = new window.google.maps.Geocoder();
+  const latlng = { lat, lng };
 
-//   const handleMapClick = useCallback((e) => {
-//     const lat = e.latLng.lat();
-//     const lng = e.latLng.lng();
+  geocoder.geocode({ location: latlng }, (results, status) => {
+    if (status === 'OK') {
+      if (results && results.length > 0) {
+        setAddress(results[0].formatted_address);
+        console.log('Hasil alamat:', results[0]);
+      } else {
+        setAddress('Alamat tidak ditemukan (hasil kosong)');
+      }
+    } else {
+      console.error('Geocoder gagal:', status);
+      setAddress(`Gagal mendapatkan alamat: ${status}`);
+    }
+  });
+};
 
-//     if (isWithinBanyuwangi(lat, lng)) {
-//       setSelectedLocation({ lat, lng });
-//       reverseGeocode(lat, lng);
-//     } else {
-//       alert('Lokasi di luar Kabupaten Banyuwangi!');
-//     }
-//   }, []);
+
+  const handleMapClick = useCallback((e) => {
+    const lat = e.latLng.lat();
+    const lng = e.latLng.lng();
+
+    if (isWithinBanyuwangi(lat, lng)) {
+      setSelectedLocation({ lat, lng });
+      reverseGeocode(lat, lng);
+    } else {
+      alert('Lokasi di luar Kabupaten Banyuwangi!');
+    }
+  }, []);
 
 
 
@@ -363,34 +376,34 @@ const LandingPage = () => {
                         />
                     </div>
 
-                    <div className="mb-4">
-    <label className="block font-semibold">Lokasi Kejadian</label>
-    <a
-        href="https://www.google.com/maps"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-blue-600 underline text-sm"
-    >
-        Buka Google Maps untuk menyalin lokasi
-    </a>
-    <input
-        type="text"
-        name="lokasi"
-        value={formData.lokasi}
-        onChange={handleChange}
-        className="w-full rounded border border-gray-300 p-2 mt-1"
-        placeholder="Tempelkan lokasi dari Google Maps"
-    />
-</div>
+                    {/* <div className="mb-4">
+                        <label className="block font-semibold">Lokasi Kejadian</label>
+                        <a
+                            href="https://www.google.com/maps"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline text-sm"
+                        >
+                            Buka Google Maps untuk menyalin lokasi
+                        </a>
+                        <input
+                            type="text"
+                            name="lokasi"
+                            value={formData.lokasi}
+                            onChange={handleChange}
+                            className="w-full rounded border border-gray-300 p-2 mt-1"
+                            placeholder="Tempelkan lokasi dari Google Maps"
+                        />
+                    </div> */}
 
 
 
-                     {/* <div className="p-4">
+                     <div className="p-4">
                         <h1 className="text-xl font-semibold mb-4">Pilih Lokasi di Banyuwangi</h1>
                         {isLoaded ? (
                             <GoogleMap
                             mapContainerStyle={containerStyle}
-                            center={center}
+                            defaultCenter={{ lat: -8.2192, lng: 114.3692 }}
                             zoom={10}
                             onClick={handleMapClick}
                             >
@@ -404,7 +417,7 @@ const LandingPage = () => {
                             <strong>Alamat:</strong> {address}
                             </p>
                         )}
-                    </div> */}
+                    </div>
 
                     
 

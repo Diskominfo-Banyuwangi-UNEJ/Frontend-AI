@@ -5,7 +5,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { overviewData, recentSalesData, topProducts } from "@/constants";
 
 import { Footer } from "@/layouts/footer";
-
+import Swal from "sweetalert2";
 import { CreditCard, DollarSign, Plus, Package, PencilLine, Star, Trash, TrendingUp, Users } from "lucide-react";
 import { useState } from "react";
 import axios from "axios";
@@ -34,50 +34,84 @@ const AkunPage = () => {
         });
     };
     const handleDelete = (id) => {
-    const confirmed = window.confirm("Apakah Anda yakin ingin menghapus akun ini?");
-    if (confirmed) {
-        setAkunList(akunList.filter((akun) => akun.id !== id));
+  Swal.fire({
+    title: "Anda yakin ingin menghapus akun ini?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Hapus",
+    cancelButtonText: "Batal",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      setAkunList(akunList.filter((akun) => akun.id !== id));
+      Swal.fire({
+        icon: "success",
+        title: "Akun berhasil dihapus",
+        showConfirmButton: false,
+        timer: 1500,
+      });
     }
+  });
 };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
         // Validasi untuk memastikan semua field diisi
-        if (!formData.nama_instansi || !formData.nama_pimpinan || !formData.status || !formData.username || !formData.email || !formData.password) {
-            alert("Semua data harus diisi");
+        if (
+            !formData.nama_instansi ||
+            !formData.nama_pimpinan ||
+            !formData.status ||
+            !formData.username ||
+            !formData.email ||
+            !formData.password
+        ) {
+            Swal.fire({
+            icon: "warning",
+            title: "Semua data harus diisi",
+            text: "Silakan lengkapi semua field sebelum submit.",
+            });
             return;
         }
 
-        // Validasi format email (sederhana)
-        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-        if (!emailRegex.test(formData.email)) {
-            alert("Terdapat kesalahan dalam pengisian data");
-            return;
-        }
+        // Validasi format email
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+  if (!emailRegex.test(formData.email)) {
+    Swal.fire({
+      icon: "error",
+      title: "Terdapat kesalahan dalam pengisian data",
+      text: "Periksa kembali format email dan data yang dimasukkan.",
+    });
+    return;
+  }
 
-        // Menambahkan akun baru ke dalam daftar akun
-        setAkunList([
-            ...akunList,
-            { ...formData, id: Date.now() }, // Menggunakan timestamp sebagai ID unik
-        ]);
+  // Simpan akun baru
+  setAkunList([
+    ...akunList,
+    { ...formData, id: Date.now() }, // Gunakan timestamp sebagai ID
+  ]);
 
-        // Reset form
-        setFormData({
-            nama_instansi: "",
-            nama_pimpinan: "",
-            status: "",
-            username: "",
-            email: "",
-            password: "",
-        });
+  // Reset form
+  setFormData({
+    nama_instansi: "",
+    nama_pimpinan: "",
+    status: "",
+    username: "",
+    email: "",
+    password: "",
+  });
 
-        setIsFormVisible(false);
+  setIsFormVisible(false);
 
-        // Menampilkan pesan sukses
-        alert("Registrasi berhasil, silakan login");
-    };
-
+  // Tampilkan popup sukses
+  Swal.fire({
+    icon: "success",
+    title: "Registrasi berhasil, silakan login",
+    showConfirmButton: false,
+    timer: 2000,
+  });
+};
     return (
         <div className="flex flex-col gap-y-4">
             <div className="card-header mb-4 flex items-center justify-between">
