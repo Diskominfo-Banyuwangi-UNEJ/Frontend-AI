@@ -22,6 +22,8 @@ import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useState } from "react";
+import Swal from 'sweetalert2';
+
 
 const pieData = [
     { name: "Low", value: 200 },
@@ -115,7 +117,80 @@ const AnalitikKeramaianPage = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data 3");
         XLSX.writeFile(workbook, "Presentase Status Tumpukan Sampah.xlsx");
-    };
+        };
+
+        const [topProducts, setTopProducts] = useState([]);
+        const [showForm, setShowForm] = useState(false);
+        const [formData, setFormData] = useState({
+  number: "",
+  timestamp: "",
+  namaCctv: "",
+  jenisDeteksi: "",
+  latitude: "",
+  longitude: "",
+  presentaseSampah: "",
+  statusSampah: "",
+  liveCctv: "",
+});
+
+const handleFormChange = (e) => {
+  const { name, value } = e.target;
+  setFormData((prev) => ({ ...prev, [name]: value }));
+};
+
+const handleSimpan = () => {
+  const { number, name, price, status, rating, longitude, percentage, live } = formData;
+
+  // Cek apakah semua field terisi
+  if (!number || !name || !price || !status || !rating || !longitude || !percentage || !live) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Form Belum Lengkap',
+      text: 'Semua field wajib diisi!',
+    });
+    return;
+  }
+
+  // Validasi tipe data angka
+  if (
+    isNaN(Number(number)) ||
+    isNaN(Number(price)) ||
+    isNaN(Number(rating)) ||
+    isNaN(Number(longitude)) ||
+    isNaN(Number(percentage))
+  ) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Data tidak valid',
+      text: 'Pastikan field angka berisi angka yang benar (No, Harga, Rating, Longitude, Presentase).',
+    });
+    return;
+  }
+
+  // Jika valid, simpan data
+  setTopProducts([...topProducts, formData]);
+  setFormData({
+    number: '',
+    name: '',
+    price: '',
+    status: '',
+    rating: '',
+    longitude: '',
+    percentage: '',
+    live: '',
+  });
+  setShowForm(false);
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Berhasil',
+    text: 'Data CCTV berhasil ditambahkan!',
+  });
+};
+
+
+
+
     const [showJavanaTable, setShowJavanaTable] = useState(false);
     const peakHour = trafficData.reduce((prev, current) => (prev.visitors > current.visitors ? prev : current));
     // Data sample untuk chart sampah saja
@@ -143,94 +218,94 @@ const AnalitikKeramaianPage = () => {
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Keramaian</h1>
             <h1 className="mt-3 text-center font-extrabold">Status Keramaian</h1>
-<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-  {/* Card Status Low */}
-  <motion.div
-    whileHover={{ y: -10, opacity: 1 }}
-    transition={{ type: "spring", stiffness: 300 }}
-    className="card"
-  >
-    <div className="card-header">
-      <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-        <ArrowBigDown size={26} />
-      </div>
-      <p className="card-title">Status Low</p>
-    </div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* Card Status Low */}
+            <motion.div
+                whileHover={{ y: -10, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="card"
+            >
+                <div className="card-header">
+                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                    <ArrowBigDown size={26} />
+                </div>
+                <p className="card-title">Status Low</p>
+                </div>
 
-    <div className="card-body bg-slate-100">
-      <div className="flex justify-between gap-4">
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">120</p>
-          <p className="text-sm font-semibold text-blue-500">Indoor</p>
-          <p className="text-xs text-gray-500">30-50% kapasitas</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">150</p>
-          <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-          <p className="text-xs text-gray-500">30-50% kapasitas</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
+                <div className="card-body bg-slate-100">
+                <div className="flex justify-between gap-4">
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">120</p>
+                    <p className="text-sm font-semibold text-blue-500">Indoor</p>
+                    <p className="text-xs text-gray-500">30-50% kapasitas</p>
+                    </div>
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">150</p>
+                    <p className="text-sm font-semibold text-blue-500">Outdoor</p>
+                    <p className="text-xs text-gray-500">30-50% kapasitas</p>
+                    </div>
+                </div>
+                </div>
+            </motion.div>
 
-  {/* Card Status Normal */}
-  <motion.div
-    whileHover={{ y: -10, opacity: 1 }}
-    transition={{ type: "spring", stiffness: 300 }}
-    className="card"
-  >
-    <div className="card-header">
-      <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-        <ArrowLeftRight size={26} />
-      </div>
-      <p className="card-title">Status Normal</p>
-    </div>
+            {/* Card Status Normal */}
+            <motion.div
+                whileHover={{ y: -10, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="card"
+            >
+                <div className="card-header">
+                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                    <ArrowLeftRight size={26} />
+                </div>
+                <p className="card-title">Status Normal</p>
+                </div>
 
-    <div className="card-body bg-slate-100">
-      <div className="flex justify-between gap-4">
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">130</p>
-          <p className="text-sm font-semibold text-blue-500">Indoor</p>
-          <p className="text-xs text-gray-500">50-75% kapasitas</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">140</p>
-          <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-          <p className="text-xs text-gray-500">50-75% kapasitas</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
+                <div className="card-body bg-slate-100">
+                <div className="flex justify-between gap-4">
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">130</p>
+                    <p className="text-sm font-semibold text-blue-500">Indoor</p>
+                    <p className="text-xs text-gray-500">50-75% kapasitas</p>
+                    </div>
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">140</p>
+                    <p className="text-sm font-semibold text-blue-500">Outdoor</p>
+                    <p className="text-xs text-gray-500">50-75% kapasitas</p>
+                    </div>
+                </div>
+                </div>
+            </motion.div>
 
-  {/* Card Status Over */}
-  <motion.div
-    whileHover={{ y: -10, opacity: 1 }}
-    transition={{ type: "spring", stiffness: 300 }}
-    className="card"
-  >
-    <div className="card-header">
-      <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-        <ArrowBigUp size={26} />
-      </div>
-      <p className="card-title">Status Over</p>
-    </div>
+            {/* Card Status Over */}
+            <motion.div
+                whileHover={{ y: -10, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="card"
+            >
+                <div className="card-header">
+                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                    <ArrowBigUp size={26} />
+                </div>
+                <p className="card-title">Status Over</p>
+                </div>
 
-    <div className="card-body bg-slate-100">
-      <div className="flex justify-between gap-4">
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">160</p>
-          <p className="text-sm font-semibold text-blue-500">Indoor</p>
-          <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
-        </div>
-        <div className="text-center">
-          <p className="text-xl font-bold text-slate-900">180</p>
-          <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-          <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-</div>
+                <div className="card-body bg-slate-100">
+                <div className="flex justify-between gap-4">
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">160</p>
+                    <p className="text-sm font-semibold text-blue-500">Indoor</p>
+                    <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
+                    </div>
+                    <div className="text-center">
+                    <p className="text-xl font-bold text-slate-900">180</p>
+                    <p className="text-sm font-semibold text-blue-500">Outdoor</p>
+                    <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
+                    </div>
+                </div>
+                </div>
+            </motion.div>
+            </div>
 
 
             
@@ -428,35 +503,39 @@ const AnalitikKeramaianPage = () => {
                     </div>
                 </div>
             </div>
-            <h1 className="mb-2 mt-8 text-center font-bold">Sebaran CCTV Keramaian Kabupaten Banyuwangi</h1>
-            <div className="card col-span-full">
-                {/* <div className="card-header">
-                    <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
-                </div> */}
-                <div className="card-body h-[400px] overflow-hidden p-0">
-                    <MapContainer
-                        center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
-                        zoom={11}
-                        scrollWheelZoom={true}
-                        style={{ height: "100%", width: "100%" }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution="&copy; OpenStreetMap contributors"
-                        />
+            <h1 className="mb-2 mt-8 text-center font-bold">
+  Sebaran CCTV Keramaian Kabupaten Banyuwangi
+</h1>
+<div className="card col-span-full">
+  {/* Kalau kamu punya header, pastikan z-index-nya lebih tinggi */}
+  {/* <div className="card-header z-50 relative">
+      <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
+  </div> */}
+  <div className="card-body h-[400px] overflow-hidden p-0 relative z-0">
+    <MapContainer
+      center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
+      zoom={11}
+      scrollWheelZoom={true}
+      style={{ height: "100%", width: "100%", position: "relative", zIndex: 0 }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
 
-                        {lokasiPentings.map((lokasi, index) => (
-                            <Marker
-                                key={index}
-                                position={[lokasi.lat, lokasi.lng]}
-                                icon={customMarker}
-                            >
-                                <Popup>{lokasi.name}</Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
-                </div>
-            </div>
+      {lokasiPentings.map((lokasi, index) => (
+        <Marker
+          key={index}
+          position={[lokasi.lat, lokasi.lng]}
+          icon={customMarker}
+        >
+          <Popup>{lokasi.name}</Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  </div>
+</div>
+
             {!showJavanaTable && (
                 <div className="flex justify-center">
                     <div className="card p-6 text-center bg-blue-100">
@@ -481,7 +560,119 @@ const AnalitikKeramaianPage = () => {
                             <Download className="h-4 w-4" />
                             Download
                         </button>
+                        <button
+                            onClick={() => setShowForm(true)}
+                            className="flex items-center gap-1 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700"
+                        >
+                            + Tambah Data
+                        </button>
                     </div>
+                    {showForm && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+      <h3 className="mb-4 text-lg font-semibold">Tambah Data CCTV</h3>
+
+      <div className="grid gap-4">
+        <input
+          type="text"
+          name="number"
+          value={formData.number}
+          onChange={handleFormChange}
+          placeholder="No"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="timestamp"
+          value={formData.timestamp}
+          onChange={handleFormChange}
+          placeholder="Timestamp (yyyy-mm-dd hh:mm)"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="namaCctv"
+          value={formData.namaCctv}
+          onChange={handleFormChange}
+          placeholder="Nama CCTV"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="jenisDeteksi"
+          value={formData.jenisDeteksi}
+          onChange={handleFormChange}
+          placeholder="Jenis Deteksi"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="latitude"
+          value={formData.latitude}
+          onChange={handleFormChange}
+          placeholder="Latitude"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="longitude"
+          value={formData.longitude}
+          onChange={handleFormChange}
+          placeholder="Longitude"
+          className="rounded border p-2"
+        />
+        <input
+          type="text"
+          name="presentaseSampah"
+          value={formData.presentaseSampah}
+          onChange={handleFormChange}
+          placeholder="Presentase Sampah (%)"
+          className="rounded border p-2"
+        />
+        <select
+          name="statusSampah"
+          value={formData.statusSampah}
+          onChange={handleFormChange}
+          className="rounded border p-2"
+        >
+          <option value="">Pilih Status Sampah</option>
+          <option value="sedikit">Sedikit</option>
+          <option value="sedang">Sedang</option>
+          <option value="banyak">Banyak</option>
+          <option value="penuh">Penuh</option>
+        </select>
+        <input
+          type="text"
+          name="liveCctv"
+          value={formData.liveCctv}
+          onChange={handleFormChange}
+          placeholder="Live CCTV URL/Embed"
+          className="rounded border p-2"
+        />
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={() => setShowForm(false)}
+            className="rounded bg-gray-400 px-4 py-2 text-white hover:bg-gray-500"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleSimpan}
+            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+          >
+            Simpan
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+                    
+                    
+
+
                     <div className="card-body p-0">
                         <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
                             <table className="table">

@@ -4,9 +4,12 @@ import withReactContent from 'sweetalert2-react-content';
 
 
 
+
 const LaporanPage = () => {
     const [laporanList, setLaporanList] = useState([]);
     const [filter, setFilter] = useState({ tanggal: "", status: "", jenis: "" });
+    const [showPreview, setShowPreview] = React.useState(false);
+
     const [formData, setFormData] = useState({
         judul: "",
         isi: "",
@@ -21,6 +24,7 @@ const LaporanPage = () => {
     const handleFilterChange = (e) => {
         setFilter({ ...filter, [e.target.name]: e.target.value });
     };
+    
 
     const filteredLaporan = laporanList.filter((laporan) => {
         return (
@@ -153,6 +157,8 @@ const handleSimpan = () => {
       Tanggal: ${laporan.tanggal}
     `);
     };
+
+   
 
     const handleStatus = (laporan) => {
         setSelectedLaporan(laporan);
@@ -329,29 +335,66 @@ const handleSimpan = () => {
                                 />
 
                                 {/* Input untuk unggah file PDF */}
-                                <input
-                                    type="file"
-                                    accept="application/pdf"
-                                    onChange={(e) => {
-                                        const file = e.target.files[0];
-                                        if (file && file.type === "application/pdf") {
-                                            const reader = new FileReader();
-                                            reader.onload = () => {
-                                                setFormData((prev) => ({
-                                                    ...prev,
-                                                    filePdf: {
-                                                        name: file.name,
-                                                        data: reader.result,
-                                                    },
-                                                }));
-                                            };
-                                            reader.readAsDataURL(file); // Mengubah PDF ke base64 string
-                                        } else {
-                                            alert("Mohon unggah file PDF saja.");
-                                        }
-                                    }}
-                                    className="rounded border p-2"
-                                />
+                                {/* Input untuk unggah file PDF */}
+<input
+  type="file"
+  accept="application/pdf"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "application/pdf") {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prev) => ({
+          ...prev,
+          filePdf: {
+            name: file.name,
+            data: reader.result,
+          },
+        }));
+        setShowPreview(false); // reset preview saat ganti file baru
+      };
+      reader.readAsDataURL(file);
+    } else {
+      alert("Mohon unggah file PDF saja.");
+    }
+  }}
+  className="rounded border p-2"
+/>
+
+{/* Nama file jadi clickable toggle preview */}
+{formData.filePdf && (
+  <p
+    className="mt-4 text-blue-600 underline cursor-pointer"
+    onClick={() => setShowPreview((prev) => !prev)}
+    title="Klik untuk lihat preview"
+  >
+    {formData.filePdf.name}
+  </p>
+)}
+
+{/* Preview PDF dan tombol unduh */}
+{showPreview && formData.filePdf?.data && (
+  <div className="mt-4">
+    <iframe
+      src={formData.filePdf.data}
+      title="Preview PDF"
+      width="100%"
+      height="500px"
+      className="rounded border"
+    />
+    <a
+      href={formData.filePdf.data}
+      download={formData.filePdf.name}
+      className="inline-block mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+    >
+      Unduh File
+    </a>
+  </div>
+)}
+
+
+
+
                             </div>
                             <select
                                 name="jenis"

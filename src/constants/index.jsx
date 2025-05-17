@@ -14,7 +14,7 @@ export const navbarLinks = [
                 path: "/",
             },
             {
-                label: "Analytics Keramaiaan",
+                label: "Analytics Keramaian",
                 icon: ChartColumn,
                 path: "/analytics",
             },
@@ -37,10 +37,10 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Laporan",
+        title: "Pelaporan",
         links: [
             {
-                label: "laporan",
+                label: "Pelaporan",
                 icon: FileText,
                 path: "/laporan",
             },

@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import AnalitikKeramaianPage from "./analitikkeramaian";
 import AnalitikSampahPage from "./analitiksampah";
 import { GoogleMap,Marker, useJsApiLoader  } from '@react-google-maps/api';
+import Swal from 'sweetalert2';
 
 
 
@@ -32,6 +33,8 @@ const LandingPage = () => {
         setShowPopup(false); // Menutup pop-up
     };
 
+    
+
     // Peta Lokasi
     const containerStyle = {
     width: '100%',
@@ -51,11 +54,14 @@ const LandingPage = () => {
     west: 113.8,
     };
 
-    const { isLoaded } = useJsApiLoader({
+    const { isLoaded,loadError  } = useJsApiLoader({
     id: 'google-map-script',
     googleMapsApiKey: 'AIzaSyBP1AngIK-e-F3YN1INaeDKGtH9waiGHvA', // ganti dengan API key kamu
     libraries: ['places'],
     });
+    if (loadError) {
+  return <div>Error loading maps</div>;
+}
 
     const [selectedLocation, setSelectedLocation] = useState(null);
     const [address, setAddress] = useState('');
@@ -134,25 +140,56 @@ const LandingPage = () => {
             });
         }
     };
+    const nomorAdmin = "6285930088301"; // Nomor WhatsApp admin, pakai kode negara tanpa "+"
+
 
     const handleKirim = () => {
-        const nomorAdmin = "6285930088301";
-        const buktiNama = formData.bukti ? formData.bukti.name : "Tidak ada";
+  console.log("formData sebelum validasi:", formData);
+  
+  if (
+    !formData.judul ||
+    !formData.kategori ||
+    !formData.isi ||
+    !formData.tanggal ||
+    !formData.lokasi ||
+    !formData.bukti
+  ) {
+    Swal.fire({
+      icon: 'warning',
+      title: "Mohon lengkapi semua data yang dibutuhkan.",
+      confirmButtonColor: '#3085d6',
+    });
+    return;
+  }
 
-        const pesan = `
-          *Pengaduan Baru*
-          Judul: ${formData.judul}
-          Kategori: ${formData.kategori}
-          Isi: ${formData.isi}
-          Tanggal: ${formData.tanggal}
-          Lokasi: ${formData.lokasi}
-          Status: ${formData.status}
-          Bukti: ${buktiNama}
-        `.replace(/\n\s+/g, "\n");
+  const linkMaps = formData.lokasi;
+  const buktiUrl = "https://example.com/" + formData.bukti.name; // misal buat contoh link
 
-        const url = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
-        window.open(url, "_blank");
-    };
+  const pesan = `
+    *Pengaduan Baru*
+    Judul: ${formData.judul}
+    Kategori: ${formData.kategori}
+    Isi: ${formData.isi}
+    Tanggal: ${formData.tanggal}
+    Lokasi: ${linkMaps ? `[Klik Lokasi](${linkMaps})` : "Tidak ada"}
+    Status: ${formData.status || "Menunggu"}
+    Bukti: ${buktiUrl ? `[Lihat Foto](${buktiUrl})` : "Tidak ada"}
+  `.replace(/\n\s+/g, "\n");
+
+  const url = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
+
+  console.log("url WA:", url);
+
+  Swal.fire({
+  icon: "success",
+  title: "Pesan berhasil dibuat!",
+  text: "Anda akan diarahkan ke WhatsApp untuk mengirim pengaduan.",
+  confirmButtonColor: "#3085d6",
+}).then(() => {
+  window.open(url, "_blank");
+});
+};
+
 
     return (
         <div className="flex flex-col gap-y-8">
@@ -376,29 +413,7 @@ const LandingPage = () => {
                         />
                     </div>
 
-                    {/* <div className="mb-4">
-                        <label className="block font-semibold">Lokasi Kejadian</label>
-                        <a
-                            href="https://www.google.com/maps"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline text-sm"
-                        >
-                            Buka Google Maps untuk menyalin lokasi
-                        </a>
-                        <input
-                            type="text"
-                            name="lokasi"
-                            value={formData.lokasi}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2 mt-1"
-                            placeholder="Tempelkan lokasi dari Google Maps"
-                        />
-                    </div> */}
-
-
-
-                     <div className="p-4">
+                     {/* <div className="p-4">
                         <h1 className="text-xl font-semibold mb-4">Pilih Lokasi di Banyuwangi</h1>
                         {isLoaded ? (
                             <GoogleMap
@@ -417,24 +432,31 @@ const LandingPage = () => {
                             <strong>Alamat:</strong> {address}
                             </p>
                         )}
-                    </div>
-
-                    
-
-
-                    {/* <div className="mb-6">
-                        <label className="block font-semibold">Status</label>
-                        <select
-                            name="status"
-                            value={formData.status}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                        >
-                            <option value="terkirim">Terkirim</option>
-                            <option value="diproses">Diproses</option>
-                            <option value="selesai">Selesai</option>
-                        </select>
                     </div> */}
+
+                    <div className="mb-6">
+  <label className="block font-semibold mb-1">Lokasi</label>
+  <p className="text-sm text-gray-500 mb-2">
+    Buka Google Maps untuk mencari lokasi, lalu salin link-nya ke kolom di bawah
+  </p>
+  <button
+    type="button"
+    onClick={() => window.open("https://www.google.com/maps", "_blank")}
+    className="mb-3 rounded bg-blue-600 text-white px-4 py-2 hover:bg-blue-700"
+  >
+    Buka Google Maps
+  </button>
+  <input
+    type="text"
+    name="lokasi"
+    placeholder="Tempelkan link lokasi dari Google Maps di sini"
+    onChange={handleChange}
+    className="w-full rounded border border-gray-300 p-2"
+  />
+</div>
+
+
+
 
                     <div className="mb-6">
                         <label className="block font-semibold">Bukti Pengajuan</label>
@@ -682,13 +704,20 @@ const LandingPage = () => {
                     </div>
 
                     {/* Peta Lokasi */}
-                    <div className="h-auto overflow-hidden rounded-lg shadow-md">
+                    <a
+                    href="https://maps.app.goo.gl/x6aax6xXQ8PLeQej9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                    >
+                    <div className="h-auto overflow-hidden rounded-lg shadow-md hover:opacity-90 transition-opacity duration-200">
                         <img
-                            src="/image/petakom.png"
-                            alt="Peta Lokasi Dinas Kominfo Banyuwangi"
-                            className="w-full object-cover"
+                        src="/image/petakom.png"
+                        alt="Peta Lokasi Dinas Kominfo Banyuwangi"
+                        className="w-full object-cover"
                         />
                     </div>
+                    </a>
                 </div>
 
                 {/* Optional: Styling to simulate footer-like positioning */}

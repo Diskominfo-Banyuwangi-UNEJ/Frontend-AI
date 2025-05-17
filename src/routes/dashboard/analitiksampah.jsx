@@ -388,34 +388,37 @@ const AnalitikSampahPage = () => {
                     </div>
                 </div>
             </div>
-            <h1 className="mb-2 mt-8 text-center font-bold">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</h1>
+            <h1 className="mb-2 mt-8 text-center font-bold">
+              Sebaran CCTV Keramaian Kabupaten Banyuwangi
+            </h1>
             <div className="card col-span-full">
-                {/* <div className="card-header">
-                    <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
-                </div> */}
-                <div className="card-body h-[400px] overflow-hidden p-0">
-                    <MapContainer
-                        center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
-                        zoom={11}
-                        scrollWheelZoom={true}
-                        style={{ height: "100%", width: "100%" }}
+              {/* Kalau kamu punya header, pastikan z-index-nya lebih tinggi */}
+              {/* <div className="card-header z-50 relative">
+                  <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
+              </div> */}
+              <div className="card-body h-[400px] overflow-hidden p-0 relative z-0">
+                <MapContainer
+                  center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
+                  zoom={11}
+                  scrollWheelZoom={true}
+                  style={{ height: "100%", width: "100%", position: "relative", zIndex: 0 }}
+                >
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution="&copy; OpenStreetMap contributors"
+                  />
+            
+                  {lokasiPentings.map((lokasi, index) => (
+                    <Marker
+                      key={index}
+                      position={[lokasi.lat, lokasi.lng]}
+                      icon={customMarker}
                     >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution="&copy; OpenStreetMap contributors"
-                        />
-
-                        {lokasiPentings.map((lokasi, index) => (
-                            <Marker
-                                key={index}
-                                position={[lokasi.lat, lokasi.lng]}
-                                icon={customMarker}
-                            >
-                                <Popup>{lokasi.name}</Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
-                </div>
+                      <Popup>{lokasi.name}</Popup>
+                    </Marker>
+                  ))}
+                </MapContainer>
+              </div>
             </div>
             {!showJavanaTable && (
                 <div className="flex justify-center">
