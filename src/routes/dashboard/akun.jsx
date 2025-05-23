@@ -1,255 +1,622 @@
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-
-import { useTheme } from "@/hooks/use-theme";
-
-import { overviewData, recentSalesData, topProducts } from "@/constants";
-
-import { Footer } from "@/layouts/footer";
-import Swal from "sweetalert2";
-import { CreditCard, DollarSign, Plus, Package, PencilLine, Star, Trash, TrendingUp, Users } from "lucide-react";
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from 'react';
+import React from 'react'
+import axios from 'axios';
+import Swal from 'sweetalert2';
+import { Plus, PencilLine, Trash, Loader2, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const AkunPage = () => {
-    const [isFormVisible, setIsFormVisible] = useState(false);
-    const [formData, setFormData] = useState({
-        nama_instansi: "",
-        nama_pimpinan: "",
-        status: "",
-        username: "",
-        email: "",
-        password: "",
-    });
+  // State management
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    nama_instansi: '',
+    nama_pimpinan: '',
+    status: '',
+    username: '',
+    email: '',
+    password: '',
+  });
+  const [formErrors, setFormErrors] = useState({});
+  const [akunList, setAkunList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [expandedRows, setExpandedRows] = useState({});
 
-    const [akunList, setAkunList] = useState([]); // State untuk menyimpan daftar akun
-
-    const toggleForm = () => {
-        setIsFormVisible(!isFormVisible);
-    };
-
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
-    };
-    const handleDelete = (id) => {
-  Swal.fire({
-    title: "Anda yakin ingin menghapus akun ini?",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#3085d6",
-    confirmButtonText: "Hapus",
-    cancelButtonText: "Batal",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      setAkunList(akunList.filter((akun) => akun.id !== id));
+  // Fetch data from API
+  const fetchAkunList = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('http://localhost:3000/api/users');
+      setAkunList(response.data.data || []); 
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      console.error('Failed to fetch data:', err);
       Swal.fire({
-        icon: "success",
-        title: "Akun berhasil dihapus",
+        icon: 'error',
+        title: 'Failed to load data',
+        text: err.response?.data?.message || err.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAkunList();
+  }, []);
+
+  // Form handlers
+  const toggleForm = () => {
+    setIsFormVisible(!isFormVisible);
+    setFormErrors({});
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value,
+    }));
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: null,
+      }));
+    }
+  };
+
+  // Form validation
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.nama_instansi) errors.nama_instansi = 'Institution is required';
+    if (!formData.nama_pimpinan) errors.nama_pimpinan = 'Leader name is required';
+    if (!formData.status) errors.status = 'Status is required';
+    if (!formData.username) errors.username = 'Username is required';
+    if (!formData.email) {
+      errors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      errors.email = 'Invalid email format';
+    }
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      const payload = {
+        name_lengkap: formData.nama_pimpinan,
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        role: formData.status,
+        instansi: formData.nama_instansi,
+        jenis_kelamin: 'MALE',
+        no_telepon: '082229350946',
+        tanggal_lahir: '2003-08-12',
+      };
+
+      await axios.post('http://localhost:3000/api/users', payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Account created successfully',
+        timer: 2000,
         showConfirmButton: false,
-        timer: 1500,
+        background: '#f8fafc',
+      });
+
+      setIsFormVisible(false);
+      setFormData({
+        nama_instansi: '',
+        nama_pimpinan: '',
+        status: '',
+        username: '',
+        email: '',
+        password: '',
+      });
+      fetchAkunList();
+    } catch (error) {
+      console.error('Failed to create account:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: error.response?.data?.message || 'Failed to create account',
+        background: '#f8fafc',
       });
     }
-  });
-};
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // Validasi untuk memastikan semua field diisi
-        if (
-            !formData.nama_instansi ||
-            !formData.nama_pimpinan ||
-            !formData.status ||
-            !formData.username ||
-            !formData.email ||
-            !formData.password
-        ) {
-            Swal.fire({
-            icon: "warning",
-            title: "Semua data harus diisi",
-            text: "Silakan lengkapi semua field sebelum submit.",
-            });
-            return;
-        }
-
-        // Validasi format email
-  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
-  if (!emailRegex.test(formData.email)) {
-    Swal.fire({
-      icon: "error",
-      title: "Terdapat kesalahan dalam pengisian data",
-      text: "Periksa kembali format email dan data yang dimasukkan.",
+  // Delete account
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!',
+      background: '#f8fafc',
     });
-    return;
-  }
 
-  // Simpan akun baru
-  setAkunList([
-    ...akunList,
-    { ...formData, id: Date.now() }, // Gunakan timestamp sebagai ID
-  ]);
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:3000/api/users/${id}`);
+        setAkunList(prev => prev.filter(akun => akun.id !== id));
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'Account has been deleted',
+          timer: 1500,
+          showConfirmButton: false,
+          background: '#f8fafc',
+        });
+      } catch (error) {
+        console.error('Failed to delete account:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.response?.data?.message || 'Failed to delete account',
+          background: '#f8fafc',
+        });
+      }
+    }
+  };
 
-  // Reset form
-  setFormData({
-    nama_instansi: "",
-    nama_pimpinan: "",
-    status: "",
-    username: "",
-    email: "",
-    password: "",
-  });
-
-  setIsFormVisible(false);
-
-  // Tampilkan popup sukses
-  Swal.fire({
-    icon: "success",
-    title: "Registrasi berhasil, silakan login",
-    showConfirmButton: false,
-    timer: 2000,
-  });
-};
+  // Search and filter
+  const filteredData = akunList.filter(akun => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-        <div className="flex flex-col gap-y-4">
-            <div className="card-header mb-4 flex items-center justify-between">
-                <p className="card-title text-2xl font-semibold">Data Akun Admin dan Pemerintah</p>
-                <button
-                    onClick={toggleForm}
-                    className="flex items-center gap-1 rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                >
-                    <Plus className="h-4 w-4" /> Tambah Akun
-                </button>
-            </div>
-
-            {isFormVisible && (
-                <div className="mt-4 rounded-lg bg-white p-6 text-black shadow-lg">
-                    <h2 className="mb-4 text-2xl font-semibold">Tambah Akun</h2>
-                    <form
-                        className="space-y-4"
-                        onSubmit={handleSubmit}
-                    >
-                        <div>
-                            <label className="block font-medium">Nama Instansi</label>
-                            <select
-                                name="nama_instansi"
-                                value={formData.nama_instansi}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            >
-                                <option value="">Pilih Instansi</option>
-                                <option value="Kominfo">Kominfo</option>
-                                <option value="Dishub">Dishub</option>
-                                <option value="DLH">DLH</option>
-                                <option value="Satpol PP">Satpol PP</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block font-medium">Nama Pimpinan</label>
-                            <input
-                                type="text"
-                                name="nama_pimpinan"
-                                value={formData.nama_pimpinan}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block font-medium">Status</label>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            >
-                                <option value="">Pilih Status</option>
-                                <option value="ADMIN">Admin</option>
-                                <option value="PEMERINTAH">Pemerintah</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block font-medium">Username</label>
-                            <input
-                                type="text"
-                                name="username"
-                                value={formData.username}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block font-medium">Email</label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            />
-                        </div>
-                        <div>
-                            <label className="block font-medium">Password</label>
-                            <input
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                className="w-full rounded border border-gray-300 p-2"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            className="mt-4 w-full rounded bg-blue-600 p-2 text-white hover:bg-blue-700"
-                        >
-                            Submit
-                        </button>
-                    </form>
-                </div>
-            )}
-
-            <div className="relative h-[500px] w-full overflow-auto rounded border border-gray-200">
-                <table className="min-w-full table-auto">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-4 py-2">No.</th>
-                            <th className="px-4 py-2">Nama Instansi</th>
-                            <th className="px-4 py-2">Nama Pimpinan</th>
-                            <th className="px-4 py-2">Status</th>
-                            <th className="px-4 py-2">Username</th>
-                            <th className="px-4 py-2">Email</th>
-                            <th className="px-4 py-2">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {akunList.map((akun, index) => (
-                            <tr
-                                key={akun.id}
-                                className={`border-t ${index % 2 === 0 ? "bg-blue-100" : ""}`} // Menambahkan kelas bg-blue-100 untuk baris genap
-                            >
-                                <td className="px-4 py-2 text-center">{index + 1}</td>
-                                <td className="px-4 py-2 text-center">{akun.nama_instansi}</td>
-                                <td className="px-4 py-2 text-center">{akun.nama_pimpinan}</td>
-                                <td className="px-4 py-2 text-center">{akun.status}</td>
-                                <td className="px-4 py-2 text-center">{akun.username}</td>
-                                <td className="px-4 py-2 text-center">{akun.email}</td>
-                                <td className="px-4 py-2 text-center">
-                                    <button className="text-blue-500">
-                                        <PencilLine size={20} />
-                                    </button>
-                                    <button className="ml-2 text-red-500"
-                                        onClick={() => handleDelete(akun.id)}>
-                                        <Trash size={20} />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      akun.name_lengkap?.toLowerCase().includes(searchLower) ||
+      akun.username?.toLowerCase().includes(searchLower) ||
+      akun.email?.toLowerCase().includes(searchLower) ||
+      akun.role?.toLowerCase().includes(searchLower) ||
+      akun.instansi?.toLowerCase().includes(searchLower)
     );
+  });
+
+  // Sorting
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortConfig.key) {
+      if (a[sortConfig.key] < b[sortConfig.key]) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (a[sortConfig.key] > b[sortConfig.key]) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+    }
+    return 0;
+  });
+
+  // Toggle row expansion
+  const toggleRowExpand = (id) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-800">Account Management</h1>
+            <p className="text-slate-600">Manage admin and government accounts</p>
+          </div>
+          <button
+            onClick={toggleForm}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            <Plus size={18} />
+            Add Account
+          </button>
+        </div>
+
+        {/* Add Account Form */}
+        <AnimatePresence>
+          {isFormVisible && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mb-6 overflow-hidden rounded-xl bg-white shadow-md"
+            >
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-slate-800">Add New Account</h2>
+                  <button
+                    onClick={toggleForm}
+                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Institution */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Institution
+                      </label>
+                      <select
+                        name="nama_instansi"
+                        value={formData.nama_instansi}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.nama_instansi ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      >
+                        <option value="">Select Institution</option>
+                        <option value="Kominfo">Kominfo</option>
+                        <option value="Dishub">Dishub</option>
+                        <option value="DLH">DLH</option>
+                        <option value="Satpol PP">Satpol PP</option>
+                      </select>
+                      {formErrors.nama_instansi && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.nama_instansi}</p>
+                      )}
+                    </div>
+
+                    {/* Leader Name */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Leader Name
+                      </label>
+                      <input
+                        type="text"
+                        name="nama_pimpinan"
+                        value={formData.nama_pimpinan}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.nama_pimpinan ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        placeholder="Enter leader name"
+                      />
+                      {formErrors.nama_pimpinan && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.nama_pimpinan}</p>
+                      )}
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Status
+                      </label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.status ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      >
+                        <option value="">Select Status</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="PEMERINTAH">Government</option>
+                      </select>
+                      {formErrors.status && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>
+                      )}
+                    </div>
+
+                    {/* Username */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Username
+                      </label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.username ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        placeholder="Enter username"
+                      />
+                      {formErrors.username && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
+                      )}
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.email ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        placeholder="Enter email"
+                      />
+                      {formErrors.email && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                      )}
+                    </div>
+
+                    {/* Password */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Password
+                      </label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.password ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        placeholder="Enter password"
+                      />
+                      {formErrors.password && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={toggleForm}
+                      className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    >
+                      Save Account
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Data Table */}
+        <div className="rounded-xl bg-white shadow-md">
+          {/* Search and Filters */}
+          <div className="flex flex-col items-center justify-between gap-4 p-4 sm:flex-row">
+            <div className="relative w-full sm:w-64">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search accounts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 pl-10 text-sm text-slate-900 focus:border-indigo-500 focus:ring-indigo-500"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3"
+                >
+                  <X className="h-5 w-5 text-slate-400 hover:text-slate-600" />
+                </button>
+              )}
+            </div>
+            <div className="text-sm text-slate-600">
+              Showing {filteredData.length} of {akunList.length} accounts
+            </div>
+          </div>
+
+          {/* Loading State */}
+          {loading && (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-indigo-600" />
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
+            <div className="p-6 text-center">
+              <div className="mx-auto max-w-md rounded-lg bg-red-50 p-4">
+                <h3 className="text-lg font-medium text-red-800">Failed to load data</h3>
+                <p className="mt-1 text-sm text-red-700">{error}</p>
+                <button
+                  onClick={fetchAkunList}
+                  className="mt-3 inline-flex items-center rounded-md bg-red-100 px-3 py-1.5 text-sm font-medium text-red-800 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!loading && !error && sortedData.length === 0 && (
+            <div className="p-6 text-center">
+              <div className="mx-auto max-w-md rounded-lg bg-slate-50 p-6">
+                <h3 className="text-lg font-medium text-slate-800">No accounts found</h3>
+                <p className="mt-1 text-sm text-slate-600">
+                  {searchTerm ? 'Try a different search term' : 'Create a new account to get started'}
+                </p>
+                {!searchTerm && (
+                  <button
+                    onClick={toggleForm}
+                    className="mt-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  >
+                    <Plus className="mr-1 h-4 w-4" />
+                    Add Account
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Data Table */}
+          {!loading && !error && sortedData.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      #
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+                      onClick={() => requestSort('instansi')}
+                    >
+                      <div className="flex items-center">
+                        Institution
+                        {sortConfig.key === 'instansi' && (
+                          sortConfig.direction === 'asc' ? 
+                            <ChevronUp className="ml-1 h-4 w-4" /> : 
+                            <ChevronDown className="ml-1 h-4 w-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+                      onClick={() => requestSort('name_lengkap')}
+                    >
+                      <div className="flex items-center">
+                        Leader
+                        {sortConfig.key === 'name_lengkap' && (
+                          sortConfig.direction === 'asc' ? 
+                            <ChevronUp className="ml-1 h-4 w-4" /> : 
+                            <ChevronDown className="ml-1 h-4 w-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+                      onClick={() => requestSort('role')}
+                    >
+                      <div className="flex items-center">
+                        Status
+                        {sortConfig.key === 'role' && (
+                          sortConfig.direction === 'asc' ? 
+                            <ChevronUp className="ml-1 h-4 w-4" /> : 
+                            <ChevronDown className="ml-1 h-4 w-4" />
+                        )}
+                      </div>
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 bg-white">
+                  {sortedData.map((akun, index) => (
+                    <React.Fragment key={akun.id}>
+                      <tr 
+                        className={`hover:bg-slate-50 ${expandedRows[akun.id] ? 'bg-slate-50' : ''}`}
+                        onClick={() => toggleRowExpand(akun.id)}
+                      >
+                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
+                          {index + 1}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                          {akun.instansi || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                          {akun.name_lengkap || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm">
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            akun.role === 'ADMIN' 
+                              ? 'bg-indigo-100 text-indigo-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {akun.role || '-'}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                          <div className="flex space-x-2">
+                            <button 
+                              className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Handle edit here
+                              }}
+                            >
+                              <PencilLine size={16} />
+                            </button>
+                            <button
+                              className="rounded p-1 text-red-600 hover:bg-red-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(akun.id);
+                              }}
+                            >
+                              <Trash size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      <AnimatePresence>
+                        {expandedRows[akun.id] && (
+                          <motion.tr
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="bg-slate-50"
+                          >
+                            <td colSpan="5" className="px-6 py-4">
+                              <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="font-medium text-slate-700">Username:</p>
+                                  <p className="text-slate-600">{akun.username || '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-slate-700">Email:</p>
+                                  <p className="text-slate-600">{akun.email || '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-slate-700">Phone:</p>
+                                  <p className="text-slate-600">{akun.no_telepon || '-'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-slate-700">Created At:</p>
+                                  <p className="text-slate-600">
+                                    {new Date(akun.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        )}
+                      </AnimatePresence>
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default AkunPage;

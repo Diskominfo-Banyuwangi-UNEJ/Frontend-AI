@@ -11,18 +11,18 @@ export const navbarLinks = [
             {
                 label: "Dashboard",
                 icon: Home,
-                path: "/",
+                path: "/dashboard",
             },
             {
                 label: "Analytics Keramaian",
                 icon: ChartColumn,
-                path: "/analytics",
+                path: "/dashboard/analytics",
             },
 
             {
                 label: "Analytics Sampah",
                 icon: ChartColumn,
-                path: "/reports",
+                path: "/dashboard/reports",
             },
         ],
     },
@@ -32,7 +32,7 @@ export const navbarLinks = [
             {
                 label: "Akun",
                 icon: Users,
-                path: "/akun",
+                path: "/dashboard/akun",
             },
         ],
     },
@@ -42,10 +42,11 @@ export const navbarLinks = [
             {
                 label: "Pelaporan",
                 icon: FileText,
-                path: "/laporan",
+                path: "/dashboard/laporan",
             },
         ],
     },
+    
 ];
 
 export const overviewData = [

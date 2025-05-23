@@ -8,6 +8,8 @@ import AnalitikKeramaianPage from "./analitikkeramaian";
 import AnalitikSampahPage from "./analitiksampah";
 import { GoogleMap,Marker, useJsApiLoader  } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
+import { FaWhatsapp } from "react-icons/fa";
+
 
 
 
@@ -140,55 +142,13 @@ const LandingPage = () => {
             });
         }
     };
-    const nomorAdmin = "6285930088301"; // Nomor WhatsApp admin, pakai kode negara tanpa "+"
+   // Nomor WhatsApp tujuan (admin atau layanan)
+  const waNumber = "6281234567890"; // ganti sesuai nomor tujuan
 
-
-    const handleKirim = () => {
-  console.log("formData sebelum validasi:", formData);
-  
-  if (
-    !formData.judul ||
-    !formData.kategori ||
-    !formData.isi ||
-    !formData.tanggal ||
-    !formData.lokasi ||
-    !formData.bukti
-  ) {
-    Swal.fire({
-      icon: 'warning',
-      title: "Mohon lengkapi semua data yang dibutuhkan.",
-      confirmButtonColor: '#3085d6',
-    });
-    return;
-  }
-
-  const linkMaps = formData.lokasi;
-  const buktiUrl = "https://example.com/" + formData.bukti.name; // misal buat contoh link
-
-  const pesan = `
-    *Pengaduan Baru*
-    Judul: ${formData.judul}
-    Kategori: ${formData.kategori}
-    Isi: ${formData.isi}
-    Tanggal: ${formData.tanggal}
-    Lokasi: ${linkMaps ? `[Klik Lokasi](${linkMaps})` : "Tidak ada"}
-    Status: ${formData.status || "Menunggu"}
-    Bukti: ${buktiUrl ? `[Lihat Foto](${buktiUrl})` : "Tidak ada"}
-  `.replace(/\n\s+/g, "\n");
-
-  const url = `https://wa.me/${nomorAdmin}?text=${encodeURIComponent(pesan)}`;
-
-  console.log("url WA:", url);
-
-  Swal.fire({
-  icon: "success",
-  title: "Pesan berhasil dibuat!",
-  text: "Anda akan diarahkan ke WhatsApp untuk mengirim pengaduan.",
-  confirmButtonColor: "#3085d6",
-}).then(() => {
-  window.open(url, "_blank");
-});
-};
+  // Pesan WA default, kamu bisa sesuaikan
+  const waMessage = encodeURIComponent(
+    `Halo, saya ingin melaporkan pengaduan mengenai keramaian/tumpukan sampah.\nMohon tindak lanjut.\nTerima kasih.`
+  );
 
 
     return (
@@ -274,8 +234,11 @@ const LandingPage = () => {
                     </motion.div>
                 </div>
             </motion.section>
+          
 
-            <section className="p-6">
+    
+
+            <section className="pb-2">
                 <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">Fitur Utama</h2>
                 <div className="grid grid-cols-1 gap-6 p-6 text-center md:grid-cols-2 lg:grid-cols-3">
                     {/* Container untuk memusatkan card */}
@@ -316,167 +279,44 @@ const LandingPage = () => {
                     </div>
                 </div>
             </section>
-            {/* Statistik Section */}
-            {/* Statistik Section Tanpa Card */}
-            {/* <section className="p-6">
-                <h2 className="mb-6 text-center text-2xl font-bold text-gray-800">Fitur Utama</h2>
-                <div className="grid grid-cols-1 gap-6 p-6 text-center md:grid-cols-2 lg:grid-cols-4">
-                    {[
-                        { icon: <Users size={26} />, title: "Analisis Keramaian Otomatis" },
-                        { icon: <Trash size={26} />, title: "Pemantauan Tumpukan Sampah" },
-                        { icon: <Bell size={26} />, title: "Notifikasi Otomatis" },
-                        { icon: <BarChart size={26} />, title: "Laporan Analitik Data Real-Time" },
-                    ].map((item, index) => (
-                        <div
-                            key={index}
-                            className="flex flex-col items-center justify-center p-4"
-                        >
-                            <div className="text-blue-500">{item.icon}</div>
-                            <h3 className="mt-2 text-lg font-semibold text-gray-800">{item.title}</h3>
-                            <p className="mt-1 text-2xl font-bold text-gray-900">{item.value}</p>
-                        </div>
-                    ))}
-                </div>
-            </section> */}
 
-            <div className="flex min-h-screen items-center justify-center p-4">
-                <div className="mb-6 text-left">
-                    <h1 className="text-3xl font-bold text-blue-700">Layanan Pengaduan Masyarakat</h1>
-                    <p className="mt-2 px-6 text-gray-600">
-                        Silakan isi formulir di bawah ini untuk melaporkan kejadian keramaian atau masalah sampah di lingkungan Anda.
-                    </p>
-                    <div className="mx-auto mt-4 max-w-md px-6 text-left">
-                        <ol className="list-decimal space-y-1 pl-5 text-sm text-gray-700 md:text-base">
-                            <li>
-                                Isi <strong>nama lengkap</strong> pelapor untuk identifikasi dan tindak lanjut.
-                            </li>
-                            <li>
-                                Pilih <strong>kategori</strong> pengaduan sesuai dengan jenis permasalahan (keramaian atau sampah).
-                            </li>
-                            <li>
-                                Tulis <strong>deskripsi lengkap</strong> pengaduan, sertakan waktu dan lokasi kejadian.
-                            </li>
-                            <li>
-                                Unggah <strong>bukti pendukung</strong> (foto) jika tersedia, lalu klik tombol <em>Kirim ke WhatsApp</em>.
-                            </li>
-                        </ol>
-                    </div>
-                </div>
-                <div className="w-full max-w-xl rounded-lg bg-white p-6 shadow-md">
-                    <h3 className="mb-4 text-center text-2xl font-semibold text-gray-800">Form Pengaduan Keramaian dan Sampah</h3>
+          <div className="flex min-h-screen items-center justify-center  p-16 text-gray-800">
+      <div className="flex w-full max-w-7xl gap-12">
+        {/* Kiri: Tata Cara */}
+        <div className="flex-1  rounded-2xl p-10   min-w-[480px]">
+          <h1 className="mb-6 text-3xl font-extrabold text-green-800 drop-shadow-md">
+            Tata Cara Pengaduan
+          </h1>
+          <ol className="list-decimal list-inside space-y-4 text-lg leading-relaxed text-green-900">
+            <li>Hubungi kami via WhatsApp tanpa perlu isi formulir.</li>
+            <li>Sampaikan lokasi dan jenis pengaduan.</li>
+            <li>Kirim foto bukti jika ada.</li>
+            <li>Dapatkan nomor tiket untuk tracking.</li>
+          </ol>
+        </div>
 
-                    <div className="mb-4">
-                        <label className="block font-semibold">Nama</label>
-                        <input
-                            type="text"
-                            name="judul"
-                            value={formData.nama}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                            placeholder="Nama"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold">Kategori</label>
-                        <select
-                            name="kategori"
-                            value={formData.kategori}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                        >
-                            <option value="keramaian">Keramaian</option>
-                            <option value="sampah">Sampah</option>
-                        </select>
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold">Isi Pengaduan</label>
-                        <textarea
-                            name="isi"
-                            value={formData.isi}
-                            onChange={handleChange}
-                            rows={4}
-                            className="w-full rounded border border-gray-300 p-2"
-                            placeholder="Deskripsikan pengaduan Anda"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold">Tanggal Kejadian</label>
-                        <input
-                            type="datetime-local"
-                            name="tanggal"
-                            value={formData.tanggal}
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                        />
-                    </div>
-
-                     {/* <div className="p-4">
-                        <h1 className="text-xl font-semibold mb-4">Pilih Lokasi di Banyuwangi</h1>
-                        {isLoaded ? (
-                            <GoogleMap
-                            mapContainerStyle={containerStyle}
-                            defaultCenter={{ lat: -8.2192, lng: 114.3692 }}
-                            zoom={10}
-                            onClick={handleMapClick}
-                            >
-                            {selectedLocation && <Marker position={selectedLocation} />}
-                            </GoogleMap>
-                        ) : (
-                            <p>Memuat peta...</p>
-                        )}
-                        {address && (
-                            <p className="mt-4">
-                            <strong>Alamat:</strong> {address}
-                            </p>
-                        )}
-                    </div> */}
-
-                    <div className="mb-6">
-  <label className="block font-semibold mb-1">Lokasi</label>
-  <p className="text-sm text-gray-500 mb-2">
-    Buka Google Maps untuk mencari lokasi, lalu salin link-nya ke kolom di bawah
-  </p>
-  <button
-    type="button"
-    onClick={() => window.open("https://www.google.com/maps", "_blank")}
-    className="mb-3 rounded bg-blue-600 text-white px-4 py-2 hover:bg-blue-700"
-  >
-    Buka Google Maps
-  </button>
-  <input
-    type="text"
-    name="lokasi"
-    placeholder="Tempelkan link lokasi dari Google Maps di sini"
-    onChange={handleChange}
-    className="w-full rounded border border-gray-300 p-2"
-  />
-</div>
-
-
-
-
-                    <div className="mb-6">
-                        <label className="block font-semibold">Bukti Pengajuan</label>
-                        <input
-                            type="file"
-                            name="bukti"
-                            accept="image/*"
-                            onChange={handleChange}
-                            className="w-full rounded border border-gray-300 p-2"
-                        />
-                    </div>
-
-                    <button
-                        onClick={handleKirim}
-                        className="w-full rounded bg-green-600 px-4 py-2 font-semibold text-white hover:bg-green-700"
-                    >
-                        Kirim ke WhatsApp
-                    </button>
-                </div>
-            </div>
+        {/* Kanan: Card WA */}
+        <div className="flex-1 bg-white rounded-3xl p-12 shadow-2xl border border-green-300 min-w-[480px] flex flex-col items-center justify-center hover:shadow-green-400 transition-shadow duration-300">
+          <FaWhatsapp className="mb-6 text-6xl text-green-600 drop-shadow-md" />
+          <h2 className="mb-4 text-3xl font-bold text-green-700 text-center">
+            Kirim Pengaduan Sekarang
+          </h2>
+          <p className="mb-8 text-center text-green-800 max-w-sm">
+            Klik tombol untuk kirim pengaduan cepat via WhatsApp.
+          </p>
+          <a
+            href={`https://wa.me/${waNumber}?text=${waMessage}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 rounded-full bg-green-600 px-12 py-4 text-white text-xl text-center font-semibold shadow-lg hover:bg-green-700 active:scale-95 transition-transform"
+          >
+            <FaWhatsapp className="text-2xl" />
+            Kirim Pengaduan via WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+            
 
             <motion.section
                 className="p-6"

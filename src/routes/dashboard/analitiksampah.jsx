@@ -144,7 +144,7 @@ const AnalitikSampahPage = () => {
                     </div>
 
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
+                        <p className="text-xl font-semibold text-slate-900 transition-colors dark:text-slate-50"> Tingkat penumpukan sampah berada di bawah 50% kapasitas, menunjukkan kondisi yang baik dan memerlukan pemantauan rutin.</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             50-100% kapasitas

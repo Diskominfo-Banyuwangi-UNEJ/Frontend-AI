@@ -1,450 +1,777 @@
-import React, { useState,useEffect } from "react";
-import Swal from 'sweetalert2';
-import withReactContent from 'sweetalert2-react-content';
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
+import axios from "axios";
+import { 
+  Plus, 
+  Edit, 
+  Trash2, 
+  Eye, 
+  Download, 
+  X, 
+  Filter, 
+  ChevronDown, 
+  ChevronUp,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  FileText
+} from "lucide-react";
 
-
-
+const MySwal = withReactContent(Swal);
 
 const LaporanPage = () => {
-    const [laporanList, setLaporanList] = useState([]);
-    const [filter, setFilter] = useState({ tanggal: "", status: "", jenis: "" });
-    const [showPreview, setShowPreview] = React.useState(false);
+  const [laporanList, setLaporanList] = useState([]);
+  const [filter, setFilter] = useState({ 
+    tanggal: "", 
+    status: "", 
+    jenis: "" 
+  });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  const [formData, setFormData] = useState({
+    judul: "",
+    isi: "",
+    jenis: "",
+    status: "",
+    tanggal: "",
+    filePdf: null
+  });
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedLaporan, setSelectedLaporan] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const [formData, setFormData] = useState({
-        judul: "",
-        isi: "",
-        jenis: "",
-        status: "",
-        tanggal: "",
-    });
-    const [isEditing, setIsEditing] = useState(false);
-    const [selectedLaporan, setSelectedLaporan] = useState(null);
-    const [showForm, setShowForm] = useState(false);
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
 
-    const handleFilterChange = (e) => {
-        setFilter({ ...filter, [e.target.name]: e.target.value });
-    };
-    
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
 
-    const filteredLaporan = laporanList.filter((laporan) => {
-        return (
-            (!filter.tanggal || laporan.tanggal.includes(filter.tanggal)) &&
-            (!filter.status || laporan.status === filter.status) &&
-            (!filter.jenis || laporan.jenis === filter.jenis)
-        );
-    });
+  const formVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0.95 }
+  };
 
-    // ✅ SweetAlert jika data tidak ditemukan
-    useEffect(() => {
-        if (
-            (filter.tanggal || filter.status || filter.jenis) &&
-            filteredLaporan.length === 0
-        ) {
-            Swal.fire({
-                icon: "info",
-                title: "Laporan tidak ditemukan.",
-                toast: true,
-                position: "top",
-                timer: 2500,
-                showConfirmButton: false,
-            });
-        }
-    }, [filteredLaporan, filter]);
+  // Fetch data
+  const fetchLaporan = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`${BASEURL}${API}laporan/getAllLaporan`);
+      setLaporanList(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
+        background: "#f8fafc",
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const handleFormChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+  useEffect(() => {
+    fetchLaporan();
+  }, []);
 
-    const MySwal = withReactContent(Swal);
- 
-const handleSimpan = () => {
-  const { judul, isi, jenis, status, tanggal } = formData;
+  const handleFilterChange = (e) => {
+    setFilter({ ...filter, [e.target.name]: e.target.value });
+  };
 
-  // Cek field kosong
-  if (!judul || !isi || !jenis || !status || !tanggal) {
-    MySwal.fire({
-      icon: 'error',
-      title: 'Data tidak lengkap',
-      text: 'Semua field wajib diisi!',
-      timer: 3000,
-      showConfirmButton: false,
-      position: 'top',
-      toast: true,
-    });
-    return;
-  }
-
-  if (isEditing) {
-    setLaporanList((prev) =>
-      prev.map((lap) =>
-        lap.id === selectedLaporan.id ? { ...formData, id: lap.id } : lap
-      )
-    );
-    MySwal.fire({
-      icon: 'success',
-      title: 'Berhasil',
-      text: 'Laporan berhasil diperbarui.',
-      timer: 3000,
-      showConfirmButton: false,
-      position: 'top',
-      toast: true,
-    });
-  } else {
-    const newLaporan = {
-      ...formData,
-      id: Date.now(),
-    };
-    setLaporanList([newLaporan, ...laporanList]);
-    MySwal.fire({
-      icon: 'success',
-      title: 'Berhasil',
-      text: 'Laporan berhasil dibuat.',
-      timer: 3000,
-      showConfirmButton: false,
-      position: 'top',
-      toast: true,
-    });
-  }
-
-
-        setFormData({
-            judul: "",
-            isi: "",
-            jenis: "",
-            status: "",
-            tanggal: "",
-        });
-        setShowForm(false);
-        setIsEditing(false);
-    };
-
-    const handleEdit = (laporan) => {
-        setIsEditing(true);
-        setFormData(laporan);
-        setSelectedLaporan(laporan);
-        setShowForm(true);
-    };
-
-    const handleDelete = (id) => {
-        Swal.fire({
-            title: "Apakah Anda yakin ingin menghapus laporan ini?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Ya, hapus!",
-            cancelButtonText: "Batal"
-          }).then((result) => {
-            if (result.isConfirmed) {
-              setLaporanList(laporanList.filter((laporan) => laporan.id !== id));
-              Swal.fire({
-                icon: "success",
-                title: "Terhapus!",
-                text: "Laporan berhasil dihapus.",
-                timer: 2000,
-                showConfirmButton: false,
-              });
-            }
-          });
-        };
-
-    const handleDetail = (laporan) => {
-        alert(`
-      Judul: ${laporan.judul}
-      Isi: ${laporan.isi}
-      Jenis: ${laporan.jenis}
-      Status: ${laporan.status}
-      Tanggal: ${laporan.tanggal}
-    `);
-    };
-
-   
-
-    const handleStatus = (laporan) => {
-        setSelectedLaporan(laporan);
-        setShowForm(true);
-        setIsEditing(false); // Menampilkan modal untuk memilih status
-    };
-
-    const handleStatusChange = (e, laporanId) => {
-        const newStatus = e.target.value;
-        setLaporanList((prev) => prev.map((lap) => (lap.id === laporanId ? { ...lap, status: newStatus } : lap)));
-    };
-
+  const filteredLaporan = laporanList.filter((laporan) => {
     return (
-        <div className="p-6">
-            <h2 className="mb-4 text-2xl font-bold">Daftar Laporan</h2>
+      (!filter.tanggal || laporan.tanggal.includes(filter.tanggal)) &&
+      (!filter.status || laporan.status === filter.status) &&
+      (!filter.jenis || laporan.jenis === filter.jenis)
+    );
+  });
 
-            {/* Filter */}
-            <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                <input
-                    type="date"
-                    name="tanggal"
-                    value={filter.tanggal}
-                    onChange={handleFilterChange}
-                    className="w-full rounded border p-2"
-                />
-                <select
-                    name="status"
-                    value={filter.status}
-                    onChange={handleFilterChange}
-                    className="w-full rounded border p-2"
-                >
-                    <option value="">Semua Status</option>
-                    <option value="diterima">Diterima</option>
-                    <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                    <option value="selesai">Selesai</option>
-                </select>
-                <select
-                    name="jenis"
-                    value={filter.jenis}
-                    onChange={handleFilterChange}
-                    className="w-full rounded border p-2"
-                >
-                    <option value="">Semua Jenis</option>
-                    <option value="keramaian">Keramaian</option>
-                    <option value="tumpukan sampah">Tumpukan Sampah</option>
-                </select>
-            </div>
+  useEffect(() => {
+    if ((filter.tanggal || filter.status || filter.jenis) && filteredLaporan.length === 0) {
+      MySwal.fire({
+        icon: "info",
+        title: "Laporan tidak ditemukan",
+        toast: true,
+        position: "top",
+        timer: 2500,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    }
+  }, [filteredLaporan, filter]);
 
-            {/* admin */}
-            <button
-                onClick={() => {
-                    setShowForm(true);
-                    setIsEditing(false);
-                    setFormData({
-                        judul: "",
-                        isi: "",
-                        jenis: "",
-                        status: "",
-                        tanggal: "",
-                    });
-                }}
-                className="mb-4 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-            >
-                Buat Laporan
-            </button>
+  const handleFormChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-            {filteredLaporan.length === 0 ? (
-            <p className="text-gray-500">Laporan tidak ditemukan.</p>
-        ) : (
-            <div className="overflow-auto rounded border">
-                <table className="min-w-full table-auto text-sm">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="px-4 py-2">No.</th>
-                            <th className="px-4 py-2">Judul</th>
-                            <th className="px-4 py-2">Isi</th>
-                            <th className="px-4 py-2">File</th>
-                            <th className="px-4 py-2">Jenis</th>
-                            <th className="px-4 py-2">Status</th>
-                            <th className="px-4 py-2">Tanggal</th>
-                            <th className="px-4 py-2">Detail</th>
-                            <th className="px-4 py-2">Akses</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredLaporan.map((laporan, index) => (
-                            <tr key={laporan.id} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                                <td className="border px-4 py-2 text-center">{index + 1}</td>
-                                <td className="border px-4 py-2">{laporan.judul}</td>
-                                <td className="border px-4 py-2 whitespace-pre-wrap">{laporan.isi}</td>
-                                <td className="border px-4 py-2 text-center">
-                                    {laporan.filePdf ? (
-                                        <a
-                                            href={laporan.filePdf.data}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-blue-600 underline"
-                                        >
-                                            {laporan.filePdf.name}
-                                        </a>
-                                    ) : (
-                                        "-"
-                                    )}
-                                </td>
-                                <td className="border px-4 py-2 text-center capitalize">{laporan.jenis}</td>
-                                <td className="border px-4 py-2 text-center capitalize">
-                                    <select
-                                        value={laporan.status}
-                                        onChange={(e) => handleStatusChange(e, laporan.id)}
-                                        className="rounded border p-1"
-                                    >
-                                        <option value="diterima">Diterima</option>
-                                        <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                                        <option value="selesai">Selesai</option>
-                                    </select>
-                                </td>
-                                <td className="border px-4 py-2">
-                                {new Date(laporan.tanggal).toLocaleDateString("id-ID")}
-                                </td>
-
-                                
-                                <td className="border px-4 py-2 text-center">
-                                    <button
-                                        onClick={() => handleDetail(laporan)}
-                                        className="text-blue-600 hover:underline"
-                                    >
-                                        Detail
-                                    </button>
-                                </td>
-                                <td className="border px-4 py-2 text-center">
-                                    <button
-                                        onClick={() => handleEdit(laporan)}
-                                        className="text-yellow-600 hover:underline mr-2"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(laporan.id)}
-                                        className="text-red-600 hover:underline"
-                                    >
-                                        Hapus
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        )}
-
-
-            {showForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h3 className="mb-4 text-lg font-semibold">{isEditing ? "Edit Laporan" : "Buat Laporan Baru"}</h3>
-                        <div className="grid gap-4">
-                            <input
-                                type="text"
-                                name="judul"
-                                value={formData.judul}
-                                onChange={handleFormChange}
-                                placeholder="Judul laporan"
-                                className="rounded border p-2"
-                            />
-                            <div className="grid gap-4">
-                                {/* Input untuk keterangan laporan */}
-                                <textarea
-                                    name="isi"
-                                    value={formData.isi}
-                                    onChange={handleFormChange}
-                                    placeholder="Tulis keterangan laporan di sini"
-                                    className="rounded border p-2"
-                                    rows={3}
-                                />
-
-                                {/* Input untuk unggah file PDF */}
-                                {/* Input untuk unggah file PDF */}
-<input
-  type="file"
-  accept="application/pdf"
-  onChange={(e) => {
+  const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type === "application/pdf") {
       const reader = new FileReader();
       reader.onload = () => {
-        setFormData((prev) => ({
+        setFormData(prev => ({
           ...prev,
           filePdf: {
             name: file.name,
-            data: reader.result,
-          },
+            data: reader.result
+          }
         }));
-        setShowPreview(false); // reset preview saat ganti file baru
+        setShowPreview(false);
       };
       reader.readAsDataURL(file);
     } else {
-      alert("Mohon unggah file PDF saja.");
+      MySwal.fire({
+        icon: "error",
+        title: "Format file tidak valid",
+        text: "Mohon unggah file PDF saja",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
     }
-  }}
-  className="rounded border p-2"
-/>
+  };
 
-{/* Nama file jadi clickable toggle preview */}
-{formData.filePdf && (
-  <p
-    className="mt-4 text-blue-600 underline cursor-pointer"
-    onClick={() => setShowPreview((prev) => !prev)}
-    title="Klik untuk lihat preview"
-  >
-    {formData.filePdf.name}
-  </p>
-)}
+  const handleSimpan = async () => {
+    const { judul, isi, jenis, status, tanggal } = formData;
 
-{/* Preview PDF dan tombol unduh */}
-{showPreview && formData.filePdf?.data && (
-  <div className="mt-4">
-    <iframe
-      src={formData.filePdf.data}
-      title="Preview PDF"
-      width="100%"
-      height="500px"
-      className="rounded border"
-    />
-    <a
-      href={formData.filePdf.data}
-      download={formData.filePdf.name}
-      className="inline-block mt-2 rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-    >
-      Unduh File
-    </a>
-  </div>
-)}
+    if (!judul || !isi || !jenis || !status || !tanggal) {
+      MySwal.fire({
+        icon: "error",
+        title: "Data tidak lengkap",
+        text: "Semua field wajib diisi!",
+        timer: 3000,
+        showConfirmButton: false,
+        position: "top",
+        toast: true,
+        background: "#f8fafc"
+      });
+      return;
+    }
 
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        judul: formData.judul,
+        isi: formData.isi,
+        jenis: formData.jenis,
+        status: formData.status,
+        tanggal: formData.tanggal,
+        filePdf: formData.filePdf
+      };
 
+      let response;
+      if (isEditing) {
+        response = await axios.put(
+          `${BASEURL}${API}laporan/updateLaporan/${selectedLaporan.id}`,
+          payload,
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } else {
+        response = await axios.post(
+          `${BASEURL}${API}laporan/createLaporan`,
+          payload,
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
 
+      await MySwal.fire({
+        icon: "success",
+        title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
+        text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
 
-                            </div>
-                            <select
-                                name="jenis"
-                                value={formData.jenis}
-                                onChange={handleFormChange}
-                                className="rounded border p-2"
-                            >
-                                <option value="">Pilih Jenis</option>
-                                <option value="keramaian">Keramaian</option>
-                                <option value="tumpukan sampah">Tumpukan Sampah</option>
-                            </select>
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleFormChange}
-                                className="rounded border p-2"
-                            >
-                                <option value="">Pilih Status</option>
-                                <option value="diterima">Diterima</option>
-                                <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                                <option value="selesai">Selesai</option>
-                            </select>
-                            <input
-                            type="date"
-                            name="tanggal"
-                            value={formData.tanggal}
-                            onChange={handleFormChange}
-                            className="rounded border p-2"
-                            />
-                            <div className="flex justify-end gap-2">
-                                <button
-                                    onClick={() => setShowForm(false)}
-                                    className="rounded bg-gray-400 px-4 py-2 text-white hover:bg-gray-500"
-                                >
-                                    Batal
-                                </button>
-                                <button
-                                    onClick={handleSimpan}
-                                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                                >
-                                    Simpan
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+      resetForm();
+      fetchLaporan();
+    } catch (error) {
+      console.error("Error menyimpan laporan:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
+  const resetForm = () => {
+    setFormData({
+      judul: "",
+      isi: "",
+      jenis: "",
+      status: "",
+      tanggal: "",
+      filePdf: null
+    });
+    setShowForm(false);
+    setIsEditing(false);
+    setSelectedLaporan(null);
+    setShowPreview(false);
+  };
+
+  const handleEdit = (laporan) => {
+    setIsEditing(true);
+    setSelectedLaporan(laporan);
+    setFormData({
+      judul: laporan.judul,
+      isi: laporan.isi,
+      jenis: laporan.jenis,
+      status: laporan.status,
+      tanggal: laporan.tanggal,
+      filePdf: laporan.filePdf || null
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    const result = await MySwal.fire({
+      title: "Hapus laporan?",
+      text: "Anda tidak dapat mengembalikan data yang sudah dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+      background: "#f8fafc"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`${BASEURL}${API}laporan/deleteLaporan/${id}`);
+        setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
+        MySwal.fire({
+          icon: "success",
+          title: "Terhapus!",
+          text: "Laporan berhasil dihapus",
+          timer: 2000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      } catch (error) {
+        console.error("Error deleting:", error);
+        MySwal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: error.response?.data?.message || "Gagal menghapus laporan",
+          timer: 3000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      }
+    }
+  };
+
+  const handleDetail = (laporan) => {
+    MySwal.fire({
+      title: laporan.judul,
+      html: `
+        <div class="text-left space-y-2">
+          <p><strong>Isi:</strong> ${laporan.isi}</p>
+          <p><strong>Jenis:</strong> ${laporan.jenis}</p>
+          <p><strong>Status:</strong> <span class="capitalize">${laporan.status}</span></p>
+          <p><strong>Tanggal:</strong> ${new Date(laporan.tanggal).toLocaleDateString("id-ID")}</p>
+          ${laporan.filePdf ? `<p><strong>File:</strong> ${laporan.filePdf.name}</p>` : ''}
         </div>
-    );
+      `,
+      background: "#f8fafc",
+      showConfirmButton: true,
+      confirmButtonColor: "#3b82f6"
+    });
+  };
+
+  const handleStatusChange = async (e, laporanId) => {
+    const newStatus = e.target.value;
+    try {
+      await axios.patch(`${BASEURL}${API}laporan/updateStatus/${laporanId}`, {
+        status: newStatus
+      });
+      setLaporanList(prev => 
+        prev.map(lap => 
+          lap.id === laporanId ? { ...lap, status: newStatus } : lap
+        )
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Gagal mengupdate status",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case "diterima":
+        return "bg-blue-100 text-blue-800";
+      case "dalam pengerjaan":
+        return "bg-yellow-100 text-yellow-800";
+      case "selesai":
+        return "bg-green-100 text-green-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-slate-50 p-4 md:p-6"
+    >
+      <div className="mx-auto max-w-7xl">
+        {/* Header */}
+        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">Manajemen Laporan</h1>
+            <p className="text-slate-600">Kelola laporan dengan mudah</p>
+          </div>
+          
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => {
+              setShowForm(true);
+              setIsEditing(false);
+              setFormData({
+                judul: "",
+                isi: "",
+                jenis: "",
+                status: "",
+                tanggal: "",
+                filePdf: null
+              });
+            }}
+            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+          >
+            <Plus size={18} />
+            Buat Laporan
+          </motion.button>
+        </div>
+
+        {/* Filter Section */}
+        <motion.div 
+          className="mb-6 rounded-lg bg-white p-4 shadow-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="flex items-center gap-2 text-slate-700"
+          >
+            <Filter size={18} />
+            <span>Filter Laporan</span>
+            {isFilterOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          
+          <AnimatePresence>
+            {isFilterOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-4 grid gap-4 md:grid-cols-3"
+              >
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
+                  <input
+                    type="date"
+                    name="tanggal"
+                    value={filter.tanggal}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
+                  <select
+                    name="status"
+                    value={filter.status}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="diterima">Diterima</option>
+                    <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                    <option value="selesai">Selesai</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Jenis</label>
+                  <select
+                    name="jenis"
+                    value={filter.jenis}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="">Semua Jenis</option>
+                    <option value="keramaian">Keramaian</option>
+                    <option value="tumpukan sampah">Tumpukan Sampah</option>
+                  </select>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Data Table */}
+        <motion.div
+          className="rounded-lg bg-white shadow-sm"
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+        >
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+            </div>
+          ) : filteredLaporan.length === 0 ? (
+            <div className="p-8 text-center">
+              <FileText className="mx-auto h-12 w-12 text-slate-400" />
+              <h3 className="mt-2 text-lg font-medium text-slate-800">
+                {filter.tanggal || filter.status || filter.jenis 
+                  ? "Laporan tidak ditemukan" 
+                  : "Belum ada laporan"}
+              </h3>
+              <p className="mt-1 text-sm text-slate-500">
+                {filter.tanggal || filter.status || filter.jenis 
+                  ? "Coba ubah filter pencarian Anda" 
+                  : "Buat laporan baru untuk memulai"}
+              </p>
+              {!(filter.tanggal || filter.status || filter.jenis) && (
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  <Plus className="mr-1 h-4 w-4" />
+                  Buat Laporan
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-slate-200">
+                <thead className="bg-slate-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      No
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Judul
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Jenis
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Tanggal
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      File
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 bg-white">
+                  {filteredLaporan.map((laporan, index) => (
+                    <motion.tr
+                      key={laporan.id}
+                      variants={itemVariants}
+                      className="hover:bg-slate-50"
+                    >
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
+                        {index + 1}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
+                        {laporan.judul}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm capitalize text-slate-500">
+                        {laporan.jenis}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm">
+                        <select
+                          value={laporan.status}
+                          onChange={(e) => handleStatusChange(e, laporan.id)}
+                          className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusColor(laporan.status)}`}
+                        >
+                          <option value="diterima">Diterima</option>
+                          <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                          <option value="selesai">Selesai</option>
+                        </select>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        {new Date(laporan.tanggal).toLocaleDateString("id-ID")}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        {laporan.filePdf ? (
+                          <a
+                            href={laporan.filePdf.data}
+                            download={laporan.filePdf.name}
+                            className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                          >
+                            <Download className="mr-1 h-4 w-4" />
+                            {laporan.filePdf.name}
+                          </a>
+                        ) : (
+                          "-"
+                        )}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleDetail(laporan)}
+                            className="rounded p-1 text-slate-600 hover:bg-slate-100"
+                            title="Detail"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleEdit(laporan)}
+                            className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
+                            title="Edit"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(laporan.id)}
+                            className="rounded p-1 text-red-600 hover:bg-red-100"
+                            title="Hapus"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Form Modal */}
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
+              variants={formVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-slate-800">
+                    {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
+                  </h2>
+                  <button
+                    onClick={resetForm}
+                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Judul Laporan
+                    </label>
+                    <input
+                      type="text"
+                      name="judul"
+                      value={formData.judul}
+                      onChange={handleFormChange}
+                      placeholder="Masukkan judul laporan"
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Isi Laporan
+                    </label>
+                    <textarea
+                      name="isi"
+                      value={formData.isi}
+                      onChange={handleFormChange}
+                      rows={4}
+                      placeholder="Tulis isi laporan secara detail"
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    ></textarea>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Jenis Laporan
+                      </label>
+                      <select
+                        name="jenis"
+                        value={formData.jenis}
+                        onChange={handleFormChange}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      >
+                        <option value="">Pilih Jenis Laporan</option>
+                        <option value="keramaian">Keramaian</option>
+                        <option value="tumpukan sampah">Tumpukan Sampah</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Status
+                      </label>
+                      <select
+                        name="status"
+                        value={formData.status}
+                        onChange={handleFormChange}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      >
+                        <option value="">Pilih Status</option>
+                        <option value="diterima">Diterima</option>
+                        <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                        <option value="selesai">Selesai</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Tanggal
+                      </label>
+                      <input
+                        type="date"
+                        name="tanggal"
+                        value={formData.tanggal}
+                        onChange={handleFormChange}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        File PDF (Opsional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handleFileChange}
+                        className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
+                      />
+                      {formData.filePdf && (
+                        <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
+                          <span className="truncate text-sm text-slate-700">
+                            {formData.filePdf.name}
+                          </span>
+                          <button
+                            onClick={() => setShowPreview(!showPreview)}
+                            className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
+                          >
+                            {showPreview ? "Sembunyikan" : "Lihat"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {showPreview && formData.filePdf && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="overflow-hidden rounded-lg border border-slate-200"
+                    >
+                      <iframe
+                        src={formData.filePdf.data}
+                        title="PDF Preview"
+                        className="h-96 w-full"
+                      />
+                    </motion.div>
+                  )}
+
+                  <div className="flex justify-end gap-2 pt-4">
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={resetForm}
+                      className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      Batal
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      type="button"
+                      onClick={handleSimpan}
+                      disabled={isSubmitting}
+                      className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : isEditing ? (
+                        "Update Laporan"
+                      ) : (
+                        "Simpan Laporan"
+                      )}
+                    </motion.button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 };
 
 export default LaporanPage;
