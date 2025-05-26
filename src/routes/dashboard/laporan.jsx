@@ -24,20 +24,21 @@ const MySwal = withReactContent(Swal);
 const LaporanPage = () => {
   const [laporanList, setLaporanList] = useState([]);
   const [filter, setFilter] = useState({ 
-    tanggal: "", 
+    created_at: "", 
     status: "", 
-    jenis: "" 
+    kategori: "" 
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
   const [formData, setFormData] = useState({
-    judul: "",
-    isi: "",
-    jenis: "",
+    judul_laporan: "",
+    deskripsi: "",
+    kategori: "",
     status: "",
-    tanggal: "",
-    filePdf: null
+    created_at: "",
+    estimasi: 0,
+    filePdf: "",
   });
   
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +73,7 @@ const LaporanPage = () => {
   const fetchLaporan = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`${BASEURL}${API}laporan/getAllLaporan`);
+      const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`);
       setLaporanList(response.data.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -99,14 +100,14 @@ const LaporanPage = () => {
 
   const filteredLaporan = laporanList.filter((laporan) => {
     return (
-      (!filter.tanggal || laporan.tanggal.includes(filter.tanggal)) &&
+      (!filter.created_at || laporan.created_at.includes(filter.created_at)) &&
       (!filter.status || laporan.status === filter.status) &&
-      (!filter.jenis || laporan.jenis === filter.jenis)
+      (!filter.kategori || laporan.kategori === filter.kategori)
     );
   });
 
   useEffect(() => {
-    if ((filter.tanggal || filter.status || filter.jenis) && filteredLaporan.length === 0) {
+    if ((filter.created_at || filter.status || filter.kategori) && filteredLaporan.length === 0) {
       MySwal.fire({
         icon: "info",
         title: "Laporan tidak ditemukan",
@@ -151,9 +152,9 @@ const LaporanPage = () => {
   };
 
   const handleSimpan = async () => {
-    const { judul, isi, jenis, status, tanggal } = formData;
+    const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
 
-    if (!judul || !isi || !jenis || !status || !tanggal) {
+    if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
       MySwal.fire({
         icon: "error",
         title: "Data tidak lengkap",
@@ -170,24 +171,25 @@ const LaporanPage = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        judul: formData.judul,
-        isi: formData.isi,
-        jenis: formData.jenis,
+        judul_laporan: formData.judul_laporan,
+        deskripsi: formData.deskripsi,
+        kategori: formData.kategori,
         status: formData.status,
-        tanggal: formData.tanggal,
+        created_at: formData.created_at,
+        estimasi: formData.estimasi, // Tambahkan ini
         filePdf: formData.filePdf
       };
 
       let response;
       if (isEditing) {
         response = await axios.put(
-          `${BASEURL}${API}laporan/updateLaporan/${selectedLaporan.id}`,
+          `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
           payload,
           { headers: { "Content-Type": "application/json" } }
         );
       } else {
         response = await axios.post(
-          `${BASEURL}${API}laporan/createLaporan`,
+          `http://localhost:3000/api/laporan/createLaporan`,
           payload,
           { headers: { "Content-Type": "application/json" } }
         );
@@ -221,11 +223,12 @@ const LaporanPage = () => {
 
   const resetForm = () => {
     setFormData({
-      judul: "",
-      isi: "",
-      jenis: "",
+      judul_laporan: "",
+      deskripsi: "",
+      kategori: "",
       status: "",
-      tanggal: "",
+      created_at: "",
+      estimasi: 0, 
       filePdf: null
     });
     setShowForm(false);
@@ -238,11 +241,12 @@ const LaporanPage = () => {
     setIsEditing(true);
     setSelectedLaporan(laporan);
     setFormData({
-      judul: laporan.judul,
-      isi: laporan.isi,
-      jenis: laporan.jenis,
+      judul_laporan: laporan.judul_laporan,
+      deskripsi: laporan.deskripsi,
+      kategori: laporan.kategori,
       status: laporan.status,
-      tanggal: laporan.tanggal,
+      created_at: laporan.created_at,
+      estimasi: laporan.estimasi || 0, 
       filePdf: laporan.filePdf || null
     });
     setShowForm(true);
@@ -263,7 +267,7 @@ const LaporanPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`${BASEURL}${API}laporan/deleteLaporan/${id}`);
+        await axios.delete(`http://localhost:3000/api/laporan/deleteLaporan/${id}`);
         setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
         MySwal.fire({
           icon: "success",
@@ -289,13 +293,13 @@ const LaporanPage = () => {
 
   const handleDetail = (laporan) => {
     MySwal.fire({
-      title: laporan.judul,
+      title: laporan.judul_laporan,
       html: `
         <div class="text-left space-y-2">
-          <p><strong>Isi:</strong> ${laporan.isi}</p>
-          <p><strong>Jenis:</strong> ${laporan.jenis}</p>
+          <p><strong>Isi:</strong> ${laporan.deskripsi}</p>
+          <p><strong>Jenis:</strong> ${laporan.kategori}</p>
           <p><strong>Status:</strong> <span class="capitalize">${laporan.status}</span></p>
-          <p><strong>Tanggal:</strong> ${new Date(laporan.tanggal).toLocaleDateString("id-ID")}</p>
+          <p><strong>Tanggal:</strong> ${new Date(laporan.created_at).toLocaleDateString("id-ID")}</p>
           ${laporan.filePdf ? `<p><strong>File:</strong> ${laporan.filePdf.name}</p>` : ''}
         </div>
       `,
@@ -364,11 +368,12 @@ const LaporanPage = () => {
               setShowForm(true);
               setIsEditing(false);
               setFormData({
-                judul: "",
-                isi: "",
-                jenis: "",
+                judul_laporan: "",
+                deskripsi: "",
+                kategori: "",
                 status: "",
-                tanggal: "",
+                created_at: "",
+                estimasi: "",
                 filePdf: null
               });
             }}
@@ -407,8 +412,8 @@ const LaporanPage = () => {
                   <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
                   <input
                     type="date"
-                    name="tanggal"
-                    value={filter.tanggal}
+                    name="created_at"
+                    value={filter.created_at}
                     onChange={handleFilterChange}
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   />
@@ -432,8 +437,8 @@ const LaporanPage = () => {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">Jenis</label>
                   <select
-                    name="jenis"
-                    value={filter.jenis}
+                    name="kategori"
+                    value={filter.kategori}
                     onChange={handleFilterChange}
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
@@ -462,16 +467,16 @@ const LaporanPage = () => {
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-2 text-lg font-medium text-slate-800">
-                {filter.tanggal || filter.status || filter.jenis 
+                {filter.created_at || filter.status || filter.kategori 
                   ? "Laporan tidak ditemukan" 
                   : "Belum ada laporan"}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                {filter.tanggal || filter.status || filter.jenis 
+                {filter.created_at || filter.status || filter.kategori
                   ? "Coba ubah filter pencarian Anda" 
                   : "Buat laporan baru untuk memulai"}
               </p>
-              {!(filter.tanggal || filter.status || filter.jenis) && (
+              {!(filter.created_at || filter.status || filter.kategori) && (
                 <button
                   onClick={() => setShowForm(true)}
                   className="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -493,6 +498,9 @@ const LaporanPage = () => {
                       Judul
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Deskripsi
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Jenis
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
@@ -500,6 +508,9 @@ const LaporanPage = () => {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Tanggal
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Estimasi
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       File
@@ -520,10 +531,13 @@ const LaporanPage = () => {
                         {index + 1}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
-                        {laporan.judul}
+                        {laporan.judul_laporan}
                       </td>
+                      <td className="px-6 py-4 text-sm text-slate-500 max-w-xs overflow-hidden text-ellipsis">
+  {laporan.deskripsi || '-'}
+</td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm capitalize text-slate-500">
-                        {laporan.jenis}
+                        {laporan.kategori}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <select
@@ -537,8 +551,11 @@ const LaporanPage = () => {
                         </select>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                        {new Date(laporan.tanggal).toLocaleDateString("id-ID")}
+                        {new Date(laporan.created_at).toLocaleDateString("id-ID")}
                       </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+  {laporan.estimasi ? `${laporan.estimasi} hari` : '-'}
+</td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                         {laporan.filePdf ? (
                           <a
@@ -588,188 +605,203 @@ const LaporanPage = () => {
       </div>
 
       {/* Form Modal */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
-              variants={formVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+      {/* Form Modal */}
+<AnimatePresence>
+  {showForm && (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <motion.div
+        className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
+        variants={formVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+      >
+        <div className="p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-slate-800">
+              {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
+            </h2>
+            <button
+              onClick={resetForm}
+              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
             >
-              <div className="p-6">
-                <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">
-                    {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
-                  </h2>
+              <X size={20} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Judul Laporan
+              </label>
+              <input
+                type="text"
+                name="judul_laporan"
+                value={formData.judul_laporan}
+                onChange={handleFormChange}
+                placeholder="Masukkan judul laporan"
+                className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Isi Laporan
+              </label>
+              <textarea
+                name="deskripsi"
+                value={formData.deskripsi}
+                onChange={handleFormChange}
+                rows={4}
+                placeholder="Tulis isi laporan secara detail"
+                className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+              ></textarea>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Jenis Laporan
+                </label>
+                <select
+                  name="kategori"
+                  value={formData.kategori}
+                  onChange={handleFormChange}
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value="">Pilih Kategori Laporan</option>
+                  <option value="keramaian">Keramaian</option>
+                  <option value="tumpukan sampah">Tumpukan Sampah</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Status
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value="">Pilih Status</option>
+                  <option value="diterima">Diterima</option>
+                  <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                  <option value="selesai">Selesai</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Tanggal
+                </label>
+                <input
+                  type="date"
+                  name="created_at"
+                  value={formData.created_at}
+                  onChange={handleFormChange}
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Estimasi Penyelesaian
+                </label>
+                <input
+                  type="number"
+                  name="estimasi"
+                  value={formData.estimasi}
+                  onChange={handleFormChange}
+                  min="0"
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                File PDF (Opsional)
+              </label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleFileChange}
+                className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
+              />
+              {formData.filePdf && (
+                <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
+                  <span className="truncate text-sm text-slate-700">
+                    {formData.filePdf.name}
+                  </span>
                   <button
-                    onClick={resetForm}
-                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
                   >
-                    <X size={20} />
+                    {showPreview ? "Sembunyikan" : "Lihat"}
                   </button>
                 </div>
+              )}
+            </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Judul Laporan
-                    </label>
-                    <input
-                      type="text"
-                      name="judul"
-                      value={formData.judul}
-                      onChange={handleFormChange}
-                      placeholder="Masukkan judul laporan"
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
+            {showPreview && formData.filePdf && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="overflow-hidden rounded-lg border border-slate-200"
+              >
+                <iframe
+                  src={formData.filePdf.data}
+                  title="PDF Preview"
+                  className="h-96 w-full"
+                />
+              </motion.div>
+            )}
 
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Isi Laporan
-                    </label>
-                    <textarea
-                      name="isi"
-                      value={formData.isi}
-                      onChange={handleFormChange}
-                      rows={4}
-                      placeholder="Tulis isi laporan secara detail"
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    ></textarea>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Jenis Laporan
-                      </label>
-                      <select
-                        name="jenis"
-                        value={formData.jenis}
-                        onChange={handleFormChange}
-                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                      >
-                        <option value="">Pilih Jenis Laporan</option>
-                        <option value="keramaian">Keramaian</option>
-                        <option value="tumpukan sampah">Tumpukan Sampah</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Status
-                      </label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleFormChange}
-                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                      >
-                        <option value="">Pilih Status</option>
-                        <option value="diterima">Diterima</option>
-                        <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                        <option value="selesai">Selesai</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Tanggal
-                      </label>
-                      <input
-                        type="date"
-                        name="tanggal"
-                        value={formData.tanggal}
-                        onChange={handleFormChange}
-                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        File PDF (Opsional)
-                      </label>
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleFileChange}
-                        className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                      {formData.filePdf && (
-                        <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
-                          <span className="truncate text-sm text-slate-700">
-                            {formData.filePdf.name}
-                          </span>
-                          <button
-                            onClick={() => setShowPreview(!showPreview)}
-                            className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
-                          >
-                            {showPreview ? "Sembunyikan" : "Lihat"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {showPreview && formData.filePdf && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      className="overflow-hidden rounded-lg border border-slate-200"
-                    >
-                      <iframe
-                        src={formData.filePdf.data}
-                        title="PDF Preview"
-                        className="h-96 w-full"
-                      />
-                    </motion.div>
-                  )}
-
-                  <div className="flex justify-end gap-2 pt-4">
-                    <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="button"
-                      onClick={resetForm}
-                      className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                    >
-                      Batal
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.98 }}
-                      type="button"
-                      onClick={handleSimpan}
-                      disabled={isSubmitting}
-                      className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Memproses...
-                        </>
-                      ) : isEditing ? (
-                        "Update Laporan"
-                      ) : (
-                        "Simpan Laporan"
-                      )}
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            <div className="flex justify-end gap-2 pt-4">
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={resetForm}
+                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+              >
+                Batal
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={handleSimpan}
+                disabled={isSubmitting}
+                className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Memproses...
+                  </>
+                ) : isEditing ? (
+                  "Update Laporan"
+                ) : (
+                  "Simpan Laporan"
+                )}
+              </motion.button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
     </motion.div>
   );
 };

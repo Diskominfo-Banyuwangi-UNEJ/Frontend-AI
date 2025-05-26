@@ -102,10 +102,7 @@ const AkunPage = () => {
         username: formData.username,
         password: formData.password,
         role: formData.status,
-        instansi: formData.nama_instansi,
-        jenis_kelamin: 'MALE',
-        no_telepon: '082229350946',
-        tanggal_lahir: '2003-08-12',
+        nama_instansi: formData.nama_instansi,
       };
 
       await axios.post('http://localhost:3000/api/users', payload, {
@@ -226,15 +223,14 @@ const AkunPage = () => {
         {/* Header */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Account Management</h1>
-            <p className="text-slate-600">Manage admin and government accounts</p>
+            <h1 className="text-3xl font-bold text-slate-800">Manajemen Akun Admin dan Pemerintah</h1>
           </div>
           <button
             onClick={toggleForm}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             <Plus size={18} />
-            Add Account
+            Tambah Akun
           </button>
         </div>
 
@@ -285,7 +281,7 @@ const AkunPage = () => {
                     {/* Leader Name */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Leader Name
+                        Nama Pimpinan
                       </label>
                       <input
                         type="text"
@@ -313,7 +309,7 @@ const AkunPage = () => {
                       >
                         <option value="">Select Status</option>
                         <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Government</option>
+                        <option value="PEMERINTAH">Pemerintah</option>
                       </select>
                       {formErrors.status && (
                         <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>
@@ -471,148 +467,159 @@ const AkunPage = () => {
 
           {/* Data Table */}
           {!loading && !error && sortedData.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-slate-200">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      #
-                    </th>
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
-                      onClick={() => requestSort('instansi')}
-                    >
-                      <div className="flex items-center">
-                        Institution
-                        {sortConfig.key === 'instansi' && (
-                          sortConfig.direction === 'asc' ? 
-                            <ChevronUp className="ml-1 h-4 w-4" /> : 
-                            <ChevronDown className="ml-1 h-4 w-4" />
-                        )}
-                      </div>
-                    </th>
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
-                      onClick={() => requestSort('name_lengkap')}
-                    >
-                      <div className="flex items-center">
-                        Leader
-                        {sortConfig.key === 'name_lengkap' && (
-                          sortConfig.direction === 'asc' ? 
-                            <ChevronUp className="ml-1 h-4 w-4" /> : 
-                            <ChevronDown className="ml-1 h-4 w-4" />
-                        )}
-                      </div>
-                    </th>
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
-                      onClick={() => requestSort('role')}
-                    >
-                      <div className="flex items-center">
-                        Status
-                        {sortConfig.key === 'role' && (
-                          sortConfig.direction === 'asc' ? 
-                            <ChevronUp className="ml-1 h-4 w-4" /> : 
-                            <ChevronDown className="ml-1 h-4 w-4" />
-                        )}
-                      </div>
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
-                  {sortedData.map((akun, index) => (
-                    <React.Fragment key={akun.id}>
-                      <tr 
-                        className={`hover:bg-slate-50 ${expandedRows[akun.id] ? 'bg-slate-50' : ''}`}
-                        onClick={() => toggleRowExpand(akun.id)}
-                      >
-                        <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
-                          {index + 1}
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                          {akun.instansi || '-'}
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                          {akun.name_lengkap || '-'}
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm">
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            akun.role === 'ADMIN' 
-                              ? 'bg-indigo-100 text-indigo-800' 
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {akun.role || '-'}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                          <div className="flex space-x-2">
-                            <button 
-                              className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Handle edit here
-                              }}
-                            >
-                              <PencilLine size={16} />
-                            </button>
-                            <button
-                              className="rounded p-1 text-red-600 hover:bg-red-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(akun.id);
-                              }}
-                            >
-                              <Trash size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                      <AnimatePresence>
-                        {expandedRows[akun.id] && (
-                          <motion.tr
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="bg-slate-50"
-                          >
-                            <td colSpan="5" className="px-6 py-4">
-                              <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <p className="font-medium text-slate-700">Username:</p>
-                                  <p className="text-slate-600">{akun.username || '-'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-slate-700">Email:</p>
-                                  <p className="text-slate-600">{akun.email || '-'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-slate-700">Phone:</p>
-                                  <p className="text-slate-600">{akun.no_telepon || '-'}</p>
-                                </div>
-                                <div>
-                                  <p className="font-medium text-slate-700">Created At:</p>
-                                  <p className="text-slate-600">
-                                    {new Date(akun.created_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                          </motion.tr>
-                        )}
-                      </AnimatePresence>
-                    </React.Fragment>
-                  ))}
-                </tbody>
-              </table>
+  <div className="overflow-x-auto">
+    <table className="min-w-full divide-y divide-slate-200">
+      <thead className="bg-slate-50">
+        <tr>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            #
+          </th>
+          <th 
+            scope="col" 
+            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+            onClick={() => requestSort('instansi')}
+          >
+            <div className="flex items-center">
+              Nama Institusi
+              {sortConfig.key === 'instansi' && (
+                sortConfig.direction === 'asc' ? 
+                  <ChevronUp className="ml-1 h-4 w-4" /> : 
+                  <ChevronDown className="ml-1 h-4 w-4" />
+              )}
             </div>
-          )}
+          </th>
+          <th 
+            scope="col" 
+            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+            onClick={() => requestSort('name_lengkap')}
+          >
+            <div className="flex items-center">
+              Nama Pimpinan
+              {sortConfig.key === 'name_lengkap' && (
+                sortConfig.direction === 'asc' ? 
+                  <ChevronUp className="ml-1 h-4 w-4" /> : 
+                  <ChevronDown className="ml-1 h-4 w-4" />
+              )}
+            </div>
+          </th>
+          <th 
+            scope="col" 
+            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+          >
+            Username
+          </th>
+          <th 
+            scope="col" 
+            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
+          >
+            Email
+          </th>
+          <th 
+            scope="col" 
+            className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+            onClick={() => requestSort('role')}
+          >
+            <div className="flex items-center">
+              Status
+              {sortConfig.key === 'role' && (
+                sortConfig.direction === 'asc' ? 
+                  <ChevronUp className="ml-1 h-4 w-4" /> : 
+                  <ChevronDown className="ml-1 h-4 w-4" />
+              )}
+            </div>
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-200 bg-white">
+        {sortedData.map((akun, index) => (
+          <React.Fragment key={akun.id}>
+            <tr 
+              className={`hover:bg-slate-50 ${expandedRows[akun.id] ? 'bg-slate-50' : ''}`}
+              onClick={() => toggleRowExpand(akun.id)}
+            >
+              <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
+                {index + 1}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                {akun.nama_instansi || '-'}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                {akun.name_lengkap || '-'}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                {akun.username || '-'}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                {akun.email || '-'}
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm">
+                <span className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                  akun.role === 'ADMIN' 
+                    ? 'bg-indigo-100 text-indigo-800' 
+                    : 'bg-green-100 text-green-800'
+                }`}>
+                  {akun.role || '-'}
+                </span>
+              </td>
+              <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                <div className="flex space-x-2">
+                  <button 
+                    className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle edit here
+                    }}
+                  >
+                    <PencilLine size={16} />
+                  </button>
+                  <button
+                    className="rounded p-1 text-red-600 hover:bg-red-100"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(akun.id);
+                    }}
+                  >
+                    <Trash size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <AnimatePresence>
+              {expandedRows[akun.id] && (
+                <motion.tr
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="bg-slate-50"
+                >
+                  <td colSpan="7" className="px-6 py-4">
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="font-medium text-slate-700">No. Telepon:</p>
+                        <p className="text-slate-600">{akun.no_telepon || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-700">Created At:</p>
+                        <p className="text-slate-600">
+                          {akun.created_at ? new Date(akun.created_at).toLocaleDateString() : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                </motion.tr>
+              )}
+            </AnimatePresence>
+          </React.Fragment>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+          
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import AnalitikSampahPage from "./routes/dashboard/analitiksampah";
 import Notifikasi from "./routes/dashboard/notifikasi";
 import LaporanPage from "./routes/dashboard/laporan";
 import ProtectedRoute from "./contexts/ProtectedRoute";
+import PengaduanPage from "./routes/dashboard/pengaduan";
 
 function App() {
     const router = createBrowserRouter([
@@ -30,9 +31,9 @@ function App() {
                 { path: "reports", element: <AnalitikSampahPage /> },
                 { path: "laporan", element: <LaporanPage /> },
                 { path: "notifikasi", element: <Notifikasi /> },
+                { path: "pengaduan", element: <PengaduanPage /> },
             ],
         },
-        // Redirect root "/" langsung ke /login
         {
             path: "/",
             element: <Navigate to="/login" replace />,

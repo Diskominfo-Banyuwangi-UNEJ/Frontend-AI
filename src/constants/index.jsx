@@ -37,15 +37,21 @@ export const navbarLinks = [
         ],
     },
     {
-        title: "Pelaporan",
-        links: [
-            {
-                label: "Pelaporan",
-                icon: FileText,
-                path: "/dashboard/laporan",
-            },
-        ],
-    },
+    title: "Laporan dan Pengaduan",
+    links: [
+        {
+            label: "Pelaporan",
+            icon: FileText, // kamu bisa import dari lucide-react
+            path: "/dashboard/laporan",
+        },
+        {
+            label: "Pengaduan",
+            icon: NotepadText, // juga dari lucide-react
+            path: "/dashboard/pengaduan",
+        },
+    ],
+}
+
     
 ];
 

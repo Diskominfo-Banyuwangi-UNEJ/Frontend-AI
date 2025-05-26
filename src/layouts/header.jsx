@@ -2,39 +2,105 @@ import { useTheme } from "@/hooks/use-theme";
 import { Bell, ChevronsLeft, Moon, Search, Sun } from "lucide-react";
 import profileImg from "@/assets/saya.jpg";
 import PropTypes from "prop-types";
-import { useState } from "react";
-import React, { useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "@/contexts/auth-context"; // Assuming you have an auth context/hook
 
 export const Header = ({ collapsed, setCollapsed }) => {
     const profileRef = useRef(null);
-
     const { theme, setTheme } = useTheme();
     const [showCard, setShowCard] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [showEditForm, setShowEditForm] = useState(false);
+    const { logout } = useAuth(); // Assuming you have a logout function in your auth context
+    const navigate = useNavigate();
+
+    // Fetch user data on component mount
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/api/users', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                setUserData(response.data.data);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                // Handle error (e.g., redirect to login if unauthorized)
+                if (error.response?.status === 401) {
+                    logout();
+                    navigate('/login');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchUserData();
+    }, [logout, navigate]);
 
     const toggleCard = () => setShowCard(!showCard);
+
     const [editData, setEditData] = useState({
-        pimpinan: "Pak Aziz M.Pd.",
-        instansi: "Diskominfo",
-        status: "Admin",
-        username: "admin1234",
-        email: "admintampan@mail.com",
+        nama_instansi: '',
+    nama_pimpinan: '',
+    status: '',
+    username: '',
+    email: '',
     });
-    const [showEditForm, setShowEditForm] = useState(false);
+
+    // Initialize edit data when userData is available
+    useEffect(() => {
+        if (userData) {
+            setEditData({
+                nama_instansi: userData.nama_instansi,
+                nama_pimpinan: userData.nama_pimpinan,
+                status: userData.status,
+                username: userData.username,
+                email: userData.email
+            });
+        }
+    }, [userData]);
+
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setEditData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const navigate = useNavigate();
     const handleBellClick = () => {
         navigate("/notifikasi");
     };
 
-    const handleSave = () => {
-        // Simpan data ke backend kalau ada
-        setShowEditForm(false);
+    const handleSave = async () => {
+        try {
+            const response = await axios.put(
+                'http://localhost:3000/api/users',
+                editData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                    }
+                }
+            );
+            setUserData(response.data.data);
+            setShowEditForm(false);
+            // Show success message
+            alert('Data berhasil diperbarui');
+        } catch (error) {
+            console.error('Error updating user data:', error);
+            alert('Gagal memperbarui data');
+        }
     };
+
+    const handleLogout = () => {
+        logout(); // Call the logout function from auth context
+        navigate('/login');
+    };
+
     // Close when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -49,6 +115,22 @@ export const Header = ({ collapsed, setCollapsed }) => {
         };
     }, []);
 
+    if (loading) {
+        return (
+            <header className="relative z-10 flex h-[60px] items-center justify-between bg-blue-500 px-4 shadow-md transition-colors dark:bg-slate-900">
+                <div>Loading...</div>
+            </header>
+        );
+    }
+
+    if (!userData) {
+        return (
+            <header className="relative z-10 flex h-[60px] items-center justify-between bg-blue-500 px-4 shadow-md transition-colors dark:bg-slate-900">
+                <div>Error loading user data</div>
+            </header>
+        );
+    }
+
     return (
         <header className="relative z-10 flex h-[60px] items-center justify-between bg-blue-500 px-4 shadow-md transition-colors dark:bg-slate-900">
             {showEditForm && (
@@ -56,13 +138,13 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     <div className="w-[400px] rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
                         <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">Mengubah Data Akun</h2>
                         <div className="space-y-4">
-                            {/* Nama Pimpinan */}
+                            {/* Nama Instansi */}
                             <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Masukkan nama pimpinan lengkap, termasuk gelar.</p>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Masukkan nama lengkap, termasuk gelar.</p>
                                 <input
-                                    id="pimpinan"
-                                    name="pimpinan"
-                                    value={editData.pimpinan}
+                                    id="nama_instansi"
+                                    name="nama_instansi"
+                                    value={editData.nama_instansi}
                                     onChange={handleInputChange}
                                     placeholder="Contoh: Pak Aziz M.Pd."
                                     className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
@@ -73,33 +155,35 @@ export const Header = ({ collapsed, setCollapsed }) => {
                             <div>
                                 <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Tulis nama instansi sesuai dokumen resmi.</p>
                                 <input
-                                    id="instansi"
-                                    name="instansi"
-                                    value={editData.instansi}
+                                    id="nama_pimpinan"
+                                    name="nama_pimpinan"
+                                    value={editData.nama_pimpinan}
                                     onChange={handleInputChange}
                                     placeholder="Contoh: Diskominfo"
                                     className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
                                 />
                             </div>
 
-                            {/* Status */}
+                            {/* Role */}
                             <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Pilih status pengguna.</p>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Role pengguna.</p>
                                 <select
                                     id="status"
                                     name="status"
                                     value={editData.status}
                                     onChange={handleInputChange}
                                     className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
+                                    disabled
                                 >
-                                    <option value="Admin">Admin</option>
-                                    <option value="Pemerintah">Pemerintah</option>
+                                    <option value="ADMIN">Admin</option>
+                                    <option value="PEMERINTAH">Pemerintah</option>
+
                                 </select>
                             </div>
 
                             {/* Username */}
                             <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Buat username unik minimal 6 karakter.</p>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Username</p>
                                 <input
                                     id="username"
                                     name="username"
@@ -112,7 +196,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
 
                             {/* Email */}
                             <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Masukkan alamat email aktif.</p>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Alamat email</p>
                                 <input
                                     id="email"
                                     name="email"
@@ -149,19 +233,6 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 >
                     <ChevronsLeft className={collapsed && "rotate-180"} />
                 </button>
-                <div className="input">
-                    <Search
-                        size={20}
-                        className="text-slate-300"
-                    />
-                    <input
-                        type="text"
-                        name="search"
-                        id="search"
-                        placeholder="Search..."
-                        className="w-full bg-transparent text-slate-900 outline-0 placeholder:text-slate-300 dark:text-slate-50"
-                    />
-                </div>
             </div>
 
             <div className="relative flex items-center gap-x-3">
@@ -201,7 +272,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     >
                         <img
                             src={profileImg}
-                            alt="saya"
+                            alt="Profile"
                             className="size-full object-cover"
                         />
                     </button>
@@ -209,14 +280,20 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     {showCard && (
                         <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border bg-white p-4 text-left shadow-lg dark:bg-slate-800">
                             <div className="mb-4 space-y-5">
-                                <p className="text-sm font-medium text-slate-900 dark:text-white">Nama Pimpinan : Pak Aziz M.Pd.</p>
-                                <p className="text-sm font-medium text-slate-900 dark:text-slate-300">Nama Instansi : Diskominfo</p>
-                                <p className="text-sm font-medium text-green-500">Status: Admin</p>
-                                <p className="text-sm font-medium">
-                                    Username: <span className="font-medium">admin1234</span>
+                                <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                    Nama Instansi: {userData.nama_instansi}
+                                </p>
+                                <p className="text-sm font-medium text-slate-900 dark:text-slate-300">
+                                    Nama Pimpinan: {userData.nama_pimpinan}
+                                </p>
+                                <p className="text-sm font-medium text-green-500">
+                                    Status: {userData.status}
                                 </p>
                                 <p className="text-sm font-medium">
-                                    Email: <span className="font-medium">admintampan@mail.com</span>
+                                    Username: <span className="font-medium">{userData.username}</span>
+                                </p>
+                                <p className="text-sm font-medium">
+                                    Email: <span className="font-medium">{userData.email}</span>
                                 </p>
                             </div>
                             <hr className="my-2 border-slate-300 dark:border-slate-600" />
@@ -227,7 +304,12 @@ export const Header = ({ collapsed, setCollapsed }) => {
                                 >
                                     Ubah Data
                                 </button>
-                                <button className="text-left text-sm font-semibold text-red-600 hover:underline">Logout</button>
+                                <button 
+                                    className="text-left text-sm font-semibold text-red-600 hover:underline"
+                                    onClick={handleLogout}
+                                >
+                                    Logout
+                                </button>
                             </div>
                         </div>
                     )}

@@ -17,11 +17,13 @@ import {
     Clock,
     AlertTriangle,
     Calendar,
+    ChevronLeft,
+    ChevronRight
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { useState } from "react";
+import { useState,useEffect} from "react";
 
 const pieData = [
     { name: "Low", value: 200 },
@@ -122,6 +124,59 @@ const AnalitikSampahPage = () => {
         { time: "16:00", waste: 50 },
         { time: "18:00", waste: 40 },
     ];
+
+    const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Definisikan currentPage di sini
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [perPage] = useState(10);
+
+     const fetchData = async (page = 1) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `http://localhost:3000/api/tumpukan_sampah?page=${page}&per_page=${perPage}`
+      );
+      
+      console.log("API Response:", response.data); // Debug response
+      
+      setData(response.data.data || []);
+      setTotalPages(response.data.total_pages || 1);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+    // Fungsi handleViewCCTV
+const handleViewCCTV = (url) => {
+  if (!url) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Stream Tidak Tersedia',
+      text: 'Link CCTV belum terkonfigurasi'
+    });
+    return;
+  }
+  window.open(url, '_blank');
+};
+
     // Data statistik teks
     const peakWasteTime = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).time;
     const maxWaste = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).waste + "kg";
@@ -144,7 +199,7 @@ const AnalitikSampahPage = () => {
                     </div>
 
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-xl font-semibold text-slate-900 transition-colors dark:text-slate-50"> Tingkat penumpukan sampah berada di bawah 50% kapasitas, menunjukkan kondisi yang baik dan memerlukan pemantauan rutin.</p>
+                        <p className="text-xl font-semibold text-slate-900 transition-colors dark:text-slate-50"> 270 </p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             50-100% kapasitas
@@ -434,62 +489,147 @@ const AnalitikSampahPage = () => {
                 </div>
             )}
             {showJavanaTable && (
-                <div className="card">
-                    <div className="card-header">
-                        <p className="card-title"> Informasi CCTV</p>
-                        <button
-                            onClick={handleDownload}
-                            className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                        >
-                            <Download className="h-4 w-4" />
-                            Download
-                        </button>
-                    </div>
-                    <div className="card-body p-0">
-                        <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
-                            <table className="table">
-                                <thead className="table-header">
-                                    <tr className="table-row">
-                                        <th className="table-head">No</th>
-                                        <th className="table-head">Timestamp</th>
-                                        <th className="table-head">Nama CCTV</th>
-                                        <th className="table-head">Jenis Deteksi</th>
-                                        <th className="table-head">Latitude</th>
-                                        <th className="table-head">Longitude</th>
-                                        <th className="table-head">Presentase Sampah</th>
-                                        <th className="table-head">Status Sampah</th>
-                                        <th className="table-head">Live CCTV</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="table-body">
-                                    {topProducts.map((product) => (
-                                        <tr
-                                            key={product.number}
-                                            className="table-row"
-                                        >
-                                            <td className="table-cell">{product.number}</td>
-                                            <td className="table-cell">{product.name}</td>
-                                            <td className="table-cell">${product.price}</td>
-                                            <td className="table-cell">{product.status}</td>
-                                            <td className="table-cell">{product.rating}</td>
-                                            <td className="table-cell">-</td>
-                                            <td className="table-cell">-</td>
-                                            <td className="table-cell">{product.status}</td>
-                                            <td className="table-cell">
-                                                <div className="flex items-center gap-x-4">
-                                                    <button className="text-blue-500 dark:text-blue-600">
-                                                        <CctvIcon size={20} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            )}
+  <div className="card">
+    <div className="card-header">
+      <p className="card-title">Informasi CCTV</p>
+      <button
+        onClick={handleDownload}
+        className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
+      >
+        <Download className="h-4 w-4" />
+        Download
+      </button>
+    </div>
+    
+    <div className="card-body p-0">
+      <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <p>Memuat data...</p>
+          </div>
+        ) : (
+          <table className="table">
+            <thead className="table-header">
+              <tr className="table-row">
+                <th className="table-head">No</th>
+                <th className="table-head">Timestamp</th>
+                <th className="table-head">Nama CCTV</th>
+                <th className="table-head">Jenis Deteksi</th>
+                <th className="table-head">Latitude</th>
+                <th className="table-head">Longitude</th>
+                <th className="table-head">Presentase Sampah</th>
+                <th className="table-head">Status Sampah</th>
+                <th className="table-head">Live CCTV</th>
+              </tr>
+            </thead>
+            <tbody className="table-body">
+              {data.map((item, index) => (
+                <tr key={item.id || index} className="table-row">
+                  <td className="table-cell">{(currentPage - 1) * perPage + index + 1}</td>
+                  <td className="table-cell">
+                    {item.timestamp ? new Date(item.timestamp).toLocaleString() : '-'}
+                  </td>
+                  <td className="table-cell">{item.nama_cctv || '-'}</td>
+                  <td className="table-cell capitalize">{item.jenis_deteksi || '-'}</td>
+                  <td className="table-cell">{item.latitude || '-'}</td>
+                  <td className="table-cell">{item.longitude || '-'}</td>
+                  <td className="table-cell">
+                    {item.presentase_sampah ? `${item.presentase_sampah}%` : '-'}
+                  </td>
+                  <td className="table-cell">
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      item.status_sampah === 'penuh' 
+                        ? 'bg-red-100 text-red-800' 
+                        : item.status_sampah === 'sedang'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {item.status_sampah || 'unknown'}
+                    </span>
+                  </td>
+                  <td className="table-cell">
+                    <button 
+                      onClick={() => handleViewCCTV(item.cctv_url)}
+                      className="text-blue-500 hover:text-blue-700"
+                      disabled={!item.cctv_url}
+                    >
+                      <CctvIcon size={20} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+      
+      {/* Pagination */}
+      <div className="flex items-center justify-between px-4 py-3 border-t">
+        <div className="flex-1 flex justify-between sm:hidden">
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+          >
+            Next
+          </button>
+        </div>
+        
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
+              <span className="font-medium">{Math.min(currentPage * perPage, data.length + ((currentPage - 1) * perPage))}</span> of{' '}
+              <span className="font-medium">{totalPages * perPage}</span> results
+            </p>
+          </div>
+          <div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">Previous</span>
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                    currentPage === page
+                      ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+              
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">Next</span>
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
             <Footer />
         </div>
     );
