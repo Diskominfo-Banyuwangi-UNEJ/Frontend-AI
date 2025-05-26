@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/auth-context"; // Assuming you have an auth context/hook
 
 export const Header = ({ collapsed, setCollapsed }) => {
@@ -17,6 +18,8 @@ export const Header = ({ collapsed, setCollapsed }) => {
     const [showEditForm, setShowEditForm] = useState(false);
     const { logout } = useAuth(); // Assuming you have a logout function in your auth context
     const navigate = useNavigate();
+      const [hasNotification, setHasNotification] = useState(false); // <-- Tambahkan state
+
 
     // Fetch user data on component mount
     useEffect(() => {
@@ -251,14 +254,16 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 </button>
 
                 <div className="relative">
-                    <button
-                        className="btn-ghost size-10"
-                        onClick={handleBellClick}
-                    >
-                        <Bell size={20} />
-                    </button>
+                <Link 
+                    to="/dashboard/notifikasi" 
+                    className="btn-ghost size-10 flex items-center justify-center"
+                >
+                    <Bell size={20} />
                     {/* Tanda notifikasi jika ada */}
-                    {true && <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>}
+                    {hasNotification && (
+                    <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                    )}
+                </Link>
                 </div>
 
                 {/* Profile button */}

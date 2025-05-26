@@ -18,7 +18,10 @@ import {
     AlertTriangle,
     Calendar,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Camera,
+    CheckCircle2,
+    Video
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -184,7 +187,7 @@ const handleViewCCTV = (url) => {
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Tumpukan Sampah</h1>
-            <h1 className="mt-3 text-center font-bold">Status Tumpukan Sampah</h1>
+            <h1 className="mt-3 text-center font-bold">CCTV Tumpukan Sampah</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <motion.div
                     whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
@@ -193,16 +196,16 @@ const handleViewCCTV = (url) => {
                 >
                     <div className="card-header">
                         <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-                            <ArrowBigDown size={26} />
+                            <Video size={26} />
                         </div>
-                        <p className="card-title">Status Low</p>
+                        <p className="card-title">Jumlah CCTV</p>
                     </div>
 
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-xl font-semibold text-slate-900 transition-colors dark:text-slate-50"> 270 </p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">70</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
-                            50-100% kapasitas
+                            0-50% kapasitas
                         </span>
                     </div>
                 </motion.div>
@@ -214,13 +217,13 @@ const handleViewCCTV = (url) => {
                 >
                     <div className="card-header">
                         <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-                            <ArrowLeftRight size={26} />
+                            <CheckCircle2 size={26} />
                         </div>
-                        <p className="card-title">Status Normal</p>
+                        <p className="card-title">CCTV Berfungsi</p>
                     </div>
 
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">65</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             50-100% kapasitas
@@ -234,13 +237,13 @@ const handleViewCCTV = (url) => {
                 >
                     <div className="card-header">
                         <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
-                            <ArrowBigUp size={26} />
+                            <AlertTriangle size={26} />
                         </div>
-                        <p className="card-title">Status Normal</p>
+                        <p className="card-title">CCTV Rusak</p>
                     </div>
 
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">270</p>
+                        <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">5</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
                             <Trash size={18} />
                             over kapasitas

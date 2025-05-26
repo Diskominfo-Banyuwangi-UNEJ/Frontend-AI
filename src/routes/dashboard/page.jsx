@@ -143,7 +143,7 @@ const LandingPage = () => {
         }
     };
    // Nomor WhatsApp tujuan (admin atau layanan)
-  const waNumber = "6281234567890"; // ganti sesuai nomor tujuan
+  const waNumber = "6285930088301"; // ganti sesuai nomor tujuan
 
   // Pesan WA default, kamu bisa sesuaikan
   const waMessage = encodeURIComponent(
@@ -301,22 +301,36 @@ const LandingPage = () => {
 
         {/* Kanan: Card WA */}
         <div className="flex-1 bg-white rounded-3xl p-12 shadow-2xl border border-green-300 min-w-[480px] flex flex-col items-center justify-center hover:shadow-green-400 transition-shadow duration-300">
-          <FaWhatsapp className="mb-6 text-6xl text-green-600 drop-shadow-md" />
-          <h2 className="mb-4 text-3xl font-bold text-green-700 text-center">
+        <FaWhatsapp className="mb-6 text-6xl text-green-600 drop-shadow-md" />
+        <h2 className="mb-4 text-3xl font-bold text-green-700 text-center">
             Kirim Pengaduan Sekarang
-          </h2>
-          <p className="mb-8 text-center text-green-800 max-w-sm">
+        </h2>
+        <p className="mb-8 text-center text-green-800 max-w-sm">
             Klik tombol untuk kirim pengaduan cepat via WhatsApp.
-          </p>
-          <a
-            href={`https://wa.me/${waNumber}?text=${waMessage}`}
+        </p>
+        <a
+        href={`https://wa.me/${waNumber}?text=${encodeURIComponent(
+            "══════[ PENGADUAN ]══════\n" +
+            "\n*📅 Tanggal Kejadian: " +
+            "\n*👤 Nama Lengkap: " +
+            "\n*📍 Link Lokasi: " +
+            "\n*📌 Jenis Pengaduan: " +
+            "\n*📝 Deskripsi Lengkap: " +
+            "\n\n══════[ BUKTI FOTO ]══════" +
+            "\nSilakan UNGGAH FOTO setelah mengirim pesan ini" +
+            "\n\n*Petunjuk:*" +
+            "\n1. Isi semua data di atas" +
+            "\n2. Kirim pesan ini" +
+            "\n3. Setelah itu, kirim foto bukti sebagai balasan" +
+            "\n\nTerima kasih atas laporan Anda"
+            )}`}            
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 rounded-full bg-green-600 px-12 py-4 text-white text-xl text-center font-semibold shadow-lg hover:bg-green-700 active:scale-95 transition-transform"
-          >
+        >
             <FaWhatsapp className="text-2xl" />
-            Kirim Pengaduan via WhatsApp
-          </a>
+            Kirim Pengaduan 
+        </a>
         </div>
       </div>
     </div>

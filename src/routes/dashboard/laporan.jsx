@@ -296,7 +296,7 @@ const LaporanPage = () => {
       title: laporan.judul_laporan,
       html: `
         <div class="text-left space-y-2">
-          <p><strong>Isi:</strong> ${laporan.deskripsi}</p>
+          <p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>
           <p><strong>Jenis:</strong> ${laporan.kategori}</p>
           <p><strong>Status:</strong> <span class="capitalize">${laporan.status}</span></p>
           <p><strong>Tanggal:</strong> ${new Date(laporan.created_at).toLocaleDateString("id-ID")}</p>

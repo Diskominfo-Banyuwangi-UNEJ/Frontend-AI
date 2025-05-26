@@ -17,6 +17,8 @@ import {
     Clock,
     AlertTriangle,
     Calendar,
+    Video,
+    CheckCircle2
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -217,7 +219,7 @@ const handleSimpan = () => {
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Keramaian</h1>
-            <h1 className="mt-3 text-center font-extrabold">Status Keramaian</h1>
+            <h1 className="mt-3 text-center font-extrabold">CCTV Keramaian</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Card Status Low */}
             <motion.div
@@ -227,9 +229,9 @@ const handleSimpan = () => {
             >
                 <div className="card-header">
                 <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-                    <ArrowBigDown size={26} />
+                    <Video size={26} />
                 </div>
-                <p className="card-title">Status Low</p>
+                <p className="card-title">Jumlah CCTV</p>
                 </div>
 
                 <div className="card-body bg-slate-100">
@@ -256,15 +258,15 @@ const handleSimpan = () => {
             >
                 <div className="card-header">
                 <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-                    <ArrowLeftRight size={26} />
+                    <CheckCircle2 size={26} />
                 </div>
-                <p className="card-title">Status Normal</p>
+                <p className="card-title">CCTV Berfungsi</p>
                 </div>
 
                 <div className="card-body bg-slate-100">
                 <div className="flex justify-between gap-4">
                     <div className="text-center">
-                    <p className="text-xl font-bold text-slate-900">130</p>
+                    <p className="text-xl font-bold text-slate-900">105</p>
                     <p className="text-sm font-semibold text-blue-500">Indoor</p>
                     <p className="text-xs text-gray-500">50-75% kapasitas</p>
                     </div>
@@ -285,20 +287,20 @@ const handleSimpan = () => {
             >
                 <div className="card-header">
                 <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
-                    <ArrowBigUp size={26} />
+                    <AlertTriangle size={26} />
                 </div>
-                <p className="card-title">Status Over</p>
+                <p className="card-title">CCTV Rusak</p>
                 </div>
 
                 <div className="card-body bg-slate-100">
                 <div className="flex justify-between gap-4">
                     <div className="text-center">
-                    <p className="text-xl font-bold text-slate-900">160</p>
+                    <p className="text-xl font-bold text-slate-900">15</p>
                     <p className="text-sm font-semibold text-blue-500">Indoor</p>
                     <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
                     </div>
                     <div className="text-center">
-                    <p className="text-xl font-bold text-slate-900">180</p>
+                    <p className="text-xl font-bold text-slate-900">10</p>
                     <p className="text-sm font-semibold text-blue-500">Outdoor</p>
                     <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
                     </div>

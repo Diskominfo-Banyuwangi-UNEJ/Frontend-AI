@@ -1,4 +1,4 @@
-import { FileText, ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, ShoppingBag, UserCheck, UserPlus, Users } from "lucide-react";
+import { Bell,FileText, ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, ShoppingBag, UserCheck, UserPlus, Users } from "lucide-react";
 
 import ProfileImage from "@/assets/profile-image.jpg";
 import ProductImage from "@/assets/product-image.jpg";
@@ -48,9 +48,19 @@ export const navbarLinks = [
             label: "Pengaduan",
             icon: NotepadText, // juga dari lucide-react
             path: "/dashboard/pengaduan",
-        },
-    ],
-}
+        },  
+        ],
+    },
+    {
+        title: "Notifikasi",
+        links: [
+            {
+                label: "Notifikasi",
+                icon: Bell,
+                path: "/dashboard/notifikasi",
+            },
+        ],
+    }
 
     
 ];
