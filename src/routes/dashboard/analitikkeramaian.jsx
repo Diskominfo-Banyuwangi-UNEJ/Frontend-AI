@@ -239,12 +239,12 @@ const handleSimpan = () => {
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">120</p>
                     <p className="text-sm font-semibold text-blue-500">Indoor</p>
-                    <p className="text-xs text-gray-500">30-50% kapasitas</p>
+                    <p className="text-xs text-gray-500">seluruh unit terpasang</p>
                     </div>
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">150</p>
                     <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-                    <p className="text-xs text-gray-500">30-50% kapasitas</p>
+                    <p className="text-xs text-gray-500">seluruh unit terpasang</p>
                     </div>
                 </div>
                 </div>
@@ -268,12 +268,12 @@ const handleSimpan = () => {
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">105</p>
                     <p className="text-sm font-semibold text-blue-500">Indoor</p>
-                    <p className="text-xs text-gray-500">50-75% kapasitas</p>
+                    <p className="text-xs text-gray-500">Beroperasi dengan baik</p>
                     </div>
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">140</p>
                     <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-                    <p className="text-xs text-gray-500">50-75% kapasitas</p>
+                    <p className="text-xs text-gray-500">Beroperasi dengan baik</p>
                     </div>
                 </div>
                 </div>
@@ -297,17 +297,57 @@ const handleSimpan = () => {
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">15</p>
                     <p className="text-sm font-semibold text-blue-500">Indoor</p>
-                    <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
+                    <p className="text-xs text-gray-500">Perlu perbaikan</p>
                     </div>
                     <div className="text-center">
                     <p className="text-xl font-bold text-slate-900">10</p>
                     <p className="text-sm font-semibold text-blue-500">Outdoor</p>
-                    <p className="text-xs text-gray-500">&gt;75% kapasitas</p>
+                    <p className="text-xs text-gray-500">Perlu perbaikan</p>
                     </div>
                 </div>
                 </div>
             </motion.div>
             </div>
+
+                                                  <h1 className="font-bold text-center mt-4">Status Keramaian</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-1">
+
+            {/* Status Low (Merah) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="bg-green-100 border-l-4 border-r-4 border-green-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-green-600">🟢 Status Sepi</h3>
+        <p className="text-gray-700 mt-1">Rentang: 1-20 orang</p>
+      </motion.div>
+
+      {/* Status Normal (Kuning) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="bg-yellow-100 border-l-4 border-r-4 border-yellow-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-yellow-600">🟡 Status Normal</h3>
+        <p className="text-gray-700 mt-1">Rentang: 21-50 orang</p>
+      </motion.div>
+
+      {/* Status High (Hijau) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="bg-red-100 border-l-4 border-r-4 border-red-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-red-600">🔴 Status Padat</h3>
+        <p className="text-gray-700 mt-1">Rentang: &gt; 51 orang</p>
+      </motion.div>
+    </div>
+    
+
+            
 
 
             

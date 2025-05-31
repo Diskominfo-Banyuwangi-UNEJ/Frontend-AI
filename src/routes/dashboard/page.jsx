@@ -9,6 +9,7 @@ import AnalitikSampahPage from "./analitiksampah";
 import { GoogleMap,Marker, useJsApiLoader  } from '@react-google-maps/api';
 import Swal from 'sweetalert2';
 import { FaWhatsapp } from "react-icons/fa";
+import { getAuthToken, isAuthenticated } from "@/contexts/auth-context";
 
 
 

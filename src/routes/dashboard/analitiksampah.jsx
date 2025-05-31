@@ -127,6 +127,7 @@ const AnalitikSampahPage = () => {
         { time: "16:00", waste: 50 },
         { time: "18:00", waste: 40 },
     ];
+    
 
     const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1); // Definisikan currentPage di sini
@@ -180,6 +181,7 @@ const handleViewCCTV = (url) => {
   window.open(url, '_blank');
 };
 
+
     // Data statistik teks
     const peakWasteTime = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).time;
     const maxWaste = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).waste + "kg";
@@ -188,7 +190,7 @@ const handleViewCCTV = (url) => {
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Tumpukan Sampah</h1>
             <h1 className="mt-3 text-center font-bold">CCTV Tumpukan Sampah</h1>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 mb-4 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <motion.div
                     whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
                     transition={{ type: "spring", stiffness: 300 }}
@@ -204,8 +206,8 @@ const handleViewCCTV = (url) => {
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">70</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Trash size={18} />
-                            0-50% kapasitas
+                            
+                            seluruh unit terpasang
                         </span>
                     </div>
                 </motion.div>
@@ -225,8 +227,7 @@ const handleViewCCTV = (url) => {
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">65</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Trash size={18} />
-                            50-100% kapasitas
+                            Beroperasi dengan baik
                         </span>
                     </div>
                 </motion.div>
@@ -245,12 +246,48 @@ const handleViewCCTV = (url) => {
                     <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
                         <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">5</p>
                         <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
-                            <Trash size={18} />
-                            over kapasitas
+                            Perlu perbaikan
                         </span>
                     </div>
                 </motion.div>
+
             </div>
+              <h1 className="font-bold text-center">Status Tumpukan Sampah</h1>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-1">
+
+      {/* Status Low (Merah) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="bg-green-100 border-l-4 border-r-4 border-green-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-green-600">🟢 Status Low</h3>
+        <p className="text-gray-700 mt-1">Rentang: 0% - 50%</p>
+      </motion.div>
+
+      {/* Status Normal (Kuning) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="bg-yellow-100 border-l-4 border-r-4 border-yellow-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-yellow-600">🟡 Status Normal</h3>
+        <p className="text-gray-700 mt-1">Rentang: 50% - 100%</p>
+      </motion.div>
+
+      {/* Status High (Hijau) */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+        className="bg-red-100 border-l-4 border-r-4 border-red-500 rounded-xl p-4 shadow-lg"
+      >
+        <h3 className="text-lg font-semibold text-red-600">🔴 Status High</h3>
+        <p className="text-gray-700 mt-1">Rentang: &gt; 100%</p>
+      </motion.div>
+    </div>   
 
             {/* Section 1: Grafik Volume Sampah */}
             <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
@@ -286,7 +323,7 @@ const handleViewCCTV = (url) => {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <motion.div
                     whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-red-50 p-4 dark:bg-red-900/20"
+                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-blue-900/20"
                 >
                     <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
                         <AlertTriangle size={24} />
@@ -294,13 +331,13 @@ const handleViewCCTV = (url) => {
                     <div>
                         <p className="font-medium text-slate-500 dark:text-slate-400">Puncak Volume Sampah</p>
                         <p className="text-2xl font-bold">{peakWasteTime}</p>
-                        <p className="text-sm text-red-500">{maxWaste}</p>
+                        <p className="text-sm text-slate-500">{maxWaste}</p>
                     </div>
                 </motion.div>
 
                 <motion.div
                     whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-orange-50 p-4 dark:bg-orange-900/20"
+                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-orange-900/20"
                 >
                     <div className="rounded-lg bg-orange-500/20 p-3 text-orange-500">
                         <Clock size={24} />
@@ -313,7 +350,7 @@ const handleViewCCTV = (url) => {
 
                 <motion.div
                     whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-green-50 p-4 dark:bg-green-900/20"
+                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-green-900/20"
                 >
                     <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
                         <Calendar size={24} />

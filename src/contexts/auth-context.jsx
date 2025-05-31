@@ -1,5 +1,6 @@
 // src/contexts/auth-context.jsx
 import React, { createContext, useState,useContext, useEffect } from "react";
+import Cookies from "js-cookie";
 
 export const AuthContext = createContext({
     isAuthenticated: false,
@@ -33,6 +34,14 @@ export function AuthProvider({ children }) {
 export function useAuth() {
     return useContext(AuthContext);
 }
+
+export const getAuthToken = () => {
+  return Cookies.get('authToken');
+};
+
+export const isAuthenticated = () => {
+  return !!getAuthToken();
+};
 // import React, { createContext, useState, useEffect } from "react";
 
 // export const AuthContext = createContext({

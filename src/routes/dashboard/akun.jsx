@@ -23,6 +23,8 @@ const AkunPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [expandedRows, setExpandedRows] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentEditId, setCurrentEditId] = useState(null);
 
   // Fetch data from API
   const fetchAkunList = async () => {
@@ -50,9 +52,21 @@ const AkunPage = () => {
 
   // Form handlers
   const toggleForm = () => {
-    setIsFormVisible(!isFormVisible);
-    setFormErrors({});
-  };
+  setIsFormVisible(!isFormVisible);
+  setFormErrors({});
+  if (!isFormVisible) {
+    setIsEditMode(false);
+    setCurrentEditId(null);
+    setFormData({
+      nama_instansi: '',
+      nama_pimpinan: '',
+      status: '',
+      username: '',
+      email: '',
+      password: '',
+    });
+  }
+};
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -90,25 +104,55 @@ const AkunPage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  // Form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+    const handleEdit = (id) => {
+    const akunToEdit = akunList.find(akun => akun.id === id);
+    if (akunToEdit) {
+      setIsEditMode(true);
+      setCurrentEditId(id);
+      setIsFormVisible(true);
+      setFormData({
+        nama_instansi: akunToEdit.nama_instansi || '',
+        nama_pimpinan: akunToEdit.name_lengkap || '',
+        status: akunToEdit.role || '',
+        username: akunToEdit.username || '',
+        email: akunToEdit.email || '',
+        password: '', // Biarkan kosong untuk keamanan
+      });
+    }
+  };
 
-    try {
-      const payload = {
-        name_lengkap: formData.nama_pimpinan,
-        email: formData.email,
-        username: formData.username,
-        password: formData.password,
-        role: formData.status,
-        nama_instansi: formData.nama_instansi,
-      };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
+  try {
+    const payload = {
+      name_lengkap: formData.nama_pimpinan,
+      email: formData.email,
+      username: formData.username,
+      password: formData.password,
+      role: formData.status,
+      nama_instansi: formData.nama_instansi,
+    };
+
+    if (isEditMode) {
+      // Mode edit - PUT request
+      await axios.put(`http://localhost:3000/api/users/${currentEditId}`, payload, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Account updated successfully',
+        timer: 2000,
+        showConfirmButton: false,
+        background: '#f8fafc',
+      });
+    } else {
+      // Mode tambah - POST request
       await axios.post('http://localhost:3000/api/users', payload, {
         headers: { 'Content-Type': 'application/json' },
       });
-
       Swal.fire({
         icon: 'success',
         title: 'Success!',
@@ -117,27 +161,31 @@ const AkunPage = () => {
         showConfirmButton: false,
         background: '#f8fafc',
       });
-
-      setIsFormVisible(false);
-      setFormData({
-        nama_instansi: '',
-        nama_pimpinan: '',
-        status: '',
-        username: '',
-        email: '',
-        password: '',
-      });
-      fetchAkunList();
-    } catch (error) {
-      console.error('Failed to create account:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: error.response?.data?.message || 'Failed to create account',
-        background: '#f8fafc',
-      });
     }
-  };
+
+    // Reset form dan fetch data baru
+    setIsFormVisible(false);
+    setIsEditMode(false);
+    setCurrentEditId(null);
+    setFormData({
+      nama_instansi: '',
+      nama_pimpinan: '',
+      status: '',
+      username: '',
+      email: '',
+      password: '',
+    });
+    fetchAkunList();
+  } catch (error) {
+    console.error('Failed to submit form:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: error.response?.data?.message || 'Failed to submit form',
+      background: '#f8fafc',
+    });
+  }
+};
 
   // Delete account
   const handleDelete = async (id) => {
@@ -246,7 +294,7 @@ const AkunPage = () => {
             >
               <div className="p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Add New Account</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">{isEditMode ? 'Mengubah Data Akun' : 'Add New Account'}</h2>
                   <button
                     onClick={toggleForm}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -383,7 +431,7 @@ const AkunPage = () => {
                       type="submit"
                       className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Save Account
+                      {isEditMode ? 'Update Account' : 'Save Account'}
                     </button>
                   </div>
                 </form>
@@ -570,7 +618,7 @@ const AkunPage = () => {
                     className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle edit here
+                      handleEdit (akun.id);
                     }}
                   >
                     <PencilLine size={16} />
