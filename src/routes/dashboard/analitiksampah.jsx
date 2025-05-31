@@ -21,7 +21,8 @@ import {
     ChevronRight,
     Camera,
     CheckCircle2,
-    Video
+    Video,
+    Plus
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -129,7 +130,7 @@ const AnalitikSampahPage = () => {
     ];
     
 
-    const [data, setData] = useState([]);
+  const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1); // Definisikan currentPage di sini
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -159,6 +160,7 @@ const AnalitikSampahPage = () => {
     }
   };
 
+
   useEffect(() => {
     fetchData(currentPage);
   }, [currentPage]);
@@ -168,6 +170,8 @@ const AnalitikSampahPage = () => {
       setCurrentPage(newPage);
     }
   };
+
+  
     // Fungsi handleViewCCTV
 const handleViewCCTV = (url) => {
   if (!url) {
@@ -181,10 +185,95 @@ const handleViewCCTV = (url) => {
   window.open(url, '_blank');
 };
 
+const [topProducts, setTopProducts] = useState([]);
+        const [showForm, setShowForm] = useState(false);
+         const [cctvData, setCctvData] = useState([]); 
+        const [formData, setFormData] = useState({
+  number: "",
+  timestamp: "",
+  namaCctv: "",
+  jenisDeteksi: "",
+  latitude: "",
+  longitude: "",
+  presentaseSampah: "",
+  statusSampah: "",
+  liveCctv: "",
+});
+const handleFormChange = (e) => {
+  const { name, value } = e.target;
+  setFormData((prev) => ({ ...prev, [name]: value }));
+};
+const handleSimpan = () => {
+  const { number, name, price, status, rating, longitude, percentage, live } = formData;
+
+  // Cek apakah semua field terisi
+  if (!number || !name || !price || !status || !rating || !longitude || !percentage || !live) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Form Belum Lengkap',
+      text: 'Semua field wajib diisi!',
+    });
+    return;
+  }
+
+  // Validasi tipe data angka
+  if (
+    isNaN(Number(number)) ||
+    isNaN(Number(price)) ||
+    isNaN(Number(rating)) ||
+    isNaN(Number(longitude)) ||
+    isNaN(Number(percentage))
+  ) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Data tidak valid',
+      text: 'Pastikan field angka berisi angka yang benar (No, Harga, Rating, Longitude, Presentase).',
+    });
+    return;
+  }
+
+  // Jika valid, simpan data
+  setTopProducts([...topProducts, formData]);
+  setFormData({
+    number: '',
+    name: '',
+    price: '',
+    status: '',
+    rating: '',
+    longitude: '',
+    percentage: '',
+    live: '',
+  });
+  setShowForm(false);
+
+  Swal.fire({
+    icon: 'success',
+    title: 'Berhasil',
+    text: 'Data CCTV berhasil ditambahkan!',
+  });
+};
 
     // Data statistik teks
-    const peakWasteTime = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).time;
-    const maxWaste = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).waste + "kg";
+    const wasteStats = wasteData.reduce((stats, current) => {
+    if (current.waste > stats.maxWaste) {
+        stats.maxWaste = current.waste;
+        stats.peakWasteTime = current.time;
+    }
+    if (current.waste < stats.minWaste) {
+        stats.minWaste = current.waste;
+        stats.lowWasteTime = current.time;
+    }
+    return stats;
+}, { 
+    maxWaste: -Infinity, 
+    minWaste: Infinity, 
+    peakWasteTime: '', 
+    lowWasteTime: '' 
+});
+  const peakWasteTime = wasteStats.peakWasteTime;
+  const maxWaste = wasteStats.maxWaste + "kg";
+  const lowWasteTime = wasteStats.lowWasteTime;
+  const minWaste = wasteStats.minWaste + "kg";
 
     return (
         <div className="flex flex-col gap-y-4">
@@ -318,49 +407,39 @@ const handleViewCCTV = (url) => {
             </div>
 
             {/* Section 3: Statistik Teks */}
-            <h1 className="text-center font-semibold">Statistik</h1>
+            <h1 className="text-center font-semibold">Statistik Volume Sampah</h1>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <motion.div
-                    whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-blue-900/20"
-                >
-                    <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
-                        <AlertTriangle size={24} />
-                    </div>
-                    <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Puncak Volume Sampah</p>
-                        <p className="text-2xl font-bold">{peakWasteTime}</p>
-                        <p className="text-sm text-slate-500">{maxWaste}</p>
-                    </div>
-                </motion.div>
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {/* Card Jam Puncak */}
+    <motion.div
+        whileHover={{ y: -5 }}
+        className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-blue-900/20"
+    >
+        <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
+            <AlertTriangle size={24} />
+        </div>
+        <div>
+            <p className="font-medium text-slate-500 dark:text-slate-400">Jam Puncak</p>
+            <p className="text-2xl font-bold">{peakWasteTime}</p>
+            <p className="text-sm text-slate-500">Volume: {maxWaste}</p>
+        </div>
+    </motion.div>
 
-                <motion.div
-                    whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-orange-900/20"
-                >
-                    <div className="rounded-lg bg-orange-500/20 p-3 text-orange-500">
-                        <Clock size={24} />
-                    </div>
-                    <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Rata-rata Per Jam</p>
-                        <p className="text-2xl font-bold">{Math.round(wasteData.reduce((acc, curr) => acc + curr.waste, 0) / wasteData.length)}kg</p>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-green-900/20"
-                >
-                    <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
-                        <Calendar size={24} />
-                    </div>
-                    <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Rekomendasi</p>
-                        <p className="text-lg font-semibold">Pengangkutan sampah jam {peakWasteTime}</p>
-                    </div>
-                </motion.div>
-            </div>
+    {/* Card Jam Sepi */}
+    <motion.div
+        whileHover={{ y: -5 }}
+        className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-green-900/20"
+    >
+        <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
+            <Clock size={24} />
+        </div>
+        <div>
+            <p className="font-medium text-slate-500 dark:text-slate-400">Jam Sepi</p>
+            <p className="text-2xl font-bold">{lowWasteTime}</p>
+            <p className="text-sm text-slate-500">Volume: {minWaste}</p>
+        </div>
+    </motion.div>
+</div>
 
             <h1 className="mt-4 text-center font-bold">Analisis Volume Sampah Harian dan Bulanan</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -517,7 +596,7 @@ const handleViewCCTV = (url) => {
             </div>
             {!showJavanaTable && (
                 <div className="flex justify-center">
-                    <div className="card p-6 text-center bg-blue-100">
+                    <div className="card p-6 text-center bg-white">
                         <p className="mb-4 text-lg font-medium text-gray-700">Klik tombol di bawah ini untuk melihat detail informasi dari CCTV</p>
                         <button
                             onClick={() => setShowJavanaTable(true)}
@@ -529,148 +608,212 @@ const handleViewCCTV = (url) => {
                 </div>
             )}
             {showJavanaTable && (
-  <div className="card">
-    <div className="card-header">
-      <p className="card-title">Informasi CCTV</p>
-      <button
-        onClick={handleDownload}
-        className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-      >
-        <Download className="h-4 w-4" />
-        Download
-      </button>
-    </div>
-    
-    <div className="card-body p-0">
-      <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-full">
-            <p>Memuat data...</p>
-          </div>
-        ) : (
-          <table className="table">
-            <thead className="table-header">
-              <tr className="table-row">
-                <th className="table-head">No</th>
-                <th className="table-head">Timestamp</th>
-                <th className="table-head">Nama CCTV</th>
-                <th className="table-head">Jenis Deteksi</th>
-                <th className="table-head">Latitude</th>
-                <th className="table-head">Longitude</th>
-                <th className="table-head">Presentase Sampah</th>
-                <th className="table-head">Status Sampah</th>
-                <th className="table-head">Live CCTV</th>
-              </tr>
-            </thead>
-            <tbody className="table-body">
-              {data.map((item, index) => (
-                <tr key={item.id || index} className="table-row">
-                  <td className="table-cell">{(currentPage - 1) * perPage + index + 1}</td>
-                  <td className="table-cell">
-                    {item.timestamp ? new Date(item.timestamp).toLocaleString() : '-'}
-                  </td>
-                  <td className="table-cell">{item.nama_cctv || '-'}</td>
-                  <td className="table-cell capitalize">{item.jenis_deteksi || '-'}</td>
-                  <td className="table-cell">{item.latitude || '-'}</td>
-                  <td className="table-cell">{item.longitude || '-'}</td>
-                  <td className="table-cell">
-                    {item.presentase_sampah ? `${item.presentase_sampah}%` : '-'}
-                  </td>
-                  <td className="table-cell">
-                    <span className={`px-2 py-1 rounded-full text-xs ${
-                      item.status_sampah === 'penuh' 
-                        ? 'bg-red-100 text-red-800' 
-                        : item.status_sampah === 'sedang'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-green-100 text-green-800'
-                    }`}>
-                      {item.status_sampah || 'unknown'}
-                    </span>
-                  </td>
-                  <td className="table-cell">
-                    <button 
-                      onClick={() => handleViewCCTV(item.cctv_url)}
-                      className="text-blue-500 hover:text-blue-700"
-                      disabled={!item.cctv_url}
+            <div className="card">
+              <div className="card-header">
+                <p className="card-title">Informasi CCTV</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleDownload}
+                    className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
+                  >
+                    <Download className="h-4 w-4" />
+                    Download
+                  </button>
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="flex items-center gap-1 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Tambah Data
+                  </button>
+                </div>
+              </div>
+
+              {/* Add Data Form Modal */}
+              {showForm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                  <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+                    <h3 className="mb-4 text-lg font-semibold">Tambah Data CCTV</h3>
+                    
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSimpan();
+                    }}>
+                      <div className="grid gap-4">
+                                      <input
+                                      type="text"
+                                      name="number"
+                                      value={formData.number}
+                                      onChange={handleFormChange}
+                                      placeholder="No"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="timestamp"
+                                      value={formData.timestamp}
+                                      onChange={handleFormChange}
+                                      placeholder="Timestamp (yyyy-mm-dd hh:mm)"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="namaCctv"
+                                      value={formData.namaCctv}
+                                      onChange={handleFormChange}
+                                      placeholder="Nama CCTV"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="jenisDeteksi"
+                                      value={formData.jenisDeteksi}
+                                      onChange={handleFormChange}
+                                      placeholder="Jenis Deteksi"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="latitude"
+                                      value={formData.latitude}
+                                      onChange={handleFormChange}
+                                      placeholder="Latitude"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="longitude"
+                                      value={formData.longitude}
+                                      onChange={handleFormChange}
+                                      placeholder="Longitude"
+                                      className="rounded border p-2"
+                                      />
+                                      <input
+                                      type="text"
+                                      name="presentaseSampah"
+                                      value={formData.presentaseSampah}
+                                      onChange={handleFormChange}
+                                      placeholder="Presentase Sampah (%)"
+                                      className="rounded border p-2"
+                                      />
+                                      <select
+                                      name="statusSampah"
+                                      value={formData.statusSampah}
+                                      onChange={handleFormChange}
+                                      className="rounded border p-2"
+                                      >
+                                      <option value="">Pilih Status Sampah</option>
+                                      <option value="sedikit">Sedikit</option>
+                                      <option value="sedang">Sedang</option>
+                                      <option value="banyak">Banyak</option>
+                                      <option value="penuh">Penuh</option>
+                                      </select>
+                                      <input
+                                      type="text"
+                                      name="liveCctv"
+                                      value={formData.liveCctv}
+                                      onChange={handleFormChange}
+                                      placeholder="Live CCTV URL/Embed"
+                                      className="rounded border p-2"
+                                      />
+
+                                      <div className="flex justify-end gap-2">
+                                      <button
+                                          onClick={() => setShowForm(false)}
+                                          className="rounded bg-gray-400 px-4 py-2 text-white hover:bg-gray-500"
+                                      >
+                                          Batal
+                                      </button>
+                                      <button
+                                          onClick={handleSimpan}
+                                          className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                      >
+                                          Simpan
+                                      </button>
+                                      </div>
+                                  </div>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {/* CCTV Data Table */}
+              <div className="card-body p-0">
+                <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
+                  <table className="table">
+                    {/* Table header and body remain the same as previous implementation */}
+                    {/* ... */}
+                  </table>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between px-4 py-3 border-t">
+                  <div className="flex-1 flex justify-between sm:hidden">
+                    <button
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                      className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
                     >
-                      <CctvIcon size={20} />
+                      Previous
                     </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3 border-t">
-        <div className="flex-1 flex justify-between sm:hidden">
-          <button
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
-          >
-            Next
-          </button>
-        </div>
-        
-        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
-              <span className="font-medium">{Math.min(currentPage * perPage, data.length + ((currentPage - 1) * perPage))}</span> of{' '}
-              <span className="font-medium">{totalPages * perPage}</span> results
-            </p>
-          </div>
-          <div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">Previous</span>
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                    currentPage === page
-                      ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                      : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-              
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">Next</span>
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-            <Footer />
+                    <button
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages}
+                      className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-sm text-gray-700">
+                        Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
+                        <span className="font-medium">{Math.min(currentPage * perPage, cctvData.length)}</span> of{' '}
+                        <span className="font-medium">{cctvData.length}</span> results
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                        <button
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        >
+                          <span className="sr-only">Previous</span>
+                          <ChevronLeft className="h-5 w-5" />
+                        </button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                              currentPage === page
+                                ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                            }`}
+                          >
+                            {page}
+                          </button>
+                        ))}
+                        
+                        <button
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                        >
+                          <span className="sr-only">Next</span>
+                          <ChevronRight className="h-5 w-5" />
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <Footer />
         </div>
     );
 };

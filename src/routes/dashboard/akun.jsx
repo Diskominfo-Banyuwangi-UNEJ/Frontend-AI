@@ -190,13 +190,13 @@ const AkunPage = () => {
   // Delete account
   const handleDelete = async (id) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
+      title: 'Apakah anda yakin menghapus akun ini?',
+      // text: "You won't be able to revert this!",
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#64748b',
-      confirmButtonText: 'Yes, delete it!',
+      confirmButtonText: 'Yes',
       background: '#f8fafc',
     });
 

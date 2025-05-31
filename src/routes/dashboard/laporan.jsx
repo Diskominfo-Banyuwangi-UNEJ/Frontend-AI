@@ -357,8 +357,8 @@ const LaporanPage = () => {
         {/* Header */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">Manajemen Laporan</h1>
-            <p className="text-slate-600">Kelola laporan dengan mudah</p>
+            <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">Fitur Manajemen Laporan</h1>
+            <p className="text-slate-600">Daftar Pelaporan Tumpukan Sampah dan Keramaian </p>
           </div>
           
           <motion.button
@@ -487,6 +487,10 @@ const LaporanPage = () => {
               )}
             </div>
           ) : (
+            
+            
+            
+            
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
@@ -604,204 +608,225 @@ const LaporanPage = () => {
         </motion.div>
       </div>
 
-      {/* Form Modal */}
-      {/* Form Modal */}
-<AnimatePresence>
-  {showForm && (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
-        variants={formVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-      >
-        <div className="p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-slate-800">
-              {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
-            </h2>
+    {/* Form Modal */}
+     <AnimatePresence>
+      {showForm && (
+        <motion.div
+          className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50"
+            onClick={resetForm}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+
+          {/* Form Container */}
+          <motion.div
+            className="relative w-full max-w-2xl mx-auto my-8 rounded-xl bg-white shadow-xl"
+            variants={formVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ type: "spring", damping: 25 }}
+          >
+            {/* Close Button */}
             <button
               onClick={resetForm}
-              className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="absolute -right-2 -top-2 z-10 rounded-full bg-white p-1 shadow-md hover:bg-gray-100"
             >
-              <X size={20} />
+              <X size={20} className="text-gray-600" />
             </button>
-          </div>
 
-          <div className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Judul Laporan
-              </label>
-              <input
-                type="text"
-                name="judul_laporan"
-                value={formData.judul_laporan}
-                onChange={handleFormChange}
-                placeholder="Masukkan judul laporan"
-                className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                Isi Laporan
-              </label>
-              <textarea
-                name="deskripsi"
-                value={formData.deskripsi}
-                onChange={handleFormChange}
-                rows={4}
-                placeholder="Tulis isi laporan secara detail"
-                className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-              ></textarea>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Jenis Laporan
-                </label>
-                <select
-                  name="kategori"
-                  value={formData.kategori}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="">Pilih Kategori Laporan</option>
-                  <option value="keramaian">Keramaian</option>
-                  <option value="tumpukan sampah">Tumpukan Sampah</option>
-                </select>
+            {/* Form Content */}
+            <div className="max-h-[80vh] overflow-y-auto p-6">
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold text-slate-800">
+                  {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
+                </h2>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Status
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value="">Pilih Status</option>
-                  <option value="diterima">Diterima</option>
-                  <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                  <option value="selesai">Selesai</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Tanggal
-                </label>
-                <input
-                  type="date"
-                  name="created_at"
-                  value={formData.created_at}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Estimasi Penyelesaian
-                </label>
-                <input
-                  type="number"
-                  name="estimasi"
-                  value={formData.estimasi}
-                  onChange={handleFormChange}
-                  min="0"
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium text-slate-700">
-                File PDF (Opsional)
-              </label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
-              />
-              {formData.filePdf && (
-                <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
-                  <span className="truncate text-sm text-slate-700">
-                    {formData.filePdf.name}
-                  </span>
-                  <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
-                  >
-                    {showPreview ? "Sembunyikan" : "Lihat"}
-                  </button>
+              <div className="space-y-4">
+                {/* Judul Laporan */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Judul Laporan
+                  </label>
+                  <input
+                    type="text"
+                    name="judul_laporan"
+                    value={formData.judul_laporan}
+                    onChange={handleFormChange}
+                    placeholder="Masukkan judul laporan"
+                    className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
                 </div>
-              )}
-            </div>
 
-            {showPreview && formData.filePdf && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                className="overflow-hidden rounded-lg border border-slate-200"
-              >
-                <iframe
-                  src={formData.filePdf.data}
-                  title="PDF Preview"
-                  className="h-96 w-full"
-                />
-              </motion.div>
-            )}
+                {/* Isi Laporan */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    Isi Laporan
+                  </label>
+                  <textarea
+                    name="deskripsi"
+                    value={formData.deskripsi}
+                    onChange={handleFormChange}
+                    rows={4}
+                    placeholder="Tulis isi laporan secara detail"
+                    className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  ></textarea>
+                </div>
 
-            <div className="flex justify-end gap-2 pt-4">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={resetForm}
-                className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-              >
-                Batal
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={handleSimpan}
-                disabled={isSubmitting}
-                className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Memproses...
-                  </>
-                ) : isEditing ? (
-                  "Update Laporan"
-                ) : (
-                  "Simpan Laporan"
+                {/* Jenis Laporan dan Status */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Jenis Laporan
+                    </label>
+                    <select
+                      name="kategori"
+                      value={formData.kategori}
+                      onChange={handleFormChange}
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">Pilih Kategori Laporan</option>
+                      <option value="keramaian">Keramaian</option>
+                      <option value="tumpukan sampah">Tumpukan Sampah</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleFormChange}
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="">Pilih Status</option>
+                      <option value="diterima">Diterima</option>
+                      <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                      <option value="selesai">Selesai</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Tanggal dan Estimasi */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Tanggal
+                    </label>
+                    <input
+                      type="date"
+                      name="created_at"
+                      value={formData.created_at}
+                      onChange={handleFormChange}
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Estimasi Penyelesaian (hari)
+                    </label>
+                    <input
+                      type="number"
+                      name="estimasi"
+                      value={formData.estimasi}
+                      onChange={handleFormChange}
+                      min="0"
+                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+
+                {/* File PDF */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">
+                    File PDF (Opsional)
+                  </label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                  {formData.filePdf && (
+                    <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
+                      <span className="truncate text-sm text-slate-700">
+                        {formData.filePdf.name}
+                      </span>
+                      <button
+                        onClick={() => setShowPreview(!showPreview)}
+                        className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
+                      >
+                        {showPreview ? "Sembunyikan" : "Lihat"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* PDF Preview */}
+                {showPreview && formData.filePdf && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden rounded-lg border border-slate-200"
+                  >
+                    <iframe
+                      src={formData.filePdf.data}
+                      title="PDF Preview"
+                      className="h-96 w-full"
+                    />
+                  </motion.div>
                 )}
-              </motion.button>
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 pt-6">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={resetForm}
+                    className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                  >
+                    Batal
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={handleSimpan}
+                    disabled={isSubmitting}
+                    className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Memproses...
+                      </>
+                    ) : isEditing ? (
+                      "Update Laporan"
+                    ) : (
+                      "Simpan Laporan"
+                    )}
+                  </motion.button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )}
-</AnimatePresence>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
     </motion.div>
   );
 };

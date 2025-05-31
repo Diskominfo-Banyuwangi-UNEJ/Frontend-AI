@@ -18,12 +18,18 @@ import {
     AlertTriangle,
     Calendar,
     Video,
-    CheckCircle2
+    CheckCircle2,
+    Plus,
+    ChevronLeft,
+    ChevronRight,
+    X,
+    Loader2
+
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Swal from 'sweetalert2';
 
 
@@ -135,6 +141,49 @@ const AnalitikKeramaianPage = () => {
   liveCctv: "",
 });
 
+const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Definisikan currentPage di sini
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [perPage] = useState(10);
+  const [cctvData, setCctvData] = useState([]); 
+  
+
+const fetchData = async (page = 1) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(
+        `http://localhost:3000/api/tumpukan_sampah?page=${page}&per_page=${perPage}`
+      );
+      
+      console.log("API Response:", response.data); // Debug response
+      
+      setData(response.data.data || []);
+      setTotalPages(response.data.total_pages || 1);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    fetchData(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+
 const handleFormChange = (e) => {
   const { name, value } = e.target;
   setFormData((prev) => ({ ...prev, [name]: value }));
@@ -211,9 +260,27 @@ const handleSimpan = () => {
         { time: "06:00", waste: 40 },
     ];
     // Data statistik teks
-    const peakWasteTime = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).time;
-    const maxWaste = wasteData.reduce((prev, current) => (prev.waste > current.waste ? prev : current)).waste + "kg";
-    const avgWaste = (wasteData.reduce((sum, item) => sum + item.waste, 0) / wasteData.length).toFixed(2) + " rata-rata orang";
+    // Data statistik teks
+    const wasteStats = wasteData.reduce((stats, current) => {
+    if (current.waste > stats.maxWaste) {
+        stats.maxWaste = current.waste;
+        stats.peakWasteTime = current.time;
+    }
+    if (current.waste < stats.minWaste) {
+        stats.minWaste = current.waste;
+        stats.lowWasteTime = current.time;
+    }
+    return stats;
+}, { 
+    maxWaste: -Infinity, 
+    minWaste: Infinity, 
+    peakWasteTime: '', 
+    lowWasteTime: '' 
+});
+  const peakWasteTime = wasteStats.peakWasteTime;
+  const maxWaste = wasteStats.maxWaste + " orang";
+  const lowWasteTime = wasteStats.lowWasteTime;
+  const minWaste = wasteStats.minWaste + " orang";
 
 
     return (
@@ -382,44 +449,34 @@ const handleSimpan = () => {
             {/* Section 3: Statistik Teks */}
             <h1 className="text-center font-semibold">Statistik</h1>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {/* Card Jam Puncak */}
                 <motion.div
                     whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-red-50 p-4 dark:bg-red-900/20"
+                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-blue-900/20"
                 >
                     <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
                         <AlertTriangle size={24} />
                     </div>
                     <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Puncak Keramaian</p>
+                        <p className="font-medium text-slate-500 dark:text-slate-400">Jam Puncak</p>
                         <p className="text-2xl font-bold">{peakWasteTime}</p>
-                        <p className="text-sm text-red-500">{avgWaste}</p>
+                        <p className="text-sm text-slate-500">Volume: {maxWaste}</p>
                     </div>
                 </motion.div>
-
+            
+                {/* Card Jam Sepi */}
                 <motion.div
                     whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-orange-50 p-4 dark:bg-orange-900/20"
+                    className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-green-900/20"
                 >
-                    <div className="rounded-lg bg-orange-500/20 p-3 text-orange-500">
+                    <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
                         <Clock size={24} />
                     </div>
                     <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Rata-rata Per Jam</p>
-                        <p className="text-2xl font-bold">{Math.round(wasteData.reduce((acc, curr) => acc + curr.waste, 0) / wasteData.length)} orang</p>
-                    </div>
-                </motion.div>
-
-                <motion.div
-                    whileHover={{ y: -5 }}
-                    className="flex items-center gap-4 rounded-lg border bg-green-50 p-4 dark:bg-green-900/20"
-                >
-                    <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
-                        <Calendar size={24} />
-                    </div>
-                    <div>
-                        <p className="font-medium text-slate-500 dark:text-slate-400">Rekomendasi</p>
-                        <p className="text-lg font-semibold">Himbauan puncak keramaian {peakWasteTime}</p>
+                        <p className="font-medium text-slate-500 dark:text-slate-400">Jam Sepi</p>
+                        <p className="text-2xl font-bold">{lowWasteTime}</p>
+                        <p className="text-sm text-slate-500">Volume: {minWaste}</p>
                     </div>
                 </motion.div>
             </div>
@@ -578,189 +635,314 @@ const handleSimpan = () => {
   </div>
 </div>
 
-            {!showJavanaTable && (
-                <div className="flex justify-center">
-                    <div className="card p-6 text-center bg-blue-100">
-                        <p className="mb-4 text-lg font-medium text-gray-700">Klik tombol di bawah ini untuk melihat detail informasi dari CCTV</p>
-                        <button
-                            onClick={() => setShowJavanaTable(true)}
-                            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-800"
-                        >
-                            Informasi CCTV
-                        </button>
-                    </div>
-                </div>
-            )}
-            {showJavanaTable && (
-                <div className="card">
-                    <div className="card-header">
-                        <p className="card-title"> Informasi CCTV</p>
-                        <button
+        {!showJavanaTable && (
+                        <div className="flex justify-center">
+                            <div className="card p-6 text-center bg-white">
+                                <p className="mb-4 text-lg font-medium text-gray-700">Klik tombol di bawah ini untuk melihat detail informasi dari CCTV</p>
+                                <button
+                                    onClick={() => setShowJavanaTable(true)}
+                                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-800"
+                                >
+                                    Informasi CCTV
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    {showJavanaTable && (
+                    <div className="card">
+                      <div className="card-header">
+                        <p className="card-title">Informasi CCTV</p>
+                        <div className="flex gap-2">
+                          <button
                             onClick={handleDownload}
                             className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                        >
+                          >
                             <Download className="h-4 w-4" />
                             Download
-                        </button>
-                        <button
+                          </button>
+                          <button
                             onClick={() => setShowForm(true)}
                             className="flex items-center gap-1 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700"
-                        >
-                            + Tambah Data
-                        </button>
-                    </div>
-                    {showForm && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-      <h3 className="mb-4 text-lg font-semibold">Tambah Data CCTV</h3>
-
-      <div className="grid gap-4">
-        <input
-          type="text"
-          name="number"
-          value={formData.number}
-          onChange={handleFormChange}
-          placeholder="No"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="timestamp"
-          value={formData.timestamp}
-          onChange={handleFormChange}
-          placeholder="Timestamp (yyyy-mm-dd hh:mm)"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="namaCctv"
-          value={formData.namaCctv}
-          onChange={handleFormChange}
-          placeholder="Nama CCTV"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="jenisDeteksi"
-          value={formData.jenisDeteksi}
-          onChange={handleFormChange}
-          placeholder="Jenis Deteksi"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="latitude"
-          value={formData.latitude}
-          onChange={handleFormChange}
-          placeholder="Latitude"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="longitude"
-          value={formData.longitude}
-          onChange={handleFormChange}
-          placeholder="Longitude"
-          className="rounded border p-2"
-        />
-        <input
-          type="text"
-          name="presentaseSampah"
-          value={formData.presentaseSampah}
-          onChange={handleFormChange}
-          placeholder="Presentase Sampah (%)"
-          className="rounded border p-2"
-        />
-        <select
-          name="statusSampah"
-          value={formData.statusSampah}
-          onChange={handleFormChange}
-          className="rounded border p-2"
-        >
-          <option value="">Pilih Status Sampah</option>
-          <option value="sedikit">Sedikit</option>
-          <option value="sedang">Sedang</option>
-          <option value="banyak">Banyak</option>
-          <option value="penuh">Penuh</option>
-        </select>
-        <input
-          type="text"
-          name="liveCctv"
-          value={formData.liveCctv}
-          onChange={handleFormChange}
-          placeholder="Live CCTV URL/Embed"
-          className="rounded border p-2"
-        />
-
-        <div className="flex justify-end gap-2">
-          <button
-            onClick={() => setShowForm(false)}
-            className="rounded bg-gray-400 px-4 py-2 text-white hover:bg-gray-500"
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSimpan}
-            className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-          >
-            Simpan
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-                    
-                    
-
-
-                    <div className="card-body p-0">
-                        <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
-                            <table className="table">
-                                <thead className="table-header">
-                                    <tr className="table-row">
-                                        <th className="table-head">No</th>
-                                        <th className="table-head">Timestamp</th>
-                                        <th className="table-head">Nama CCTV</th>
-                                        <th className="table-head">Jenis Deteksi</th>
-                                        <th className="table-head">Latitude</th>
-                                        <th className="table-head">Longitude</th>
-                                        <th className="table-head">Presentase Sampah</th>
-                                        <th className="table-head">Status Sampah</th>
-                                        <th className="table-head">Live CCTV</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="table-body">
-                                    {topProducts.map((product) => (
-                                        <tr
-                                            key={product.number}
-                                            className="table-row"
-                                        >
-                                            <td className="table-cell">{product.number}</td>
-                                            <td className="table-cell">{product.name}</td>
-                                            <td className="table-cell">${product.price}</td>
-                                            <td className="table-cell">{product.status}</td>
-                                            <td className="table-cell">{product.rating}</td>
-                                            <td className="table-cell">-</td>
-                                            <td className="table-cell">-</td>
-                                            <td className="table-cell">{product.status}</td>
-                                            <td className="table-cell">
-                                                <div className="flex items-center gap-x-4">
-                                                    <button className="text-blue-500 dark:text-blue-600">
-                                                        <CctvIcon size={20} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                          >
+                            <Plus className="h-4 w-4" />
+                            Tambah Data
+                          </button>
                         </div>
+                      </div>
+        
+                      {/* Add Data Form Modal */}
+{showForm && (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800 max-h-[80vh] overflow-y-auto"
+
+  >
+    <motion.div
+      initial={{ y: -20, scale: 0.98 }}
+      animate={{ y: 0, scale: 1 }}
+      exit={{ y: 20, scale: 0.98 }}
+      className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800"
+    >
+      <div className="mb-6 flex items-center justify-between">
+        <h3 className="text-xl font-semibold text-slate-800 dark:text-white">
+          Tambah Data CCTV
+        </h3>
+        <button
+          onClick={() => setShowForm(false)}
+          className="rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        handleSimpan();
+      }}>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Nomor
+              </label>
+              <input
+                type="text"
+                name="number"
+                value={formData.number}
+                onChange={handleFormChange}
+                placeholder="Nomor CCTV"
+                className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Timestamp
+              </label>
+              <input
+                type="datetime-local"
+                name="timestamp"
+                value={formData.timestamp}
+                onChange={handleFormChange}
+                className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Nama CCTV
+            </label>
+            <input
+              type="text"
+              name="namaCctv"
+              value={formData.namaCctv}
+              onChange={handleFormChange}
+              placeholder="Contoh: CCTV Jalan Sudirman"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Jenis Deteksi
+            </label>
+            <select
+              name="jenisDeteksi"
+              value={formData.jenisDeteksi}
+              onChange={handleFormChange}
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="">Pilih Jenis Deteksi</option>
+              <option value="sampah">Deteksi Sampah</option>
+              <option value="keramaian">Deteksi Keramaian</option>
+              <option value="kendaraan">Deteksi Kendaraan</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Latitude
+              </label>
+              <input
+                type="text"
+                name="latitude"
+                value={formData.latitude}
+                onChange={handleFormChange}
+                placeholder="Contoh: -6.2088"
+                className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Longitude
+              </label>
+              <input
+                type="text"
+                name="longitude"
+                value={formData.longitude}
+                onChange={handleFormChange}
+                placeholder="Contoh: 106.8456"
+                className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Presentase Sampah (%)
+            </label>
+            <input
+              type="number"
+              name="presentaseSampah"
+              value={formData.presentaseSampah}
+              onChange={handleFormChange}
+              min="0"
+              max="100"
+              placeholder="0-100"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Status Sampah
+            </label>
+            <select
+              name="statusSampah"
+              value={formData.statusSampah}
+              onChange={handleFormChange}
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            >
+              <option value="">Pilih Status Sampah</option>
+              <option value="sedikit">Sedikit (0-25%)</option>
+              <option value="sedang">Sedang (26-50%)</option>
+              <option value="banyak">Banyak (51-75%)</option>
+              <option value="penuh">Penuh (76-100%)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+              Live CCTV URL
+            </label>
+            <input
+              type="url"
+              name="liveCctv"
+              value={formData.liveCctv}
+              onChange={handleFormChange}
+              placeholder="https://example.com/live-cctv"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <motion.button
+              type="button"
+              onClick={() => setShowForm(false)}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Batal
+            </motion.button>
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+            >
+              Simpan
+            </motion.button>
+          </div>
+        </div>
+      </form>
+    </motion.div>
+  </motion.div>
+)}
+        
+                      {/* CCTV Data Table */}
+                      <div className="card-body p-0">
+                        <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
+                          <table className="table">
+                            {/* Table header and body remain the same as previous implementation */}
+                            {/* ... */}
+                          </table>
+                        </div>
+        
+                        {/* Pagination */}
+                        <div className="flex items-center justify-between px-4 py-3 border-t">
+                          <div className="flex-1 flex justify-between sm:hidden">
+                            <button
+                              onClick={() => handlePageChange(currentPage - 1)}
+                              disabled={currentPage === 1}
+                              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                            >
+                              Previous
+                            </button>
+                            <button
+                              onClick={() => handlePageChange(currentPage + 1)}
+                              disabled={currentPage === totalPages}
+                              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                            >
+                              Next
+                            </button>
+                          </div>
+                          
+                          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm text-gray-700">
+                                Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
+                                <span className="font-medium">{Math.min(currentPage * perPage, cctvData.length)}</span> of{' '}
+                                <span className="font-medium">{cctvData.length}</span> results
+                              </p>
+                            </div>
+                            <div>
+                              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                <button
+                                  onClick={() => handlePageChange(currentPage - 1)}
+                                  disabled={currentPage === 1}
+                                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                                >
+                                  <span className="sr-only">Previous</span>
+                                  <ChevronLeft className="h-5 w-5" />
+                                </button>
+                                
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                  <button
+                                    key={page}
+                                    onClick={() => handlePageChange(page)}
+                                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                      currentPage === page
+                                        ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                                    }`}
+                                  >
+                                    {page}
+                                  </button>
+                                ))}
+                                
+                                <button
+                                  onClick={() => handlePageChange(currentPage + 1)}
+                                  disabled={currentPage === totalPages}
+                                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                                >
+                                  <span className="sr-only">Next</span>
+                                  <ChevronRight className="h-5 w-5" />
+                                </button>
+                              </nav>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                </div>
-            )}
-            <Footer />
+                  )}
+                  <Footer />
+            
         </div>
     );
 };

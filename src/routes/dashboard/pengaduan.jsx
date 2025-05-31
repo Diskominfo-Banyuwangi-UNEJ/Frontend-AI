@@ -9,14 +9,12 @@ import {
   Trash2, 
   Eye, 
   Download, 
-  X, 
-  Filter, 
+  X,  
   ChevronDown, 
   ChevronUp,
   Loader2,
-  CheckCircle,
-  AlertCircle,
   FileText,
+  Filter,
   MapPin,
   User,
   Camera,
@@ -37,13 +35,28 @@ const PengaduanPage = () => {
     tanggal: new Date().toISOString().slice(0, 10),
     foto: null
   });
-
+  const [isEditing, setIsEditing] = useState(false);  
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [useGPS, setUseGPS] = useState(false);
   const [gpsLoading, setGpsLoading] = useState(false);
 
   // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   const formVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     visible: { opacity: 1, scale: 1 },
@@ -74,6 +87,31 @@ const PengaduanPage = () => {
     fetchPengaduan();
   }, []);
 
+  const handleFilterChange = (e) => {
+      setFilter({ ...filter, [e.target.name]: e.target.value });
+    };
+  
+    const filteredPengaduan = pengaduanList.filter((pengaduan) => {
+      return (
+        (!filter.created_at || pengaduan.created_at.includes(filter.created_at)) &&
+        (!filter.kategori || pengaduan.kategori === filter.kategori)
+      );
+    });
+  
+    useEffect(() => {
+      if ((filter.created_at || filter.kategori) && filteredPengaduan.length === 0) {
+        MySwal.fire({
+          icon: "info",
+          title: "Pengaduan tidak ditemukan",
+          toast: true,
+          position: "top",
+          timer: 2500,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      }
+    }, [filteredPengaduan, filter]);
+
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -102,6 +140,92 @@ const PengaduanPage = () => {
       });
     }
   };
+
+  const handleSimpan = async () => {
+      const { nama_pelapor, lokasi, jenis, deskripsi, tanggal,foto,created_at } = formData;
+  
+      if (!nama_pelapor || !lokasi || !jenis || !deskripsi || !tanggal  || !foto  ||!status || !created_at) {
+        MySwal.fire({
+          icon: "error",
+          title: "Data tidak lengkap",
+          text: "Semua field wajib diisi!",
+          timer: 3000,
+          showConfirmButton: false,
+          position: "top",
+          toast: true,
+          background: "#f8fafc"
+        });
+        return;
+      }
+  
+      try {
+        setIsSubmitting(true);
+        const payload = {
+          judul_laporan: formData.judul_laporan,
+          deskripsi: formData.deskripsi,
+          kategori: formData.kategori,
+          status: formData.status,
+          created_at: formData.created_at,
+          estimasi: formData.estimasi, // Tambahkan ini
+          filePdf: formData.filePdf
+        };
+  
+        let response;
+        if (isEditing) {
+          response = await axios.put(
+            `http://localhost:3000/api/laporan/updatePengaduan/${selectedLaporan.id}`,
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+          );
+        } else {
+          response = await axios.post(
+            `http://localhost:3000/api/laporan/createPengaduan`,
+            payload,
+            { headers: { "Content-Type": "application/json" } }
+          );
+        }
+  
+        await MySwal.fire({
+          icon: "success",
+          title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
+          text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
+          timer: 2000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+  
+        resetForm();
+        fetchLaporan();
+      } catch (error) {
+        console.error("Error menyimpan laporan:", error);
+        MySwal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
+          timer: 3000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+  
+    const resetForm = () => {
+      setFormData({
+        judul_laporan: "",
+        deskripsi: "",
+        kategori: "",
+        status: "",
+        created_at: "",
+        estimasi: 0, 
+        filePdf: null
+      });
+      setShowForm(false);
+      setIsEditing(false);
+      setSelectedLaporan(null);
+      setShowPreview(false);
+    };
 
   const getCurrentLocation = () => {
     setGpsLoading(true);
@@ -203,8 +327,8 @@ const PengaduanPage = () => {
         {/* Header */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 md:text-3xl">Layanan Pengaduan Publik</h1>
-            <p className="text-gray-600">Sampaikan laporan Anda dengan mudah dan cepat</p>
+            <h1 className="text-2xl font-bold text-gray-800 md:text-3xl">Fitur Layanan Pengaduan </h1>
+            <p className="text-gray-600">Daftar Pengaduan Tumpukan Sampah dan Keramaian Masyarakat</p>
           </div>
           
           <motion.button
@@ -222,17 +346,27 @@ const PengaduanPage = () => {
         <AnimatePresence>
           {showForm && (
             <motion.div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+              className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
+              {/* Backdrop */}
               <motion.div
-                className="w-full max-w-2xl rounded-xl bg-white shadow-xl"
+                className="fixed inset-0 bg-black bg-opacity-50"
+                onClick={resetForm}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              />
+
+              <motion.div
+                className="relative w-full max-w-2xl mx-auto my-8 rounded-xl bg-white shadow-xl"
                 variants={formVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
+                transition={{ type: "spring", damping: 25 }}
               >
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">

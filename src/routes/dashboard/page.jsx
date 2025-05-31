@@ -286,17 +286,18 @@ const LandingPage = () => {
         {/* Kiri: Tata Cara */}
         <div className="flex-1  rounded-2xl p-10   min-w-[480px]">
           <h1 className="mb-6 text-3xl font-extrabold text-green-800 drop-shadow-md">
-            Hubungi kami via WhatsApp.
+            Pengaduan Masyarakat
           </h1>
-          <ol className="list-decimal list-inside space-y-2 text-lg leading-relaxed text-green-900">
+          <h2 className="mb-2 list-decimal text-lg">Silakan lengkapi data pada langkah-langkah berikut untuk menyelesaikan pengaduan Anda.</h2>
+          <ol className="list-decimal list-inside space-y-2 text-lg leading-relaxed">
             {/* <li>Sampaikan informasi berikut:</li> */}
             <li>Nama pelapor.</li>
-            <li>Lokasi kejadian (manual atau GPS)</li>
+            <li>Lokasi kejadian (manual melalui GPS)</li>
             <li>Jenis pengaduan: pilih salah satu keramaian atau sampah.</li>
             <li>Deskripsi pengaduan secara singkat dan jelas.</li>
             <li>Upload bukti foto jika tersedia.</li>
-            <li>Sertakan tanggal kejadian atau biarkan otomatis terisi saat laporan dikirim.</li>
-            <li>Jenis pengaduan: pilih salah satu keramaian atau sampah.</li>
+            <li>Sertakan tanggal kejadian.</li>
+            <li>SELESAI.</li>
           </ol>
         </div>
 
