@@ -12,39 +12,41 @@ export default function LoginForm() {
     const nav = useNavigate();
 
     const handleLogin = async (e) => {
-        e.preventDefault();
-        
-        try {
-            const response = await axios.post('http://localhost:3000/api/auth/signin', {
-                email: email, 
-                password: password
+    e.preventDefault();
+
+    try {
+        const response = await axios.post('http://localhost:3000/api/auth/signin', {
+            email,
+            password
+        });
+
+        console.log("Full response:", response.data); // Debug response
+
+        if (response.data.token) {
+            // ✅ Simpan token ke cookies
+            Cookies.set('authToken', response.data.token, {
+                expires: 1, // 1 hari
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'strict'
             });
 
-            if (response.data && response.data.token) {
-                // Simpan token ke cookies
-                Cookies.set('authToken', response.data.token, { 
-                    expires: 1, // Kadaluarsa dalam 1 hari
-                    secure: process.env.NODE_ENV === 'production', // Hanya HTTPS di production
-                    sameSite: 'strict' // Perlindungan CSRF
-                });
-                
-                // Panggil fungsi login dari context dengan data yang diterima
-                login(response.data);
-                console.log("Login successful", response.data);
-                nav("/dashboard", { replace: true });
-            } else {
-                alert("Invalid credentials - No token received");
-            }
-        } catch (error) {
-            console.error("Login error:", error);
-            
-            if (error.response) {
-                alert(error.response.data.message || "Login failed");
-            } else {
-                alert("Network error. Please try again.");
-            }
+            // ✅ Simpan data user ke context
+            login({
+                token: response.data.token,
+                // Ambil id_user dari decoded token atau response jika ada
+                ...response.data
+            });
+
+            console.log("Login successful", response.data);
+            nav("/dashboard", { replace: true });
+        } else {
+            alert("Login gagal. Token tidak ditemukan dalam response.");
         }
-    };
+    } catch (error) {
+        console.error("Login error:", error);
+        alert(error.response?.data?.message || "Login gagal. Silakan coba lagi.");
+    }
+};
 
     return (
         <section className="flex min-h-screen items-center justify-center bg-gradient-to-r from-white to-white font-sans">
@@ -54,15 +56,16 @@ export default function LoginForm() {
 
                     <form onSubmit={handleLogin}>
                         <div className="flex flex-col gap-1 text-sm">
-                            <label>Email</label> {/* Ganti label Username menjadi Email */}
+                            <label>Email</label>
                             <input
-                                type="email" // Ganti type menjadi email
+                                type="email"
                                 className="rounded-md border border-gray-300 p-2 outline-none focus:border-cyan-400 focus:bg-slate-50"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
+
                         <div className="flex flex-col gap-1 text-sm">
                             <label>Password</label>
                             <input
@@ -73,10 +76,12 @@ export default function LoginForm() {
                                 required
                             />
                         </div>
+
                         <div className="flex items-center gap-2">
                             <input type="checkbox" />
                             <span className="text-sm">Remember Password</span>
                         </div>
+
                         <button
                             type="submit"
                             className="w-full rounded-md bg-gradient-to-r from-gray-800 to-gray-800 py-2 text-sm font-semibold text-white hover:from-black hover:to-black"

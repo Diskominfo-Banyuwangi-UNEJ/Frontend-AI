@@ -4,6 +4,7 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Plus, PencilLine, Trash, Loader2, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Cookies from 'js-cookie';
 
 const AkunPage = () => {
   // State management
@@ -186,6 +187,8 @@ const AkunPage = () => {
     });
   }
 };
+const id_user = Cookies.get('id_user');
+
 
   // Delete account
   const handleDelete = async (id) => {

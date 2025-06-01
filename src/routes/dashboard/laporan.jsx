@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
+import Cookies from "js-cookie";
 import axios from "axios";
 import { 
   Plus, 
@@ -69,26 +70,33 @@ const LaporanPage = () => {
     exit: { opacity: 0, scale: 0.95 }
   };
 
+  const token = Cookies.get("authToken");
+console.log("Token di komponen ini:", token);
+
   // Fetch data
-  const fetchLaporan = async () => {
-    try {
-      setIsLoading(true);
-      const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`);
-      setLaporanList(response.data.data || []);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      MySwal.fire({
-        icon: "error",
-        title: "Gagal memuat data",
-        text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
-        background: "#f8fafc",
-        timer: 3000,
-        showConfirmButton: false
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+ const fetchLaporan = async () => {
+  try {
+    setIsLoading(true);
+    const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    setLaporanList(response.data.data || []);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    MySwal.fire({
+      icon: "error",
+      title: "Gagal memuat data",
+      text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
+      background: "#f8fafc",
+      timer: 3000,
+      showConfirmButton: false
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchLaporan();
@@ -152,74 +160,81 @@ const LaporanPage = () => {
   };
 
   const handleSimpan = async () => {
-    const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
+  const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
 
-    if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
-      MySwal.fire({
-        icon: "error",
-        title: "Data tidak lengkap",
-        text: "Semua field wajib diisi!",
-        timer: 3000,
-        showConfirmButton: false,
-        position: "top",
-        toast: true,
-        background: "#f8fafc"
-      });
-      return;
-    }
+  if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
+    MySwal.fire({
+      icon: "error",
+      title: "Data tidak lengkap",
+      text: "Semua field wajib diisi!",
+      timer: 3000,
+      showConfirmButton: false,
+      position: "top",
+      toast: true,
+      background: "#f8fafc"
+    });
+    return;
+  }
 
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        judul_laporan: formData.judul_laporan,
-        deskripsi: formData.deskripsi,
-        kategori: formData.kategori,
-        status: formData.status,
-        created_at: formData.created_at,
-        estimasi: formData.estimasi, // Tambahkan ini
-        filePdf: formData.filePdf
-      };
+  try {
+    setIsSubmitting(true);
+    const payload = {
+      judul_laporan: formData.judul_laporan,
+      deskripsi: formData.deskripsi,
+      kategori: formData.kategori,
+      status: formData.status,
+      created_at: formData.created_at,
+      estimasi: formData.estimasi,
+      filePdf: formData.filePdf
+    };
 
-      let response;
-      if (isEditing) {
-        response = await axios.put(
-          `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
-          payload,
-          { headers: { "Content-Type": "application/json" } }
-        );
-      } else {
-        response = await axios.post(
-          `http://localhost:3000/api/laporan/createLaporan`,
-          payload,
-          { headers: { "Content-Type": "application/json" } }
-        );
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
+    };
 
-      await MySwal.fire({
-        icon: "success",
-        title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
-        text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
-        timer: 2000,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
-
-      resetForm();
-      fetchLaporan();
-    } catch (error) {
-      console.error("Error menyimpan laporan:", error);
-      MySwal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
-        timer: 3000,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
-    } finally {
-      setIsSubmitting(false);
+    let response;
+    if (isEditing) {
+      response = await axios.put(
+        `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
+        payload,
+        config
+      );
+    } else {
+      response = await axios.post(
+        `http://localhost:3000/api/laporan/createLaporan`,
+        payload,
+        config
+      );
     }
-  };
+
+    await MySwal.fire({
+      icon: "success",
+      title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
+      text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
+      timer: 2000,
+      showConfirmButton: false,
+      background: "#f8fafc"
+    });
+
+    resetForm();
+    fetchLaporan();
+  } catch (error) {
+    console.error("Error menyimpan laporan:", error);
+    MySwal.fire({
+      icon: "error",
+      title: "Gagal",
+      text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
+      timer: 3000,
+      showConfirmButton: false,
+      background: "#f8fafc"
+    });
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const resetForm = () => {
     setFormData({
@@ -253,43 +268,47 @@ const LaporanPage = () => {
   };
 
   const handleDelete = async (id) => {
-    const result = await MySwal.fire({
-      title: "Hapus laporan?",
-      text: "Anda tidak dapat mengembalikan data yang sudah dihapus!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#ef4444",
-      cancelButtonColor: "#64748b",
-      confirmButtonText: "Ya, hapus!",
-      cancelButtonText: "Batal",
-      background: "#f8fafc"
-    });
+  const result = await MySwal.fire({
+    title: "Hapus laporan?",
+    text: "Anda tidak dapat mengembalikan data yang sudah dihapus!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#ef4444",
+    cancelButtonColor: "#64748b",
+    confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
+    background: "#f8fafc"
+  });
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:3000/api/laporan/deleteLaporan/${id}`);
-        setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
-        MySwal.fire({
-          icon: "success",
-          title: "Terhapus!",
-          text: "Laporan berhasil dihapus",
-          timer: 2000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-      } catch (error) {
-        console.error("Error deleting:", error);
-        MySwal.fire({
-          icon: "error",
-          title: "Gagal",
-          text: error.response?.data?.message || "Gagal menghapus laporan",
-          timer: 3000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-      }
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`http://localhost:3000/api/laporan/deleteLaporan/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
+      MySwal.fire({
+        icon: "success",
+        title: "Terhapus!",
+        text: "Laporan berhasil dihapus",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    } catch (error) {
+      console.error("Error deleting:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Gagal menghapus laporan",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
     }
-  };
+  }
+};
 
   const handleDetail = (laporan) => {
     MySwal.fire({
@@ -310,28 +329,34 @@ const LaporanPage = () => {
   };
 
   const handleStatusChange = async (e, laporanId) => {
-    const newStatus = e.target.value;
-    try {
-      await axios.patch(`${BASEURL}${API}laporan/updateStatus/${laporanId}`, {
-        status: newStatus
-      });
-      setLaporanList(prev => 
-        prev.map(lap => 
-          lap.id === laporanId ? { ...lap, status: newStatus } : lap
-        )
-      );
-    } catch (error) {
-      console.error("Error updating status:", error);
-      MySwal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: error.response?.data?.message || "Gagal mengupdate status",
-        timer: 3000,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
-    }
-  };
+  const newStatus = e.target.value;
+  try {
+    await axios.patch(
+      `http://localhost:3000/api/laporan/updateStatus/${laporanId}`,
+      { status: newStatus },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }
+    );
+    setLaporanList(prev => 
+      prev.map(lap => 
+        lap.id === laporanId ? { ...lap, status: newStatus } : lap
+      )
+    );
+  } catch (error) {
+    console.error("Error updating status:", error);
+    MySwal.fire({
+      icon: "error",
+      title: "Gagal",
+      text: error.response?.data?.message || "Gagal mengupdate status",
+      timer: 3000,
+      showConfirmButton: false,
+      background: "#f8fafc"
+    });
+  }
+};
 
   const getStatusColor = (status) => {
     switch (status) {
