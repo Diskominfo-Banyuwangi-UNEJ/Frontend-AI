@@ -25,6 +25,13 @@ const MySwal = withReactContent(Swal);
 
 const PengaduanPage = () => {
   const [pengaduanList, setPengaduanList] = useState([]);
+  const [filter, setFilter] = useState({ 
+      created_at: "", 
+      status: "", 
+      kategori: "" 
+    });
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  
   const [isLoading, setIsLoading] = useState(true);
   
   const [formData, setFormData] = useState({
@@ -341,12 +348,79 @@ const PengaduanPage = () => {
             Buat Pengaduan
           </motion.button>
         </div>
+        {/* Filter Section */}
+                <motion.div 
+                  className="mb-6 rounded-lg bg-white p-4 shadow-sm"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <button
+                    onClick={() => setIsFilterOpen(!isFilterOpen)}
+                    className="flex items-center gap-2 text-slate-700"
+                  >
+                    <Filter size={18} />
+                    <span>Filter Pengaduan</span>
+                    {isFilterOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  </button>
+                  
+                  <AnimatePresence>
+                    {isFilterOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mt-4 grid gap-4 md:grid-cols-3"
+                      >
+                        <div>
+                          <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
+                          <input
+                            type="date"
+                            name="created_at"
+                            value={filter.created_at}
+                            onChange={handleFilterChange}
+                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
+                          <select
+                            name="status"
+                            value={filter.status}
+                            onChange={handleFilterChange}
+                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          >
+                            <option value="">Semua Status</option>
+                            <option value="diterima">Diterima</option>
+                            <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                            <option value="selesai">Selesai</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="mb-1 block text-sm font-medium text-slate-700">Jenis</label>
+                          <select
+                            name="kategori"
+                            value={filter.kategori}
+                            onChange={handleFilterChange}
+                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          >
+                            <option value="">Semua Jenis</option>
+                            <option value="keramaian">Keramaian</option>
+                            <option value="tumpukan sampah">Tumpukan Sampah</option>
+                          </select>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
 
         {/* Pengaduan Form Modal */}
         <AnimatePresence>
           {showForm && (
             <motion.div
-              className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -361,16 +435,17 @@ const PengaduanPage = () => {
               />
 
               <motion.div
-                className="relative w-full max-w-2xl mx-auto my-8 rounded-xl bg-white shadow-xl"
+                className="relative mx-auto my-8 w-full max-w-md rounded-xl bg-white shadow-xl"
                 variants={formVariants}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
                 transition={{ type: "spring", damping: 25 }}
               >
-                <div className="p-6">
-                  <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-800">
+                {/* Modal Header */}
+                <div className="sticky top-0 z-10 border-b bg-white p-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-800">
                       Formulir Pengaduan
                     </h2>
                     <button
@@ -380,8 +455,11 @@ const PengaduanPage = () => {
                       <X size={20} />
                     </button>
                   </div>
+                </div>
 
-                  <div className="space-y-4">
+                {/* Scrollable Form Content */}
+                <div className="max-h-[70vh] overflow-y-auto p-4">
+                  <div className="space-y-3">
                     {/* Nama Pelapor */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
@@ -389,7 +467,7 @@ const PengaduanPage = () => {
                       </label>
                       <div className="relative">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                          <User className="h-5 w-5 text-gray-400" />
+                          <User className="h-4 w-4 text-gray-400" />
                         </div>
                         <input
                           type="text"
@@ -397,7 +475,7 @@ const PengaduanPage = () => {
                           value={formData.nama_pelapor}
                           onChange={handleFormChange}
                           placeholder="Nama lengkap Anda"
-                          className="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                          className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
                           required
                         />
                       </div>
@@ -411,7 +489,7 @@ const PengaduanPage = () => {
                       <div className="flex gap-2">
                         <div className="relative flex-grow">
                           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <MapPin className="h-5 w-5 text-gray-400" />
+                            <MapPin className="h-4 w-4 text-gray-400" />
                           </div>
                           <input
                             type="text"
@@ -419,7 +497,7 @@ const PengaduanPage = () => {
                             value={formData.lokasi}
                             onChange={handleFormChange}
                             placeholder="Alamat atau titik koordinat"
-                            className="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
                             required
                             disabled={useGPS}
                           />
@@ -434,13 +512,13 @@ const PengaduanPage = () => {
                               setFormData(prev => ({ ...prev, lokasi: "" }));
                             }
                           }}
-                          className="flex items-center justify-center rounded-lg bg-gray-100 px-4 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                          className="flex items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-medium text-gray-700 hover:bg-gray-200"
                         >
                           {gpsLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <>
-                              <MapPin className="mr-1 h-4 w-4" />
+                              <MapPin className="mr-1 h-3 w-3" />
                               {useGPS ? "Manual" : "GPS"}
                             </>
                           )}
@@ -462,7 +540,7 @@ const PengaduanPage = () => {
                         name="jenis"
                         value={formData.jenis}
                         onChange={handleFormChange}
-                        className="block w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                         required
                       >
                         <option value="">Pilih Jenis Pengaduan</option>
@@ -480,9 +558,9 @@ const PengaduanPage = () => {
                         name="deskripsi"
                         value={formData.deskripsi}
                         onChange={handleFormChange}
-                        rows={4}
+                        rows={3}
                         placeholder="Jelaskan kejadian secara singkat dan jelas"
-                        className="block w-full rounded-lg border border-gray-300 p-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                        className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                         required
                       ></textarea>
                     </div>
@@ -494,14 +572,14 @@ const PengaduanPage = () => {
                       </label>
                       <div className="relative">
                         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                          <Calendar className="h-5 w-5 text-gray-400" />
+                          <Calendar className="h-4 w-4 text-gray-400" />
                         </div>
                         <input
                           type="date"
                           name="tanggal"
                           value={formData.tanggal}
                           onChange={handleFormChange}
-                          className="block w-full rounded-lg border border-gray-300 p-2.5 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                          className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
                         />
                       </div>
                     </div>
@@ -511,9 +589,9 @@ const PengaduanPage = () => {
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Upload Bukti Foto
                       </label>
-                      <div className="flex items-center gap-4">
-                        <label className="flex cursor-pointer items-center rounded-lg border border-gray-300 p-2 text-sm font-medium text-gray-700 hover:bg-gray-100">
-                          <Camera className="mr-2 h-5 w-5" />
+                      <div className="flex items-center gap-2">
+                        <label className="flex cursor-pointer items-center rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100">
+                          <Camera className="mr-1.5 h-3.5 w-3.5" />
                           Pilih File
                           <input
                             type="file"
@@ -524,7 +602,7 @@ const PengaduanPage = () => {
                           />
                         </label>
                         {formData.foto && (
-                          <span className="text-sm text-gray-600">
+                          <span className="text-xs text-gray-600">
                             {formData.foto.name}
                           </span>
                         )}
@@ -533,28 +611,28 @@ const PengaduanPage = () => {
                         Unggah foto bukti kejadian (maks. 5MB)
                       </p>
                     </div>
-
-                    {/* Submit Button */}
-                    <div className="pt-4">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        type="button"
-                        onClick={handleSubmit}
-                        disabled={isSubmitting}
-                        className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-70"
-                      >
-                        {isSubmitting ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Mengirim...
-                          </>
-                        ) : (
-                          "Kirim Pengaduan"
-                        )}
-                      </motion.button>
-                    </div>
                   </div>
+                </div>
+
+                {/* Sticky Footer with Submit Button */}
+                <div className="sticky bottom-0 border-t bg-white p-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={handleSubmit}
+                    disabled={isSubmitting}
+                    className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-70"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                        Mengirim...
+                      </>
+                    ) : (
+                      "Kirim Pengaduan"
+                    )}
+                  </motion.button>
                 </div>
               </motion.div>
             </motion.div>

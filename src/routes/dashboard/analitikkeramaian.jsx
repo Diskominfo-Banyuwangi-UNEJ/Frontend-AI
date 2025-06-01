@@ -86,12 +86,12 @@ const AnalitikKeramaianPage = () => {
     const handleDownload = () => {
         const worksheetData = topProducts.map((item) => ({
             No: item.number,
-            Timestamp: item.name,
+            Timestamp: item.time,
             Nama_lokasi: item.nama_lokasi,
             Alamat: item.alamat,
             Latitude: "-", // Asumsikan ini latitude (bisa disesuaikan)
             Longitude: "-", // Tambahkan jika ada data longitude
-            Presentase_Sampah: "-", // Tambahkan jika ada data
+            Presentase: "-", // Tambahkan jika ada data
             Status_Sampah: item.status,
             Live_CCTV: "URL / Embed", // Tambahkan info jika tersedia
         }));
@@ -139,9 +139,9 @@ const AnalitikKeramaianPage = () => {
   alamat: "",
   latitude: "",
   longitude: "",
-  presentaseSampah: "",
-  statusSampah: "",
-  liveCctv: "",
+  presentase: "",
+  status: "",
+  live: "",
 });
 
 const [data, setData] = useState([]);
@@ -161,7 +161,7 @@ const fetchData = async (page = 1) => {
       
       console.log("API Response:", response.data); // Debug response
       
-      setData(response.data.data || []);
+      setDataList(response.data.data || []);
       setTotalPages(response.data.total_pages || 1);
       setCurrentPage(page);
     } catch (error) {
@@ -192,13 +192,11 @@ const handleFormChange = (e) => {
   setFormData((prev) => ({ ...prev, [name]: value }));
 };
 
-const handleSimpan = () => {
-  const newNumber = dataList.length + 1; 
+const handleSimpan = async () => {
+  const { nama_lokasi, alamat, latitude, longitude, presentase, live, status } = formData;
 
-  const {  name, nama_lokasi, alamat, latitude, longitude, percentage, live } = formData;
-
-  // Cek apakah semua field terisi
-  if ( !name || !nama_lokasi || !alamat || !latitude  || !longitude || !percentage || !live) {
+  // Validasi field wajib
+  if (!nama_lokasi || !alamat || !latitude || !longitude || !presentase || !live || !status) {
     Swal.fire({
       icon: 'warning',
       title: 'Form Belum Lengkap',
@@ -207,38 +205,50 @@ const handleSimpan = () => {
     return;
   }
 
-  // Validasi tipe data angka
-  if (
-    isNaN(Number(latitude)) ||
-    isNaN(Number(longitude)) 
-  ) {
+
+  try {
+    // Kirim data ke backend
+    const response = await axios.post('http://localhost:3000/api/tumpukan_sampah', {
+      nama_lokasi,
+      alamat,
+      latitude,
+      longitude,
+      presentase,
+      status,
+      live: live
+    });
+
+    // Jika sukses
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil',
+      text: 'Data CCTV berhasil ditambahkan!',
+    });
+
+    // Reset form
+    setFormData({
+      nama_lokasi: '',
+      alamat: '',
+      latitude: '',
+      longitude: '',
+      presentase: '',
+      status: '',
+      live: '',
+    });
+
+    setShowForm(false);
+    
+    // Refresh data tabel
+    fetchData(currentPage);
+
+  } catch (error) {
+    console.error('Error saving data:', error);
     Swal.fire({
       icon: 'error',
-      title: 'Data tidak valid',
-      text: 'Pastikan field angka berisi angka yang benar (No, Harga, Rating, Longitude, Presentase).',
+      title: 'Gagal menyimpan data',
+      text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data',
     });
-    return;
   }
-
-  // Jika valid, simpan data
-  setTopProducts([...topProducts, formData]);
-  setFormData({
-    name: '',
-    nama_lokasi: '',
-    alamat: '',
-    status: '',
-    latitude:'',
-    longitude: '',
-    percentage: '',
-    live: '',
-  });
-  setShowForm(false);
-
-  Swal.fire({
-    icon: 'success',
-    title: 'Berhasil',
-    text: 'Data CCTV berhasil ditambahkan!',
-  });
 };
 
 
@@ -797,8 +807,8 @@ const handleSimpan = () => {
                                 </label>
                                 <input
                                 type="number"
-                                name="presentaseSampah"
-                                value={formData.presentaseSampah}
+                                name="presentase"
+                                value={formData.presentase}
                                 onChange={handleFormChange}
                                 min="0"
                                 max="100"
@@ -812,8 +822,8 @@ const handleSimpan = () => {
                                 Status Sampah
                                 </label>
                                 <select
-                                name="statusSampah"
-                                value={formData.statusSampah}
+                                name="status"
+                                value={formData.status}
                                 onChange={handleFormChange}
                                 className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                                 >
@@ -831,8 +841,8 @@ const handleSimpan = () => {
                                 </label>
                                 <input
                                 type="url"
-                                name="liveCctv"
-                                value={formData.liveCctv}
+                                name="live"
+                                value={formData.live}
                                 onChange={handleFormChange}
                                 placeholder="https://example.com/live-cctv"
                                 className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
@@ -890,7 +900,7 @@ const handleSimpan = () => {
                                     <td className="px-4 py-2">{item.alamat || '-'}</td>
                                     <td className="px-4 py-2">{item.latitude || '-'}</td>
                                     <td className="px-4 py-2">{item.longitude || '-'}</td>
-                                    <td className="px-4 py-2">{item.presentaseSampah ? `${item.presentaseSampah}%` : '-'}</td>
+                                    <td className="px-4 py-2">{item.presentase ? `${item.presentase}%` : '-'}</td>
                                     <td className="px-4 py-2">{item.status || '-'}</td>
                                     <td className="px-4 py-2">
                                     {item.live ? (
