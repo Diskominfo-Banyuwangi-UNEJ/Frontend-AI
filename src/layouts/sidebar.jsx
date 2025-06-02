@@ -26,7 +26,7 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
                     alt="Logo BWI"
                     className="h-8 w-auto"
                 />
-                {!collapsed && <p className="text-lg font-medium text-slate-900 transition-colors dark:text-slate-50">Diskominfo</p>}
+                {!collapsed && <p className="text-lg font-bold text-slate-900 transition-colors dark:text-slate-50">DISKOMINFO BANYUWANGI</p>}
             </div>
             <div className="flex w-full flex-col gap-y-4 overflow-y-auto overflow-x-hidden p-3 [scrollbar-width:_thin]">
                 {navbarLinks.map((navbarLink) => (

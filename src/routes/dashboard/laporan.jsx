@@ -331,7 +331,7 @@ console.log("Token di komponen ini:", token);
   const handleStatusChange = async (e, laporanId) => {
   const newStatus = e.target.value;
   try {
-    await axios.patch(
+    await axios.put(
       `http://localhost:3000/api/laporan/updateStatus/${laporanId}`,
       { status: newStatus },
       {
@@ -468,8 +468,8 @@ console.log("Token di komponen ini:", token);
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="">Semua Jenis</option>
-                    <option value="keramaian">Keramaian</option>
-                    <option value="tumpukan sampah">Tumpukan Sampah</option>
+                    <option value="KERAMAIAN">Keramaian</option>
+                    <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
                   </select>
                 </div>
               </motion.div>
@@ -720,8 +720,8 @@ console.log("Token di komponen ini:", token);
                       className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                       <option value="">Pilih Kategori Laporan</option>
-                      <option value="keramaian">Keramaian</option>
-                      <option value="tumpukan sampah">Tumpukan Sampah</option>
+                      <option value="KERAMAIAN">Keramaian</option>
+                      <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
                     </select>
                   </div>
 

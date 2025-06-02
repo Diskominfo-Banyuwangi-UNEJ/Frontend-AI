@@ -192,64 +192,64 @@ const handleFormChange = (e) => {
   setFormData((prev) => ({ ...prev, [name]: value }));
 };
 
-const handleSimpan = async () => {
-  const { nama_lokasi, alamat, latitude, longitude, presentase, live, status } = formData;
+        const handleSimpan = async () => {
+        const { nama_lokasi, alamat, latitude, longitude, presentase, live, status } = formData;
 
-  // Validasi field wajib
-  if (!nama_lokasi || !alamat || !latitude || !longitude || !presentase || !live || !status) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Form Belum Lengkap',
-      text: 'Semua field wajib diisi!',
-    });
-    return;
-  }
+        // Validasi field wajib
+        if (!nama_lokasi || !alamat || !latitude || !longitude || !presentase || !live || !status) {
+            Swal.fire({
+            icon: 'warning',
+            title: 'Form Belum Lengkap',
+            text: 'Semua field wajib diisi!',
+            });
+            return;
+        }
 
 
-  try {
-    // Kirim data ke backend
-    const response = await axios.post('http://localhost:3000/api/tumpukan_sampah', {
-      nama_lokasi,
-      alamat,
-      latitude,
-      longitude,
-      presentase,
-      status,
-      live: live
-    });
+        try {
+            // Kirim data ke backend
+            const response = await axios.post('http://localhost:3000/api/tumpukan_sampah', {
+            nama_lokasi,
+            alamat,
+            latitude,
+            longitude,
+            presentase,
+            status,
+            live: live
+            });
 
-    // Jika sukses
-    Swal.fire({
-      icon: 'success',
-      title: 'Berhasil',
-      text: 'Data CCTV berhasil ditambahkan!',
-    });
+            // Jika sukses
+            Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Data CCTV berhasil ditambahkan!',
+            });
 
-    // Reset form
-    setFormData({
-      nama_lokasi: '',
-      alamat: '',
-      latitude: '',
-      longitude: '',
-      presentase: '',
-      status: '',
-      live: '',
-    });
+            // Reset form
+            setFormData({
+            nama_lokasi: '',
+            alamat: '',
+            latitude: '',
+            longitude: '',
+            presentase: '',
+            status: '',
+            live: '',
+            });
 
-    setShowForm(false);
-    
-    // Refresh data tabel
-    fetchData(currentPage);
+            setShowForm(false);
+            
+            // Refresh data tabel
+            fetchData(currentPage);
 
-  } catch (error) {
-    console.error('Error saving data:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal menyimpan data',
-      text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data',
-    });
-  }
-};
+        } catch (error) {
+            console.error('Error saving data:', error);
+            Swal.fire({
+            icon: 'error',
+            title: 'Gagal menyimpan data',
+            text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data',
+            });
+        }
+        };
 
 
 
