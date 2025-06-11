@@ -1,6 +1,5 @@
 import { Area, LineChart, Bar, BarChart, Line, CartesianGrid, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { useTheme } from "@/hooks/use-theme";
-import { overviewData, recentSalesData, topProducts } from "@/constants";
 import { motion } from "framer-motion";
 import { Footer } from "@/layouts/footer";
 import * as XLSX from "xlsx";
@@ -32,7 +31,9 @@ import L from "leaflet";
 import { useState,useEffect } from "react";
 import Swal from 'sweetalert2';
 import axios from "axios";
-
+import { overviewData } from "../../constants";
+import { UserRoles } from "../../constants/userRoles";
+import { useAuth } from "@/contexts/auth-context";
 
 const pieData = [
     { name: "Low", value: 200 },

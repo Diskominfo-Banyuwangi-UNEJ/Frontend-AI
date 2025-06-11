@@ -1,69 +1,70 @@
 import { Bell,FileText, ChartColumn, Home, NotepadText, Package, PackagePlus, Settings, ShoppingBag, UserCheck, UserPlus, Users } from "lucide-react";
-
 import ProfileImage from "@/assets/profile-image.jpg";
 import ProductImage from "@/assets/product-image.jpg";
 import "leaflet/dist/leaflet.css";
+import { UserRoles } from "./userRoles";
 
-export const navbarLinks = [
+// Jika kamu ingin centralized role
+
+export const navbarLinks = {
+  [UserRoles.ADMIN]: [
     {
-        title: "Dashboard",
-        links: [
-            {
-                label: "Dashboard",
-                icon: Home,
-                path: "/dashboard",
-            },
-            {
-                label: "Analytics Keramaian",
-                icon: ChartColumn,
-                path: "/dashboard/analytics",
-            },
-
-            {
-                label: "Analytics Sampah",
-                icon: ChartColumn,
-                path: "/dashboard/reports",
-            },
-        ],
+      title: "Dashboard",
+      links: [
+        { label: "Dashboard", icon: Home, path: "/admin/dashboard" },
+        { label: "Analytics Keramaian", icon: ChartColumn, path: "/admin/analytics" },
+        { label: "Analytics Sampah", icon: ChartColumn, path: "/admin/reports" },
+      ],
     },
     {
-        title: "Manajemen Akun",
-        links: [
-            {
-                label: "Akun",
-                icon: Users,
-                path: "/dashboard/akun",
-            },
-        ],
+      title: "Manajemen Akun",
+      links: [{ label: "Akun", icon: Users, path: "/admin/akun" }],
     },
     {
-    title: "Laporan dan Pengaduan",
-    links: [
-        {
-            label: "Pelaporan",
-            icon: FileText, // kamu bisa import dari lucide-react
-            path: "/dashboard/laporan",
-        },
-        {
-            label: "Pengaduan",
-            icon: NotepadText, // juga dari lucide-react
-            path: "/dashboard/pengaduan",
-        },  
-        ],
+      title: "Laporan dan Pengaduan",
+      links: [
+        { label: "Pelaporan", icon: FileText, path: "/admin/laporan" },
+        { label: "Pengaduan", icon: NotepadText, path: "/admin/pengaduan" },
+      ],
     },
     {
-        title: "Notifikasi",
-        links: [
-            {
-                label: "Notifikasi",
-                icon: Bell,
-                path: "/dashboard/notifikasi",
-            },
-        ],
-    }
+      title: "Notifikasi",
+      links: [{ label: "Notifikasi", icon: Bell, path: "/admin/notifikasi" }],
+    },
+  ],
 
-    
-];
+  [UserRoles.PEMERINTAH]: [
+    {
+      title: "Dashboard",
+      links: [
+        { label: "Dashboard", icon: Home, path: "/pemerintah/dashboard" },
+        { label: "Analytics Keramaian", icon: ChartColumn, path: "/pemerintah/analytics" },
+        { label: "Analytics Sampah", icon: ChartColumn, path: "/pemerintah/reports" },
+      ],
+    },
+    {
+      title: "Laporan",
+      links: [{ label: "Pelaporan", icon: FileText, path: "/pemerintah/laporan" }],
+    },
+    {
+      title: "Notifikasi",
+      links: [{ label: "Notifikasi", icon: Bell, path: "/pemerintah/notifikasi" }],
+    },
+  ],
+
+  [UserRoles.MASYARAKAT]: [
+    {
+      title: "Dashboard",
+      links: [
+        { label: "Dashboard", icon: Home, path: "/masyarakat/dashboard" },
+        { label: "Analytics Keramaian", icon: ChartColumn, path: "/masyarakat/analytics" },
+        { label: "Analytics Sampah", icon: ChartColumn, path: "/masyarakat/reports" },
+      ],
+    },
+  ],
+};
+export { UserRoles };
+
 
 export const overviewData = [
     {
@@ -116,147 +117,5 @@ export const overviewData = [
     },
 ];
 
-export const recentSalesData = [
-    {
-        id: 1,
-        name: "Olivia Martin",
-        email: "olivia.martin@email.com",
-        image: ProfileImage,
-        total: 1500,
-    },
-    {
-        id: 2,
-        name: "James Smith",
-        email: "james.smith@email.com",
-        image: ProfileImage,
-        total: 2000,
-    },
-    {
-        id: 3,
-        name: "Sophia Brown",
-        email: "sophia.brown@email.com",
-        image: ProfileImage,
-        total: 4000,
-    },
-    {
-        id: 4,
-        name: "Noah Wilson",
-        email: "noah.wilson@email.com",
-        image: ProfileImage,
-        total: 3000,
-    },
-    {
-        id: 5,
-        name: "Emma Jones",
-        email: "emma.jones@email.com",
-        image: ProfileImage,
-        total: 2500,
-    },
-    {
-        id: 6,
-        name: "William Taylor",
-        email: "william.taylor@email.com",
-        image: ProfileImage,
-        total: 4500,
-    },
-    {
-        id: 7,
-        name: "Isabella Johnson",
-        email: "isabella.johnson@email.com",
-        image: ProfileImage,
-        total: 5300,
-    },
-];
 
-export const topProducts = [
-    {
-        number: 1,
-        name: "Wireless Headphones",
-        image: ProductImage,
-        description: "High-quality noise-canceling wireless headphones.",
-        price: 99.99,
-        status: "In Stock",
-        rating: 4.5,
-    },
-    {
-        number: 2,
-        name: "Smartphone",
-        image: ProductImage,
-        description: "Latest 5G smartphone with excellent camera features.",
-        price: 799.99,
-        status: "In Stock",
-        rating: 4.7,
-    },
-    {
-        number: 3,
-        name: "Gaming Laptop",
-        image: ProductImage,
-        description: "Powerful gaming laptop with high-end graphics.",
-        price: 1299.99,
-        status: "In Stock",
-        rating: 4.8,
-    },
-    {
-        number: 4,
-        name: "Smartwatch",
-        image: ProductImage,
-        description: "Stylish smartwatch with fitness tracking features.",
-        price: 199.99,
-        status: "Out of Stock",
-        rating: 4.4,
-    },
-    {
-        number: 5,
-        name: "Bluetooth Speaker",
-        image: ProductImage,
-        description: "Portable Bluetooth speaker with deep bass sound.",
-        price: 59.99,
-        status: "In Stock",
-        rating: 4.3,
-    },
-    {
-        number: 6,
-        name: "4K Monitor",
-        image: ProductImage,
-        description: "Ultra HD 4K monitor with stunning color accuracy.",
-        price: 399.99,
-        status: "In Stock",
-        rating: 4.6,
-    },
-    {
-        number: 7,
-        name: "Mechanical Keyboard",
-        image: ProductImage,
-        description: "Mechanical keyboard with customizable RGB lighting.",
-        price: 89.99,
-        status: "In Stock",
-        rating: 4.7,
-    },
-    {
-        number: 8,
-        name: "Wireless Mouse",
-        image: ProductImage,
-        description: "Ergonomic wireless mouse with precision tracking.",
-        price: 49.99,
-        status: "In Stock",
-        rating: 4.5,
-    },
-    {
-        number: 9,
-        name: "Action Camera",
-        image: ProductImage,
-        description: "Waterproof action camera with 4K video recording.",
-        price: 249.99,
-        status: "In Stock",
-        rating: 4.8,
-    },
-    {
-        number: 10,
-        name: "External Hard Drive",
-        image: ProductImage,
-        description: "Portable 2TB external hard drive for data storage.",
-        price: 79.99,
-        status: "Out of Stock",
-        rating: 4.5,
-    },
-];
+

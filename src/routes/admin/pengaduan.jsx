@@ -36,10 +36,10 @@ const PengaduanPage = () => {
   
   const [formData, setFormData] = useState({
     nama_pelapor: "",
-    lokasi: "",
-    jenis: "",
-    deskripsi: "",
-    tanggal: new Date().toISOString().slice(0, 10),
+    lokasi_kejadian: "",
+    jenis_pengaduan: "",
+    deskripsi_pengaduan: "",
+    created_at: new Date().toISOString().slice(0, 10),
     foto: null
   });
   const [isEditing, setIsEditing] = useState(false);  
@@ -74,7 +74,7 @@ const PengaduanPage = () => {
   const fetchPengaduan = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://localhost:3000/api/pengaduan`);
+      const response = await axios.get(`http://localhost:3000/api/pengaduan/getAll`);
       setPengaduanList(response.data.data || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -149,9 +149,9 @@ const PengaduanPage = () => {
   };
 
   const handleSimpan = async () => {
-      const { nama_pelapor, lokasi, jenis, deskripsi, tanggal,foto,created_at } = formData;
+      const { nama_pelapor, lokasi_kejadian, jenis_pengaduan, deskripsi_pengaduan, foto,created_at } = formData;
   
-      if (!nama_pelapor || !lokasi || !jenis || !deskripsi || !tanggal  || !foto  ||!status || !created_at) {
+      if (!nama_pelapor || !lokasi_kejadian || !jenis_pengaduan || !deskripsi_pengaduan   || !foto  ||!status || !created_at) {
         MySwal.fire({
           icon: "error",
           title: "Data tidak lengkap",
@@ -169,7 +169,7 @@ const PengaduanPage = () => {
         setIsSubmitting(true);
         const payload = {
           judul_laporan: formData.judul_laporan,
-          deskripsi: formData.deskripsi,
+          deskripsi_pengaduan: formData.deskripsi_pengaduan,
           kategori: formData.kategori,
           status: formData.status,
           created_at: formData.created_at,
@@ -186,7 +186,7 @@ const PengaduanPage = () => {
           );
         } else {
           response = await axios.post(
-            `http://localhost:3000/api/laporan/createPengaduan`,
+            `http://localhost:3000/api/pengaduan/createPengaduan`,
             payload,
             { headers: { "Content-Type": "application/json" } }
           );
@@ -221,7 +221,7 @@ const PengaduanPage = () => {
     const resetForm = () => {
       setFormData({
         judul_laporan: "",
-        deskripsi: "",
+        deskripsi_pengaduan: "",
         kategori: "",
         status: "",
         created_at: "",
@@ -241,7 +241,7 @@ const PengaduanPage = () => {
         (position) => {
           setFormData(prev => ({
             ...prev,
-            lokasi: `${position.coords.latitude}, ${position.coords.longitude}`
+            lokasi_kejadian: `${position.coords.latitude}, ${position.coords.longitude}`
           }));
           setGpsLoading(false);
         },
@@ -268,9 +268,9 @@ const PengaduanPage = () => {
   };
 
   const handleSubmit = async () => {
-    const { nama_pelapor, lokasi, jenis, deskripsi } = formData;
+    const { nama_pelapor, lokasi_kejadian, jenis_pengaduan, deskripsi_pengaduan } = formData;
 
-    if (!nama_pelapor || !lokasi || !jenis || !deskripsi) {
+    if (!nama_pelapor || !lokasi_kejadian || !jenis_pengaduan || !deskripsi_pengaduan) {
       MySwal.fire({
         icon: "error",
         title: "Data tidak lengkap",
@@ -291,7 +291,7 @@ const PengaduanPage = () => {
       };
 
       const response = await axios.post(
-        `http://localhost:3000/api/pengaduan`,
+        `http://localhost:3000/api/pengaduan/createPengaduan`,
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -306,10 +306,10 @@ const PengaduanPage = () => {
 
       setFormData({
         nama_pelapor: "",
-        lokasi: "",
-        jenis: "",
-        deskripsi: "",
-        tanggal: new Date().toISOString().slice(0, 10),
+        lokasi_kejadian: "",
+        jenis_pengaduan: "",
+        deskripsi_pengaduan: "",
+        created_at: new Date().toISOString().slice(0, 10),
         foto: null
       });
       setShowForm(false);
@@ -330,7 +330,7 @@ const PengaduanPage = () => {
 
   return (
     <div className="min-h-screen  p-4 md:p-6">
-      <div className="mx-auto max-w-4xl">
+      <div className="mx-auto max-w-full">
         {/* Header */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
@@ -407,8 +407,8 @@ const PengaduanPage = () => {
                             className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                           >
                             <option value="">Semua Jenis</option>
-                            <option value="keramaian">Keramaian</option>
-                            <option value="tumpukan sampah">Tumpukan Sampah</option>
+                            <option value="KERAMAIAN">Keramaian</option>
+                            <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
                           </select>
                         </div>
                       </motion.div>
@@ -493,8 +493,8 @@ const PengaduanPage = () => {
                           </div>
                           <input
                             type="text"
-                            name="lokasi"
-                            value={formData.lokasi}
+                            name="lokasi_kejadian"
+                            value={formData.lokasi_kejadian}
                             onChange={handleFormChange}
                             placeholder="Alamat atau titik koordinat"
                             className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
@@ -509,7 +509,7 @@ const PengaduanPage = () => {
                             if (!useGPS) {
                               getCurrentLocation();
                             } else {
-                              setFormData(prev => ({ ...prev, lokasi: "" }));
+                              setFormData(prev => ({ ...prev, lokasi_kejadian: "" }));
                             }
                           }}
                           className="flex items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-medium text-gray-700 hover:bg-gray-200"
@@ -524,9 +524,9 @@ const PengaduanPage = () => {
                           )}
                         </button>
                       </div>
-                      {useGPS && formData.lokasi && (
+                      {useGPS && formData.lokasi_kejadian && (
                         <p className="mt-1 text-xs text-gray-500">
-                          Lokasi GPS: {formData.lokasi}
+                          Lokasi GPS: {formData.lokasi_kejadian}
                         </p>
                       )}
                     </div>
@@ -537,15 +537,15 @@ const PengaduanPage = () => {
                         Jenis Pengaduan <span className="text-red-500">*</span>
                       </label>
                       <select
-                        name="jenis"
-                        value={formData.jenis}
+                        name="jenis_pengaduan"
+                        value={formData.jenis_pengaduan}
                         onChange={handleFormChange}
                         className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                         required
                       >
                         <option value="">Pilih Jenis Pengaduan</option>
-                        <option value="keramaian">Keramaian</option>
-                        <option value="sampah">Tumpukan Sampah</option>
+                        <option value="KERAMAIAN">Keramaian</option>
+                        <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
                       </select>
                     </div>
 
@@ -555,8 +555,8 @@ const PengaduanPage = () => {
                         Deskripsi Pengaduan <span className="text-red-500">*</span>
                       </label>
                       <textarea
-                        name="deskripsi"
-                        value={formData.deskripsi}
+                        name="deskripsi_pengaduan"
+                        value={formData.deskripsi_pengaduan}
                         onChange={handleFormChange}
                         rows={3}
                         placeholder="Jelaskan kejadian secara singkat dan jelas"
@@ -576,8 +576,8 @@ const PengaduanPage = () => {
                         </div>
                         <input
                           type="date"
-                          name="tanggal"
-                          value={formData.tanggal}
+                          name="created_at"
+                          value={formData.created_at}
                           onChange={handleFormChange}
                           className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
                         />
@@ -670,6 +670,9 @@ const PengaduanPage = () => {
                       Jenis
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Deskripsi
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
                       Lokasi
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
@@ -691,18 +694,21 @@ const PengaduanPage = () => {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                          pengaduan.jenis === 'keramaian' 
+                          pengaduan.jenis_pengaduan === 'keramaian' 
                             ? 'bg-purple-100 text-purple-800' 
                             : 'bg-green-100 text-green-800'
                         }`}>
-                          {pengaduan.jenis}
+                          {pengaduan.jenis_pengaduan}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {pengaduan.lokasi}
+                        {pengaduan.deskripsi_pengaduan || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        {pengaduan.lokasi_kejadian}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                        {new Date(pengaduan.tanggal).toLocaleDateString('id-ID')}
+                        {new Date(pengaduan.created_at).toLocaleDateString('id-ID')}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <button
@@ -711,10 +717,10 @@ const PengaduanPage = () => {
                               title: `Pengaduan dari ${pengaduan.nama_pelapor}`,
                               html: `
                                 <div class="text-left space-y-2">
-                                  <p><strong>Jenis:</strong> ${pengaduan.jenis}</p>
-                                  <p><strong>Lokasi:</strong> ${pengaduan.lokasi}</p>
-                                  <p><strong>Tanggal:</strong> ${new Date(pengaduan.tanggal).toLocaleDateString('id-ID')}</p>
-                                  <p><strong>Deskripsi:</strong> ${pengaduan.deskripsi}</p>
+                                  <p><strong>Jenis:</strong> ${pengaduan.jenis_pengaduan}</p>
+                                  <p><strong>Lokasi:</strong> ${pengaduan.lokasi_kejadian}</p>
+                                  <p><strong>Tanggal:</strong> ${new Date(pengaduan.created_at).toLocaleDateString('id-ID')}</p>
+                                  <p><strong>Deskripsi:</strong> ${pengaduan.deskripsi_pengaduan}</p>
                                   ${pengaduan.foto ? `<img src="${pengaduan.foto.data}" alt="Bukti Foto" class="mt-2 rounded-lg border border-gray-200" />` : ''}
                                 </div>
                               `,
