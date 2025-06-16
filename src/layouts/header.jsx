@@ -1,5 +1,5 @@
 import { useTheme } from "@/hooks/use-theme";
-import { Bell, ChevronsLeft, Moon, Search, Sun } from "lucide-react";
+import { Bell, ChevronsLeft, Moon, Search, Sun,Menu } from "lucide-react";
 import profileImg from "@/assets/saya.jpg";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
@@ -234,7 +234,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     className="btn-ghost size-10"
                     onClick={() => setCollapsed(!collapsed)}
                 >
-                    <ChevronsLeft className={collapsed && "rotate-180"} />
+                    <Menu className={collapsed && "rotate-180"} />
                 </button>
             </div>
 

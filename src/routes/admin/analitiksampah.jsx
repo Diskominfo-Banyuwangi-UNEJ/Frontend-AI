@@ -711,175 +711,190 @@ const handleSimpan = async () => {
 
               {/* Add Data Form Modal */}
               {showForm && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                                            className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800 max-h-[80vh] overflow-y-auto"
+  <>
+    {/* Overlay */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+      onClick={() => {
+        setShowForm(false);
+        setIsEditing(false);
+        setEditData(null);
+      }}
+    />
+    
+    {/* Modal Container */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, y: -20, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.98 }}
+        className="w-full max-w-md rounded-xl bg-white shadow-2xl dark:bg-slate-800 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Content */}
+        <div className="p-6">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-xl font-semibold text-slate-800 dark:text-white">
+              {isEditing ? 'Edit Data CCTV' : 'Tambah Data CCTV'}
+            </h3>
+            <button
+              onClick={() => {
+                setShowForm(false);
+                setIsEditing(false);
+                setEditData(null);
+              }}
+              className="rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            handleSimpan();
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Lokasi CCTV
+                </label>
+                <input
+                  type="text"
+                  name="nama_lokasi"
+                  value={formData.nama_lokasi}
+                  onChange={handleFormChange}
+                  placeholder="Contoh: CCTV Jalan Sudirman"
+                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Alamat
+                </label>
+                <input
+                  type="text"
+                  name="alamat"
+                  value={formData.alamat}
+                  onChange={handleFormChange}
+                  placeholder="Contoh: Jl. Rawasari Selatan"
+                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Latitude
+                  </label>
+                  <input
+                    type="text"
+                    name="latitude"
+                    value={formData.latitude}
+                    onChange={handleFormChange}
+                    placeholder="Contoh: -6.2088"
+                    className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Longitude
+                  </label>
+                  <input
+                    type="text"
+                    name="longitude"
+                    value={formData.longitude}
+                    onChange={handleFormChange}
+                    placeholder="Contoh: 106.8456"
+                    className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Presentase Sampah (%)
+                </label>
+                <input
+                  type="number"
+                  name="presentase"
+                  value={formData.presentase}
+                  onChange={handleFormChange}
+                  min="0"
+                  max="100"
+                  placeholder="0-100"
+                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Status Sampah
+                </label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleFormChange}
+                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                 >
-                    <motion.div
-                        initial={{ y: -20, scale: 0.98 }}
-                        animate={{ y: 0, scale: 1 }}
-                        exit={{ y: 20, scale: 0.98 }}
-                        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800"
-                    >
-                        <div className="mb-6 flex items-center justify-between">
-                            <h3 className="text-xl font-semibold text-slate-800 dark:text-white">
-                                {isEditing ? 'Edit Data CCTV' : 'Tambah Data CCTV'}
-                            </h3>
-                            <button
-                                onClick={() => {
-                                    setShowForm(false);
-                                    setIsEditing(false);
-                                    setEditData(null);
-                                }}
-                                className="rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
+                  <option value="">Pilih Status Sampah</option>
+                  <option value="sedikit">Sedikit (0-25%)</option>
+                  <option value="sedang">Sedang (26-50%)</option>
+                  <option value="banyak">Banyak (51-75%)</option>
+                  <option value="penuh">Penuh (76-100%)</option>
+                </select>
+              </div>
 
-                        <form onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSimpan();
-                        }}>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Lokasi CCTV
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="nama_lokasi"
-                                        value={formData.nama_lokasi}
-                                        onChange={handleFormChange}
-                                        placeholder="Contoh: CCTV Jalan Sudirman"
-                                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                    />
-                                </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Live CCTV URL
+                </label>
+                <input
+                  type="url"
+                  name="live"
+                  value={formData.live}
+                  onChange={handleFormChange}
+                  placeholder="https://example.com/live-cctv"
+                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
+                />
+              </div>
 
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Alamat
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="alamat"
-                                        value={formData.alamat}
-                                        onChange={handleFormChange}
-                                        placeholder="Contoh: Jl. Rawasari Selatan"
-                                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Latitude
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="latitude"
-                                            value={formData.latitude}
-                                            onChange={handleFormChange}
-                                            placeholder="Contoh: -6.2088"
-                                            className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                            Longitude
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="longitude"
-                                            value={formData.longitude}
-                                            onChange={handleFormChange}
-                                            placeholder="Contoh: 106.8456"
-                                            className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Presentase Sampah (%)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        name="presentase"
-                                        value={formData.presentase}
-                                        onChange={handleFormChange}
-                                        min="0"
-                                        max="100"
-                                        placeholder="0-100"
-                                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Status Sampah
-                                    </label>
-                                    <select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleFormChange}
-                                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                    >
-                                        <option value="">Pilih Status Sampah</option>
-                                        <option value="sedikit">Sedikit (0-25%)</option>
-                                        <option value="sedang">Sedang (26-50%)</option>
-                                        <option value="banyak">Banyak (51-75%)</option>
-                                        <option value="penuh">Penuh (76-100%)</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        Live CCTV URL
-                                    </label>
-                                    <input
-                                        type="url"
-                                        name="live"
-                                        value={formData.live}
-                                        onChange={handleFormChange}
-                                        placeholder="https://example.com/live-cctv"
-                                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 pt-4">
-                                    <motion.button
-                                        type="button"
-                                        onClick={() => {
-                                            setShowForm(false);
-                                            setIsEditing(false);
-                                            setEditData(null);
-                                        }}
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                                    >
-                                        Batal
-                                    </motion.button>
-                                    <motion.button
-                                        type="submit"
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
-                                    >
-                                        {isLoading ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : isEditing ? 'Update' : 'Simpan'}
-                                    </motion.button>
-                                </div>
-                            </div>
-                        </form>
-                    </motion.div>
-                </motion.div>
-            )}
+              <div className="flex justify-end gap-3 pt-4">
+                <motion.button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setIsEditing(false);
+                    setEditData(null);
+                  }}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+                >
+                  Batal
+                </motion.button>
+                <motion.button
+                  type="submit"
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+                >
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isEditing ? 'Update' : 'Simpan'}
+                </motion.button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </motion.div>
+    </div>
+  </>
+)}
 
 
               {/* CCTV Data Table */}

@@ -457,68 +457,7 @@ const handleSimpan = async () => {
       </motion.div>
     </div>   
 
-            {/* Section 1: Grafik Volume Sampah */}
-            <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
-
-            <div className="card">
-                <h2 className="mb-4 font-semibold">Trend Volume Sampah</h2>
-                <div className="h-80 w-full">
-                    <ResponsiveContainer
-                        width="100%"
-                        height="100%"
-                    >
-                        <LineChart data={wasteData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="time" />
-                            <YAxis label={{ value: "Volume Sampah (kg)", angle: -90, position: "insideLeft" }} />
-                            <Tooltip />
-                            <Line
-                                type="monotone"
-                                dataKey="waste"
-                                name="Volume Sampah"
-                                stroke="#ef4444"
-                                strokeWidth={3}
-                                activeDot={{ r: 6 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
-
-            {/* Section 3: Statistik Teks */}
-            <h1 className="text-center font-semibold">Statistik Volume Sampah</h1>
-
-<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-    {/* Card Jam Puncak */}
-    <motion.div
-        whileHover={{ y: -5 }}
-        className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-blue-900/20"
-    >
-        <div className="rounded-lg bg-red-500/20 p-3 text-red-500">
-            <AlertTriangle size={24} />
-        </div>
-        <div>
-            <p className="font-medium text-slate-500 dark:text-slate-400">Jam Puncak</p>
-            <p className="text-2xl font-bold">{peakWasteTime}</p>
-            <p className="text-sm text-slate-500">Volume: {maxWaste}</p>
-        </div>
-    </motion.div>
-
-    {/* Card Jam Sepi */}
-    <motion.div
-        whileHover={{ y: -5 }}
-        className="flex items-center gap-4 rounded-lg border bg-blue-50 p-4 dark:bg-green-900/20"
-    >
-        <div className="rounded-lg bg-green-500/20 p-3 text-green-500">
-            <Clock size={24} />
-        </div>
-        <div>
-            <p className="font-medium text-slate-500 dark:text-slate-400">Jam Sepi</p>
-            <p className="text-2xl font-bold">{lowWasteTime}</p>
-            <p className="text-sm text-slate-500">Volume: {minWaste}</p>
-        </div>
-    </motion.div>
-</div>
+            
 
             <h1 className="mt-4 text-center font-bold">Analisis Volume Sampah Harian dan Bulanan</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
@@ -690,22 +629,7 @@ const handleSimpan = async () => {
             <div className="card">
               <div className="card-header">
                 <p className="card-title">Informasi CCTV</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                  >
-                    <Download className="h-4 w-4" />
-                    Download
-                  </button>
-                  <button
-                    onClick={() => setShowForm(true)}
-                    className="flex items-center gap-1 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Tambah Data
-                  </button>
-                </div>
+                
               </div>
 
               {/* Add Data Form Modal */}
@@ -896,7 +820,6 @@ const handleSimpan = async () => {
                                 <th scope="col" className="px-4 py-3">Presentase Sampah</th>
                                 <th scope="col" className="px-4 py-3">Status Sampah</th>
                                 <th scope="col" className="px-4 py-3">Live CCTV</th>
-                                <th scope="col" className="px-4 py-3">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -917,22 +840,7 @@ const handleSimpan = async () => {
                                             </a>
                                         ) : 'Tidak Ada'}
                                     </td>
-                                    <td className="px-4 py-2 flex gap-2">
-                                        <button 
-                                            onClick={() => handleEdit(item)}
-                                            className="p-1 text-blue-600 hover:text-blue-800"
-                                            title="Edit"
-                                        >
-                                            <PencilLine size={18} />
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDelete(item.id)}
-                                            className="p-1 text-red-600 hover:text-red-800"
-                                            title="Delete"
-                                        >
-                                            <Trash size={18} />
-                                        </button>
-                                    </td>
+                                    
                                 </tr>
                             ))}
                         </tbody>

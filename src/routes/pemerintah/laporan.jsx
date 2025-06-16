@@ -386,27 +386,7 @@ console.log("Token di komponen ini:", token);
             <p className="text-slate-600">Daftar Pelaporan Tumpukan Sampah dan Keramaian </p>
           </div>
           
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => {
-              setShowForm(true);
-              setIsEditing(false);
-              setFormData({
-                judul_laporan: "",
-                deskripsi: "",
-                kategori: "",
-                status: "",
-                created_at: "",
-                estimasi: "",
-                filePdf: null
-              });
-            }}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
-          >
-            <Plus size={18} />
-            Buat Laporan
-          </motion.button>
+          
         </div>
 
         {/* Filter Section */}
@@ -615,13 +595,7 @@ console.log("Token di komponen ini:", token);
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleDelete(laporan.id)}
-                            className="rounded p-1 text-red-600 hover:bg-red-100"
-                            title="Hapus"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          
                         </div>
                       </td>
                     </motion.tr>

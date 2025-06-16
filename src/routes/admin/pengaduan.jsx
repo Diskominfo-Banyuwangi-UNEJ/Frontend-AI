@@ -27,7 +27,6 @@ const PengaduanPage = () => {
   const [pengaduanList, setPengaduanList] = useState([]);
   const [filter, setFilter] = useState({ 
       created_at: "", 
-      status: "", 
       kategori: "" 
     });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -298,7 +297,7 @@ const PengaduanPage = () => {
 
       await MySwal.fire({
         icon: "success",
-        title: "Pengaduan Terkirim",
+        title: "Pengaduan Tersimpan",
         text: "Terima kasih telah melaporkan pengaduan",
         timer: 2000,
         showConfirmButton: false
@@ -370,7 +369,7 @@ const PengaduanPage = () => {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 grid gap-4 md:grid-cols-3"
+                        className="mt-4 grid gap-4 md:grid-cols-2"
                       >
                         <div>
                           <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
@@ -383,20 +382,6 @@ const PengaduanPage = () => {
                           />
                         </div>
                         
-                        <div>
-                          <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
-                          <select
-                            name="status"
-                            value={filter.status}
-                            onChange={handleFilterChange}
-                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                          >
-                            <option value="">Semua Status</option>
-                            <option value="diterima">Diterima</option>
-                            <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                            <option value="selesai">Selesai</option>
-                          </select>
-                        </div>
                         
                         <div>
                           <label className="mb-1 block text-sm font-medium text-slate-700">Jenis</label>
@@ -502,7 +487,7 @@ const PengaduanPage = () => {
                             disabled={useGPS}
                           />
                         </div>
-                        <button
+                        {/* <button
                           type="button"
                           onClick={() => {
                             setUseGPS(!useGPS);
@@ -522,7 +507,7 @@ const PengaduanPage = () => {
                               {useGPS ? "Manual" : "GPS"}
                             </>
                           )}
-                        </button>
+                        </button> */}
                       </div>
                       {useGPS && formData.lokasi_kejadian && (
                         <p className="mt-1 text-xs text-gray-500">
@@ -694,8 +679,10 @@ const PengaduanPage = () => {
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
-                          pengaduan.jenis_pengaduan === 'keramaian' 
-                            ? 'bg-purple-100 text-purple-800' 
+                          pengaduan.jenis_pengaduan === 'KERAMAIAN' 
+                            ? 'bg-green-100 text-green-800'
+                            : pengaduan.jenis_pengaduan === 'TUMPUKAN_SAMPAH'
+                            ? 'bg-blue-100 text-blue-800'
                             : 'bg-green-100 text-green-800'
                         }`}>
                           {pengaduan.jenis_pengaduan}

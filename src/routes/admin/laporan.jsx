@@ -31,7 +31,7 @@ const LaporanPage = () => {
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [adminList, setAdminList] = useState([]);
   const [formData, setFormData] = useState({
     judul_laporan: "",
     deskripsi: "",
@@ -40,6 +40,7 @@ const LaporanPage = () => {
     created_at: "",
     estimasi: 0,
     filePdf: "",
+    admin_id: "" 
   });
   
   const [isEditing, setIsEditing] = useState(false);
@@ -72,6 +73,30 @@ const LaporanPage = () => {
 
   const token = Cookies.get("authToken");
 console.log("Token di komponen ini:", token);
+  
+  // Const Admin
+  const fetchAdminList = async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/users', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    console.log('Full response:', response.data); // Debugging
+    
+    // Filter hanya user dengan role ADMIN (case insensitive)
+    const admins = response.data.data.filter(user => 
+      user.role.toUpperCase() === 'ADMIN'
+    );
+    
+    console.log('Filtered admins:', admins); // Debugging
+    setAdminList(admins);
+  } catch (error) {
+    console.error("Error fetching admin list:", error);
+  }
+};
+
 
   // Fetch data
  const fetchLaporan = async () => {
@@ -100,6 +125,8 @@ console.log("Token di komponen ini:", token);
 
   useEffect(() => {
     fetchLaporan();
+    fetchAdminList(); // Pastikan ini dijalankan
+
   }, []);
 
   const handleFilterChange = (e) => {
@@ -185,7 +212,8 @@ console.log("Token di komponen ini:", token);
       status: formData.status,
       created_at: formData.created_at,
       estimasi: formData.estimasi,
-      filePdf: formData.filePdf
+      filePdf: formData.filePdf,
+      admin_id: formData.admin_id 
     };
 
     const config = {
@@ -244,7 +272,8 @@ console.log("Token di komponen ini:", token);
       status: "",
       created_at: "",
       estimasi: 0, 
-      filePdf: null
+      filePdf: null,
+      admin_id: ""
     });
     setShowForm(false);
     setIsEditing(false);
@@ -524,8 +553,12 @@ console.log("Token di komponen ini:", token);
                       No
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
+                      Penanggung Jawab
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Judul
                     </th>
+                   
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                       Deskripsi
                     </th>
@@ -558,6 +591,9 @@ console.log("Token di komponen ini:", token);
                     >
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {index + 1}
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        {laporan.admin_name || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {laporan.judul_laporan}
@@ -674,6 +710,31 @@ console.log("Token di komponen ini:", token);
                 <h2 className="text-xl font-semibold text-slate-800">
                   {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
                 </h2>
+              </div>
+
+              {/* Admin Penanggung Jawab */}
+              <div className="mb-4">
+                <label className="mb-1 block text-sm font-medium text-slate-700">
+                  Admin Penanggung Jawab
+                </label>
+                <select
+                  name="admin_id"
+                  value={formData.admin_id}
+                  onChange={handleFormChange}
+                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="">Pilih Admin</option>
+                  {adminList.length > 0 ? (
+                    adminList.map(admin => (
+                      <option key={admin.username} value={admin.username}>
+                        {admin.name_lengkap || admin.username}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>Tidak ada admin tersedia</option>
+                  )}
+                </select>
               </div>
 
               <div className="space-y-4">

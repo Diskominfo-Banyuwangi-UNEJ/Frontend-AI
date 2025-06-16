@@ -138,7 +138,7 @@ const AkunPage = () => {
 
     if (isEditMode) {
       // Mode edit - PUT request
-      await axios.put(`http://localhost:3000/api/users/${currentEditId}`, payload, {
+      await axios.put(`http://localhost:3000/api/users/1`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       Swal.fire({
