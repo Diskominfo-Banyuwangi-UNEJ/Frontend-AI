@@ -588,13 +588,7 @@ console.log("Token di komponen ini:", token);
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleEdit(laporan)}
-                            className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
-                            title="Edit"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
+                          
                           
                         </div>
                       </td>

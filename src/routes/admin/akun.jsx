@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect,useRef  } from 'react';
 import React from 'react'
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -26,6 +26,7 @@ const AkunPage = () => {
   const [expandedRows, setExpandedRows] = useState({});
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentEditId, setCurrentEditId] = useState(null);
+  const formRef = useRef(null);
 
   // Fetch data from API
   const fetchAkunList = async () => {
@@ -66,6 +67,8 @@ const AkunPage = () => {
       email: '',
       password: '',
     });
+        scrollToTop(); // Scroll ke paling atas
+
   }
 };
 
@@ -117,8 +120,13 @@ const AkunPage = () => {
         status: akunToEdit.role || '',
         username: akunToEdit.username || '',
         email: akunToEdit.email || '',
-        password: '', // Biarkan kosong untuk keamanan
+        password: '', 
       });
+      setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+
+      
     }
   };
 
@@ -289,11 +297,12 @@ const id_user = Cookies.get('id_user');
         <AnimatePresence>
           {isFormVisible && (
             <motion.div
+              ref={formRef}
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="mb-6 overflow-hidden rounded-xl bg-white shadow-md"
+              className="mb-6 overflow-hidden rounded-xl bg-white shadow-md scroll-mt-[120px]"
             >
               <div className="p-6">
                 <div className="mb-4 flex items-center justify-between">

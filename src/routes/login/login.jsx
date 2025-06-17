@@ -116,7 +116,7 @@ export default function LoginForm() {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-1 text-sm">
+                        <div className="flex flex-col gap-1 mt-4 text-sm">
                             <label>Password</label>
                             <input
                                 type="password"
@@ -127,15 +127,12 @@ export default function LoginForm() {
                             />
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <input type="checkbox" id="remember" />
-                            <label htmlFor="remember" className="text-sm">Remember Password</label>
-                        </div>
+                       
 
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`w-full rounded-md bg-gradient-to-r from-gray-800 to-gray-800 py-2 text-sm font-semibold text-white hover:from-black hover:to-black ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`w-full rounded-md mt-4 bg-gradient-to-r from-gray-800 to-gray-800 py-2 text-sm font-semibold text-white hover:from-black hover:to-black ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center">

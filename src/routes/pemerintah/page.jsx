@@ -249,7 +249,7 @@ const PemerintahLandingPage = () => {
                         transition={{ type: "spring", stiffness: 300 }}
                         className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
                         >
-                        <Link to="analytics" className="flex flex-col h-full">
+                        <Link to="/pemerintah/analytics" className="flex flex-col h-full">
                             <img
                             src="/image/keramaian.jpeg"
                             alt="Fitur 1"
@@ -266,7 +266,7 @@ const PemerintahLandingPage = () => {
                         transition={{ type: "spring", stiffness: 300 }}
                         className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
                         >
-                        <Link to="reports" className="flex flex-col h-full">
+                        <Link to="/pemerintah/reports" className="flex flex-col h-full">
                             <img
                             src="/image/sampah.jpg"
                             alt="Fitur 2"
@@ -281,61 +281,62 @@ const PemerintahLandingPage = () => {
                 </div>
             </section>
 
-          <div className="flex min-h-screen items-center justify-center  p-16 text-gray-800">
-      <div className="flex w-full max-w-7xl gap-12">
-        {/* Kiri: Tata Cara */}
-        <div className="flex-1  rounded-2xl p-10   min-w-[480px]">
-          <h1 className="mb-6 text-3xl font-extrabold text-green-800 drop-shadow-md">
-            Pengaduan Masyarakat
-          </h1>
-          <h2 className="mb-2 list-decimal text-lg">Silakan lengkapi data pada langkah-langkah berikut untuk menyelesaikan pengaduan Anda.</h2>
-          <ol className="list-decimal list-inside space-y-2 text-lg leading-relaxed">
-            {/* <li>Sampaikan informasi berikut:</li> */}
-            <li>Nama pelapor.</li>
-            <li>Lokasi kejadian (manual melalui GPS)</li>
-            <li>Jenis pengaduan: pilih salah satu keramaian atau sampah.</li>
-            <li>Deskripsi pengaduan secara singkat dan jelas.</li>
-            <li>Upload bukti foto jika tersedia.</li>
-            <li>Sertakan tanggal kejadian.</li>
-            <li>SELESAI.</li>
-          </ol>
-        </div>
-
-        {/* Kanan: Card WA */}
-        <div className="flex-1 bg-white rounded-3xl p-12 shadow-2xl border border-green-300 min-w-[480px] flex flex-col items-center justify-center hover:shadow-green-400 transition-shadow duration-300">
-        <FaWhatsapp className="mb-6 text-6xl text-green-600 drop-shadow-md" />
-        <h2 className="mb-4 text-3xl font-bold text-green-700 text-center">
-            Kirim Pengaduan Sekarang
-        </h2>
-        <p className="mb-8 text-center text-green-800 max-w-sm">
-            Klik tombol untuk kirim pengaduan cepat via WhatsApp.
-        </p>
-        <a
-        href={`https://wa.me/${waNumber}?text=${encodeURIComponent(
-            "══════[ PENGADUAN ]══════\n" +
-            "\n*📅 Tanggal Kejadian: " +
-            "\n*👤 Nama Lengkap: " +
-            "\n*📍 Link Lokasi: " +
-            "\n*📌 Jenis Pengaduan: " +
-            "\n*📝 Deskripsi Lengkap: " +
-            "\n\n══════[ BUKTI FOTO ]══════" +
-            "\nSilakan UNGGAH FOTO setelah mengirim pesan ini" +
-            "\n\n*Petunjuk:*" +
-            "\n1. Isi semua data di atas" +
-            "\n2. Kirim pesan ini" +
-            "\n3. Setelah itu, kirim foto bukti sebagai balasan" +
-            "\n\nTerima kasih atas laporan Anda"
-            )}`}            
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-full bg-green-600 px-12 py-4 text-white text-xl text-center font-semibold shadow-lg hover:bg-green-700 active:scale-95 transition-transform"
-        >
-            <FaWhatsapp className="text-2xl" />
-            Kirim Pengaduan 
-        </a>
-        </div>
-      </div>
+           <div className="flex min-h-screen items-center justify-center p-4 md:p-16 text-gray-800">
+  <div className="flex w-full max-w-7xl flex-wrap justify-center gap-6 lg:gap-12">
+    {/* Kiri: Tata Cara */}
+    <div className="w-full lg:flex-1 rounded-2xl p-6 md:p-10 lg:min-w-[400px] max-w-[600px]">
+      <h1 className="mb-6 text-2xl md:text-3xl font-extrabold text-green-800 drop-shadow-md">
+        Pengaduan Masyarakat
+      </h1>
+      <h2 className="mb-2 text-base md:text-lg">
+        Silakan lengkapi data pada langkah-langkah berikut untuk menyelesaikan pengaduan Anda.
+      </h2>
+      <ol className="list-decimal list-inside space-y-2 text-base md:text-lg leading-relaxed">
+        <li>Nama pelapor.</li>
+        <li>Lokasi kejadian (manual melalui GPS)</li>
+        <li>Jenis pengaduan: pilih salah satu keramaian atau sampah.</li>
+        <li>Deskripsi pengaduan secara singkat dan jelas.</li>
+        <li>Upload bukti foto jika tersedia.</li>
+        <li>Sertakan tanggal kejadian.</li>
+        <li>SELESAI.</li>
+      </ol>
     </div>
+
+    {/* Kanan: Card WA */}
+    <div className="w-full lg:flex-1 bg-white rounded-3xl p-6 md:p-12 shadow-2xl border border-green-300 lg:min-w-[400px] max-w-[600px] flex flex-col items-center justify-center hover:shadow-green-400 transition-shadow duration-300">
+      <FaWhatsapp className="mb-4 md:mb-6 text-5xl md:text-6xl text-green-600 drop-shadow-md" />
+      <h2 className="mb-3 md:mb-4 text-2xl md:text-3xl font-bold text-green-700 text-center">
+        Kirim Pengaduan Sekarang
+      </h2>
+      <p className="mb-6 md:mb-8 text-center text-green-800 max-w-sm text-sm md:text-base">
+        Klik tombol untuk kirim pengaduan cepat via WhatsApp.
+      </p>
+      <a
+        href={`https://wa.me/${waNumber}?text=${encodeURIComponent(
+          "══════[ PENGADUAN ]══════\n" +
+          "\n*📅 Tanggal Kejadian: " +
+          "\n*👤 Nama Lengkap: " +
+          "\n*📍 Link Lokasi: " +
+          "\n*📌 Jenis Pengaduan: " +
+          "\n*📝 Deskripsi Lengkap: " +
+          "\n\n══════[ BUKTI FOTO ]══════" +
+          "\nSilakan UNGGAH FOTO setelah mengirim pesan ini" +
+          "\n\n*Petunjuk:*" +
+          "\n1. Isi semua data di atas" +
+          "\n2. Kirim pesan ini" +
+          "\n3. Setelah itu, kirim foto bukti sebagai balasan" +
+          "\n\nTerima kasih atas laporan Anda"
+        )}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-3 rounded-full bg-green-600 px-8 py-3 md:px-12 md:py-4 text-white text-lg md:text-xl text-center font-semibold shadow-lg hover:bg-green-700 active:scale-95 transition-transform"
+      >
+        <FaWhatsapp className="text-xl md:text-2xl" />
+        Kirim Pengaduan
+      </a>
+    </div>
+  </div>
+</div>
             
 
             <motion.section
