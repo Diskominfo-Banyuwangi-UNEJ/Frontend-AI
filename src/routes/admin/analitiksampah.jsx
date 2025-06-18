@@ -1,4 +1,5 @@
-import { Area, LineChart, Bar, BarChart, Line, CartesianGrid, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, LineChart, Bar, BarChart, Line, CartesianGrid, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis,  ScatterChart,Scatter
+ } from "recharts";
 import { useTheme } from "@/hooks/use-theme";
 import { motion } from "framer-motion";
 import { Footer } from "@/layouts/footer";
@@ -125,13 +126,19 @@ const AnalitikSampahPage = () => {
     const peakHour = trafficData.reduce((prev, current) => (prev.visitors > current.visitors ? prev : current));
     // Data sample untuk chart sampah saja
     const wasteData = [
-        { time: "08:00", waste: 30 },
-        { time: "10:00", waste: 75 },
-        { time: "12:00", waste: 90 },
-        { time: "14:00", waste: 80 },
-        { time: "16:00", waste: 50 },
-        { time: "18:00", waste: 40 },
+        { time: "08:00", waste: "low" },
+        { time: "10:00", waste: "medium" },
+        { time: "12:00", waste: "medium" },
+        { time: "14:00", waste: "low" },
+        { time: "16:00", waste: "high" },
+        { time: "18:00", waste: "high" },
     ];
+    const wasteCategoryData = [
+  { category: "Low" },
+  { category: "Normal" },
+  { category: "High" },
+];
+
     
 
   const [data, setData] = useState([]);
@@ -197,14 +204,11 @@ const [topProducts, setTopProducts] = useState([]);
          const [cctvData, setCctvData] = useState([]); 
         const [formData, setFormData] = useState({
   number: "",
-  timestamp: "",
   nama_lokasi: "",
   alamat: "",
   latitude: "",
   longitude: "",
-  presentase: "",
-  status: "",
-  live: "",
+  url_cctv: "",
 });
 const handleFormChange = (e) => {
   const { name, value } = e.target;
@@ -213,9 +217,9 @@ const handleFormChange = (e) => {
 
 
 const handleSimpan = async () => {
-        const { nama_lokasi, alamat, latitude, longitude, presentase, live, status } = formData;
+        const { nama_lokasi, alamat, latitude, longitude, url_cctv } = formData;
 
-        if (!nama_lokasi || !alamat || !latitude || !longitude || !presentase || !live || !status) {
+        if (!nama_lokasi || !alamat || !latitude || !longitude ||  !url_cctv ) {
             Swal.fire({
                 icon: 'warning',
                 title: 'Form Belum Lengkap',
@@ -232,9 +236,7 @@ const handleSimpan = async () => {
                     alamat,
                     latitude,
                     longitude,
-                    presentase,
-                    status,
-                    live
+                    url_cctv
                 });
                 
                 Swal.fire({
@@ -249,9 +251,7 @@ const handleSimpan = async () => {
                     alamat,
                     latitude,
                     longitude,
-                    presentase,
-                    status,
-                    live
+                    url_cctv
                 });
                 
                 Swal.fire({
@@ -266,9 +266,8 @@ const handleSimpan = async () => {
                 alamat: '',
                 latitude: '',
                 longitude: '',
-                presentase: '',
-                status: '',
-                live: '',
+                
+                url_cctv: '',
             });
 
             setShowForm(false);
@@ -294,9 +293,8 @@ const handleSimpan = async () => {
                 alamat: item.alamat || '',
                 latitude: item.latitude || '',
                 longitude: item.longitude || '',
-                presentase: item.presentase || '',
-                status: item.status || '',
-                live: item.live || '',
+              
+                url_cctv: item.url_cctv || '',
             });
             setShowForm(true);
         };
@@ -458,33 +456,37 @@ const handleSimpan = async () => {
       </motion.div>
     </div>   
 
-            {/* Section 1: Grafik Volume Sampah */}
-            <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
+         <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
 
-            <div className="card">
-                <h2 className="mb-4 font-semibold">Trend Volume Sampah</h2>
-                <div className="h-80 w-full">
-                    <ResponsiveContainer
-                        width="100%"
-                        height="100%"
-                    >
-                        <LineChart data={wasteData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="time" />
-                            <YAxis label={{ value: "Volume Sampah (kg)", angle: -90, position: "insideLeft" }} />
-                            <Tooltip />
-                            <Line
-                                type="monotone"
-                                dataKey="waste"
-                                name="Volume Sampah"
-                                stroke="#ef4444"
-                                strokeWidth={3}
-                                activeDot={{ r: 6 }}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                </div>
-            </div>
+<div className="card">
+  <h2 className="mb-4 font-semibold">Trend Volume Sampah</h2>
+  <div className="h-80 w-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis
+          type="category"
+          dataKey="time"
+          name="Waktu"
+          label={{ value: "Waktu", position: "insideBottom", offset: -5 }}
+        />
+        <YAxis
+          type="category"
+          dataKey="waste"
+          name="Kategori"
+          
+        />
+        <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+        <Scatter
+          name="Kategori Sampah"
+          data={wasteData}
+          fill="#ef4444"
+        />
+      </ScatterChart>
+    </ResponsiveContainer>
+  </div>
+</div>
+
 
             {/* Section 3: Statistik Teks */}
             <h1 className="text-center font-semibold">Statistik Volume Sampah</h1>
@@ -526,13 +528,13 @@ const handleSimpan = async () => {
                 <div className="card col-span-1 md:col-span-2 lg:col-span-4">
                     <div className="card-header">
                         <p className="card-title">Grafik Per Bulan Tumpukan</p>
-                        {/* <button
+                        <button
                             onClick={handleDownload1}
                             className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
                         >
                             <Download className="h-4 w-4" />
                             Download
-                        </button> */}
+                        </button>
                     </div>
                     <div className="card-body p-0">
                         <ResponsiveContainer
@@ -601,13 +603,13 @@ const handleSimpan = async () => {
                 <div className="card col-span-1 md:col-span-2 lg:col-span-3">
                     <div className="card-header">
                         <p className="card-title">Presentase Status Per Hari</p>
-                        {/* <button
+                        <button
                             onClick={handleDownload2}
                             className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
                         >
                             <Download className="h-4 w-4" />
                             Download
-                        </button> */}
+                        </button>
                     </div>
                     <div className="card-body h-[300px] p-0">
                         <ResponsiveContainer
@@ -796,6 +798,7 @@ const handleSimpan = async () => {
                     value={formData.latitude}
                     onChange={handleFormChange}
                     placeholder="Contoh: -6.2088"
+                    step="any"
                     className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                   />
                 </div>
@@ -810,43 +813,10 @@ const handleSimpan = async () => {
                     value={formData.longitude}
                     onChange={handleFormChange}
                     placeholder="Contoh: 106.8456"
+                    step="any"
                     className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Presentase Sampah (%)
-                </label>
-                <input
-                  type="number"
-                  name="presentase"
-                  value={formData.presentase}
-                  onChange={handleFormChange}
-                  min="0"
-                  max="100"
-                  placeholder="0-100"
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Status Sampah
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="">Pilih Status Sampah</option>
-                  <option value="sedikit">Sedikit (0-25%)</option>
-                  <option value="sedang">Sedang (26-50%)</option>
-                  <option value="banyak">Banyak (51-75%)</option>
-                  <option value="penuh">Penuh (76-100%)</option>
-                </select>
               </div>
 
               <div>
@@ -855,8 +825,8 @@ const handleSimpan = async () => {
                 </label>
                 <input
                   type="url"
-                  name="live"
-                  value={formData.live}
+                  name="url_cctv"
+                  value={formData.url_cctv}
                   onChange={handleFormChange}
                   placeholder="https://example.com/live-cctv"
                   className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
@@ -927,8 +897,8 @@ const handleSimpan = async () => {
                                     <td className="px-4 py-2">{item.presentase ? `${item.presentase}%` : '-'}</td>
                                     <td className="px-4 py-2">{item.status || '-'}</td>
                                     <td className="px-4 py-2">
-                                        {item.live ? (
-                                            <a href={item.live} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                        {item.url_cctv ? (
+                                            <a href={item.url_cctv} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                                                 Lihat Live
                                             </a>
                                         ) : 'Tidak Ada'}

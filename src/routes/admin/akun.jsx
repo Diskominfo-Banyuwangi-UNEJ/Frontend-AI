@@ -11,7 +11,7 @@ const AkunPage = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({
     nama_instansi: '',
-    nama_pimpinan: '',
+    name_lengkap: '',
     status: '',
     username: '',
     email: '',
@@ -61,13 +61,13 @@ const AkunPage = () => {
     setCurrentEditId(null);
     setFormData({
       nama_instansi: '',
-      nama_pimpinan: '',
+      name_lengkap: '',
       status: '',
       username: '',
       email: '',
       password: '',
     });
-        scrollToTop(); // Scroll ke paling atas
+        scrollToTop(); 
 
   }
 };
@@ -90,7 +90,7 @@ const AkunPage = () => {
   const validateForm = () => {
     const errors = {};
     if (!formData.nama_instansi) errors.nama_instansi = 'Institution is required';
-    if (!formData.nama_pimpinan) errors.nama_pimpinan = 'Leader name is required';
+    if (!formData.name_lengkap) errors.name_lengkap = 'Leader name is required';
     if (!formData.status) errors.status = 'Status is required';
     if (!formData.username) errors.username = 'Username is required';
     if (!formData.email) {
@@ -116,7 +116,7 @@ const AkunPage = () => {
       setIsFormVisible(true);
       setFormData({
         nama_instansi: akunToEdit.nama_instansi || '',
-        nama_pimpinan: akunToEdit.name_lengkap || '',
+        name_lengkap: akunToEdit.name_lengkap || '',
         status: akunToEdit.role || '',
         username: akunToEdit.username || '',
         email: akunToEdit.email || '',
@@ -130,13 +130,13 @@ const AkunPage = () => {
     }
   };
 
- const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   if (!validateForm()) return;
 
   try {
     const payload = {
-      name_lengkap: formData.nama_pimpinan,
+      name_lengkap: formData.name_lengkap,
       email: formData.email,
       username: formData.username,
       password: formData.password,
@@ -146,7 +146,7 @@ const AkunPage = () => {
 
     if (isEditMode) {
       // Mode edit - PUT request
-      await axios.put(`http://localhost:3000/api/users/1`, payload, {
+      await axios.put(`http://localhost:3000/api/users/${currentEditId}`, payload, {
         headers: { 'Content-Type': 'application/json' },
       });
       Swal.fire({
@@ -178,7 +178,7 @@ const AkunPage = () => {
     setCurrentEditId(null);
     setFormData({
       nama_instansi: '',
-      nama_pimpinan: '',
+      name_lengkap: '',
       status: '',
       username: '',
       email: '',
@@ -195,45 +195,47 @@ const AkunPage = () => {
     });
   }
 };
+
 const id_user = Cookies.get('id_user');
 
 
-  // Delete account
-  const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Apakah anda yakin menghapus akun ini?',
-      // text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Yes',
-      background: '#f8fafc',
-    });
+ // Fungsi untuk menghapus akun
+const handleDelete = async (id) => {
+  const result = await Swal.fire({
+    title: 'Apakah anda yakin menghapus akun ini?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya',
+    background: '#f8fafc',
+  });
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:3000/api/users/${id}`);
-        setAkunList(prev => prev.filter(akun => akun.id !== id));
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Account has been deleted',
-          timer: 1500,
-          showConfirmButton: false,
-          background: '#f8fafc',
-        });
-      } catch (error) {
-        console.error('Failed to delete account:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.response?.data?.message || 'Failed to delete account',
-          background: '#f8fafc',
-        });
-      }
+  if (result.isConfirmed) {
+    try {
+      await axios.delete(`http://localhost:3000/api/users/${id}/`);
+      setAkunList((prev) => prev.filter((akun) => akun.id !== id));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil Dihapus!',
+        text: 'Akun telah dihapus.',
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#f8fafc',
+      });
+    } catch (error) {
+      console.error('Gagal menghapus akun:', error);
+
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal!',
+        text: error.response?.data?.message || 'Terjadi kesalahan saat menghapus akun.',
+        background: '#f8fafc',
+      });
     }
-  };
+  }
+};
 
   // Search and filter
   const filteredData = akunList.filter(akun => {
@@ -331,7 +333,7 @@ const id_user = Cookies.get('id_user');
                         <option value="Kominfo">Kominfo</option>
                         <option value="Dishub">Dishub</option>
                         <option value="DLH">DLH</option>
-                        <option value="Satpol PP">Satpol PP</option>
+                        <option value="Satpol_PP">Satpol PP</option>
                       </select>
                       {formErrors.nama_instansi && (
                         <p className="mt-1 text-sm text-red-600">{formErrors.nama_instansi}</p>
@@ -345,14 +347,14 @@ const id_user = Cookies.get('id_user');
                       </label>
                       <input
                         type="text"
-                        name="nama_pimpinan"
-                        value={formData.nama_pimpinan}
+                        name="name_lengkap"
+                        value={formData.name_lengkap}
                         onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.nama_pimpinan ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
                         placeholder="Enter leader name"
                       />
-                      {formErrors.nama_pimpinan && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.nama_pimpinan}</p>
+                      {formErrors.name_lengkap && (
+                        <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
                       )}
                     </div>
 

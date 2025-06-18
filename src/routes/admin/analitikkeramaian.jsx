@@ -16,24 +16,22 @@ import {
     Clock,
     AlertTriangle,
     Calendar,
-    Video,
-    CheckCircle2,
-    Plus,
     ChevronLeft,
     ChevronRight,
+    Camera,
+    CheckCircle2,
+    Video,
+    Plus,
     X,
-    Loader2
-
 } from "lucide-react";
 import { PieChart, Pie, Cell, Legend } from "recharts";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { useState,useEffect } from "react";
-import Swal from 'sweetalert2';
+import { useState,useEffect} from "react";
 import axios from "axios";
+import Swal from "sweetalert2";
 import { overviewData } from "../../constants";
-import { UserRoles } from "../../constants/userRoles";
-import { useAuth } from "@/contexts/auth-context";
+import { UserRoles } from "@/constants/userRoles";
 
 const pieData = [
     { name: "Low", value: 200 },
@@ -60,11 +58,6 @@ const trafficData = [
     { time: "14:00", visitors: 380 },
     { time: "16:00", visitors: 200 },
     { time: "18:00", visitors: 150 },
-    { time: "22:00", visitors: 150 },
-    { time: "24:00", visitors: 150 },
-    { time: "02:00", visitors: 150 },
-    { time: "04:00", visitors: 150 },
-    { time: "06:00", visitors: 150 },
 ];
 
 const lokasiPentings = [
@@ -92,7 +85,7 @@ const AnalitikKeramaianPage = () => {
             Alamat: item.alamat,
             Latitude: "-", // Asumsikan ini latitude (bisa disesuaikan)
             Longitude: "-", // Tambahkan jika ada data longitude
-            Presentase: "-", // Tambahkan jika ada data
+            Presentase_Sampah: "-", // Tambahkan jika ada data
             Status_Sampah: item.status,
             Live_CCTV: "URL / Embed", // Tambahkan info jika tersedia
         }));
@@ -127,40 +120,28 @@ const AnalitikKeramaianPage = () => {
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Data 3");
         XLSX.writeFile(workbook, "Presentase Status Tumpukan Sampah.xlsx");
-        };
+    };
+    const [showJavanaTable, setShowJavanaTable] = useState(false);
+    const peakHour = trafficData.reduce((prev, current) => (prev.visitors > current.visitors ? prev : current));
+    // Data sample untuk chart sampah saja
+    const wasteData = [
+        { time: "08:00", waste: 30 },
+        { time: "10:00", waste: 75 },
+        { time: "12:00", waste: 90 },
+        { time: "14:00", waste: 80 },
+        { time: "16:00", waste: 50 },
+        { time: "18:00", waste: 40 },
+    ];
+    
 
-        const [topProducts, setTopProducts] = useState([]);
-        const [showForm, setShowForm] = useState(false);
-        const [dataList, setDataList] = useState([]);
-
-        const [formData, setFormData] = useState({
-  number: "",
-  timestamp: "",
-  nama_lokasi: "",
-  alamat: "",
-  latitude: "",
-  longitude: "",
-  presentase: "",
-  status: "",
-  live: "",
-});
-
-const [data, setData] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); 
+  const [data, setData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Definisikan currentPage di sini
   const [totalPages, setTotalPages] = useState(1);
+  const [dataList, setDataList] = useState([]); 
   const [isLoading, setIsLoading] = useState(true);
   const [perPage] = useState(10);
-  const [cctvData, setCctvData] = useState([]); 
 
-const handleEdit = (data) => {
-  setIsEditing(true);
-  setEditData(data);
-  setFormData(data); // Pre-fill the form
-  setShowForm(true);
-};
-  
-
-const fetchData = async (page = 1) => {
+     const fetchData = async (page = 1) => {
     try {
       setIsLoading(true);
       const response = await axios.get(
@@ -195,91 +176,157 @@ const fetchData = async (page = 1) => {
     }
   };
 
+  
+    // Fungsi handleViewCCTV
+const handleViewCCTV = (url) => {
+  if (!url) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Stream Tidak Tersedia',
+      text: 'Link CCTV belum terkonfigurasi'
+    });
+    return;
+  }
+  window.open(url, '_blank');
+};
+
+const [topProducts, setTopProducts] = useState([]);
+        const [showForm, setShowForm] = useState(false);
+        const [isEditing, setIsEditing] = useState(false);
+        const [editData, setEditData] = useState(null);   
+         const [cctvData, setCctvData] = useState([]); 
+        const [formData, setFormData] = useState({
+  number: "",
+  timestamp: "",
+  nama_lokasi: "",
+  alamat: "",
+  latitude: "",
+  longitude: "",
+  url_cctv: "",
+});
 const handleFormChange = (e) => {
   const { name, value } = e.target;
   setFormData((prev) => ({ ...prev, [name]: value }));
 };
 
-        const handleSimpan = async () => {
-        const { nama_lokasi, alamat, latitude, longitude, presentase, live, status } = formData;
 
-        // Validasi field wajib
-        if (!nama_lokasi || !alamat || !latitude || !longitude || !presentase || !live || !status) {
+const handleSimpan = async () => {
+        const { nama_lokasi, alamat, latitude, longitude, url_cctv } = formData;
+
+        if (!nama_lokasi || !alamat || !latitude || !longitude  || !url_cctv ) {
             Swal.fire({
-            icon: 'warning',
-            title: 'Form Belum Lengkap',
-            text: 'Semua field wajib diisi!',
+                icon: 'warning',
+                title: 'Form Belum Lengkap',
+                text: 'Semua field wajib diisi!',
             });
             return;
         }
 
-
         try {
-            // Kirim data ke backend
-            const response = await axios.post('http://localhost:3000/api/tumpukan_sampah', {
-            nama_lokasi,
-            alamat,
-            latitude,
-            longitude,
-            presentase,
-            status,
-            live: live
-            });
+            if (isEditing && editData) {
+                // Update existing data
+                await axios.put(`http://localhost:3000/api/tumpukan_sampah/${editData.id}`, {
+                    nama_lokasi,
+                    alamat,
+                    latitude,
+                    longitude,
+            
+                    url_cctv
+                });
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Data CCTV berhasil diperbarui!',
+                });
+            } else {
+                // Create new data
+                await axios.post('http://localhost:3000/api/tumpukan_sampah', {
+                    nama_lokasi,
+                    alamat,
+                    latitude,
+                    longitude,
+                   
+                    url_cctv
+                });
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Data CCTV berhasil ditambahkan!',
+                });
+            }
 
-            // Jika sukses
-            Swal.fire({
-            icon: 'success',
-            title: 'Berhasil',
-            text: 'Data CCTV berhasil ditambahkan!',
-            });
-
-            // Reset form
             setFormData({
-            nama_lokasi: '',
-            alamat: '',
-            latitude: '',
-            longitude: '',
-            presentase: '',
-            status: '',
-            live: '',
+                nama_lokasi: '',
+                alamat: '',
+                latitude: '',
+                longitude: '',
+                
+                url_cctv: '',
             });
 
             setShowForm(false);
-            
-            // Refresh data tabel
+            setIsEditing(false);
+            setEditData(null);
             fetchData(currentPage);
 
         } catch (error) {
             console.error('Error saving data:', error);
             Swal.fire({
-            icon: 'error',
-            title: 'Gagal menyimpan data',
-            text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data',
+                icon: 'error',
+                title: 'Gagal menyimpan data',
+                text: error.response?.data?.message || 'Terjadi kesalahan saat menyimpan data',
             });
         }
+    };
+
+    const handleEdit = (item) => {
+            setEditData(item);
+            setIsEditing(true);
+            setFormData({
+                nama_lokasi: item.nama_lokasi || '',
+                alamat: item.alamat || '',
+                latitude: item.latitude || '',
+                longitude: item.longitude || '',
+                
+                url_cctv: item.url_cctv || '',
+            });
+            setShowForm(true);
+        };
+    
+        const handleDelete = async (id) => {
+            try {
+                const result = await Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                });
+    
+                if (result.isConfirmed) {
+                    await axios.delete(`http://localhost:3000/api/tumpukan_sampah/${id}`);
+                    Swal.fire(
+                        'Terhapus!',
+                        'Data CCTV telah dihapus.',
+                        'success'
+                    );
+                    fetchData(currentPage);
+                }
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal menghapus data',
+                    text: error.response?.data?.message || 'Terjadi kesalahan saat menghapus data',
+                });
+            }
         };
 
-
-
-
-    const [showJavanaTable, setShowJavanaTable] = useState(false);
-    const peakHour = trafficData.reduce((prev, current) => (prev.visitors > current.visitors ? prev : current));
-    // Data sample untuk chart sampah saja
-    const wasteData = [
-        { time: "08:00", waste: 30 },
-        { time: "10:00", waste: 75 },
-        { time: "12:00", waste: 90 },
-        { time: "14:00", waste: 80 },
-        { time: "16:00", waste: 50 },
-        { time: "18:00", waste: 40 },
-        { time: "20:00", waste: 30 },
-        { time: "22:00", waste: 75 },
-        { time: "24:00", waste: 90 },
-        { time: "02:00", waste: 80 },
-        { time: "04:00", waste: 50 },
-        { time: "06:00", waste: 40 },
-    ];
-    // Data statistik teks
     // Data statistik teks
     const wasteStats = wasteData.reduce((stats, current) => {
     if (current.waste > stats.maxWaste) {
@@ -298,9 +345,9 @@ const handleFormChange = (e) => {
     lowWasteTime: '' 
 });
   const peakWasteTime = wasteStats.peakWasteTime;
-  const maxWaste = wasteStats.maxWaste + " orang";
+  const maxWaste = wasteStats.maxWaste + "kg";
   const lowWasteTime = wasteStats.lowWasteTime;
-  const minWaste = wasteStats.minWaste + " orang";
+  const minWaste = wasteStats.minWaste + "kg";
 
 
     return (
@@ -622,38 +669,50 @@ const handleFormChange = (e) => {
                     </div>
                 </div>
             </div>
-            <h1 className="mb-2 mt-8 text-center font-bold">
-                Sebaran CCTV Keramaian Kabupaten Banyuwangi
-                </h1>
-                <div className="card col-span-full">
-                {/* Kalau kamu punya header, pastikan z-index-nya lebih tinggi */}
-                {/* <div className="card-header z-50 relative">
-                    <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
-                </div> */}
-                <div className="card-body h-[400px] overflow-hidden p-0 relative z-0">
-                    <MapContainer
-                    center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
-                    zoom={11}
-                    scrollWheelZoom={true}
-                    style={{ height: "100%", width: "100%", position: "relative", zIndex: 0 }}
-                    >
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution="&copy; OpenStreetMap contributors"
-                    />
+           <h1 className="mb-2 mt-8 text-center font-bold">
+  Sebaran CCTV Keramaian Kabupaten Banyuwangi
+</h1>
+<div className="card col-span-full">
+  {/* Kalau kamu punya header, pastikan z-index-nya lebih tinggi */}
+  {/* <div className="card-header z-50 relative">
+      <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
+  </div> */}
+  <div className="card-body h-[400px] overflow-hidden p-0 relative z-0">
+    <MapContainer
+      center={[centerBanyuwangi.lat, centerBanyuwangi.lng]}
+      zoom={11}
+      scrollWheelZoom={true}
+      style={{ height: "100%", width: "100%", position: "relative", zIndex: 0 }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution="&copy; OpenStreetMap contributors"
+      />
 
-                    {lokasiPentings.map((nama_lokasi, index) => (
-                        <Marker
-                        key={index}
-                        position={[nama_lokasi.lat, nama_lokasi.lng]}
-                        icon={customMarker}
-                        >
-                        <Popup>{nama_lokasi.name}</Popup>
-                        </Marker>
-                    ))}
-                    </MapContainer>
-                </div>
-                </div>
+      {lokasiPentings.map((nama_lokasi, index) => (
+        <Marker
+          key={index}
+          position={[nama_lokasi.lat, nama_lokasi.lng]}
+          icon={customMarker}
+        >
+          <Popup maxWidth={300}>
+            <div>
+              <h2 className="font-bold text-sm mb-1">{nama_lokasi.name}</h2>
+              <video
+                src={nama_lokasi.videoUrl}
+                controls
+                width="250"
+                className="rounded"
+              >
+                Browser tidak mendukung tag video.
+              </video>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  </div>
+</div>
 
         {!showJavanaTable && (
                         <div className="flex justify-center">
@@ -795,39 +854,9 @@ const handleFormChange = (e) => {
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Presentase Sampah (%)
-                </label>
-                <input
-                  type="number"
-                  name="presentase"
-                  value={formData.presentase}
-                  onChange={handleFormChange}
-                  min="0"
-                  max="100"
-                  placeholder="0-100"
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                />
-              </div>
+             
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                  Status Sampah
-                </label>
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
-                >
-                  <option value="">Pilih Status Sampah</option>
-                  <option value="sedikit">Sedikit (0-25%)</option>
-                  <option value="sedang">Sedang (26-50%)</option>
-                  <option value="banyak">Banyak (51-75%)</option>
-                  <option value="penuh">Penuh (76-100%)</option>
-                </select>
-              </div>
+              
 
               <div>
                 <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -835,8 +864,8 @@ const handleFormChange = (e) => {
                 </label>
                 <input
                   type="url"
-                  name="live"
-                  value={formData.live}
+                  name="url_cctv"
+                  value={formData.url_cctv}
                   onChange={handleFormChange}
                   placeholder="https://example.com/live-cctv"
                   className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm text-slate-800 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-white"
@@ -907,8 +936,8 @@ const handleFormChange = (e) => {
                                     <td className="px-4 py-2">{item.presentase ? `${item.presentase}%` : '-'}</td>
                                     <td className="px-4 py-2">{item.status || '-'}</td>
                                     <td className="px-4 py-2">
-                                    {item.live ? (
-                                        <a href={item.live} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                    {item.url_cctv ? (
+                                        <a href={item.url_cctv} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                                         Lihat Live
                                         </a>
                                     ) : 'Tidak Ada'}

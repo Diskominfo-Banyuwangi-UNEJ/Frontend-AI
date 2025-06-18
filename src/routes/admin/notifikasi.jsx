@@ -1,72 +1,131 @@
-import React, { useState,useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
+import axios from "axios";
 
-const Notifikasi = () => {
-    // Contoh data notifikasi (bisa diambil dari API atau state global)
-    const [notifikasi, setNotifikasi] = useState([
-        { id: 1, message: "Pemberitahuan: Sistem akan diperbarui malam ini.", read: false },
-        { id: 2, message: "Pengingat: Laporan bulanan harus diserahkan besok.", read: false },
-        { id: 3, message: "Info: Anda memiliki tugas baru yang perlu diselesaikan.", read: true },
-    ]);
+const Notifikasi = ({ userId }) => {
+    const [notifikasi, setNotifikasi] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch notifications from API
+    const fetchNotifikasi = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`http://localhost:3000/api/notifikasi?user_id=${userId}`);
+            setNotifikasi(response.data);
+        } catch (error) {
+            console.error("Error fetching notifications:", error);
+            Swal.fire({
+                title: "Gagal memuat notifikasi",
+                text: "Terjadi kesalahan saat mengambil data notifikasi",
+                icon: "error",
+                confirmButtonText: "Tutup",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotifikasi();
+    }, [userId]);
 
     // Tampilkan SweetAlert jika tidak ada notifikasi
     useEffect(() => {
-        if (notifikasi.length === 0) {
+        if (!loading && notifikasi.length === 0) {
             Swal.fire({
                 title: "Tidak ada notifikasi baru saat ini.",
                 icon: "info",
                 confirmButtonText: "Tutup",
             });
         }
-    }, [notifikasi]);
+    }, [notifikasi, loading]);
 
     // Fungsi untuk menandai notifikasi sebagai dibaca
-    const tandaiDibaca = (id) => {
-        setNotifikasi(notifikasi.map((item) => (item.id === id ? { ...item, read: true } : item)));
+    const tandaiDibaca = async (id) => {
+        try {
+            await axios.patch(`http://localhost:3000/api/notifikasi/${id}/status`, {
+                status: "read"
+            });
+            
+            // Update local state
+            setNotifikasi(notifikasi.map((item) => 
+                item.id === id ? { ...item, read: true } : item
+            ));
+            
+            Swal.fire({
+                title: "Notifikasi ditandai sebagai dibaca",
+                icon: "success",
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: "top"
+            });
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+            Swal.fire({
+                title: "Gagal memperbarui status notifikasi",
+                text: "Terjadi kesalahan saat menandai notifikasi sebagai dibaca",
+                icon: "error",
+                confirmButtonText: "Tutup",
+            });
+        }
     };
 
     // Fungsi untuk menghapus notifikasi
-    const hapusNotifikasi = (id) => {
-        const target = notifikasi.find((n) => n.id === id);
-
-        Swal.fire({
+    const hapusNotifikasi = async (id) => {
+        const result = await Swal.fire({
             title: "Apakah Anda yakin ingin menghapus notifikasi ini?",
             icon: "warning",
             showCancelButton: true,
             confirmButtonText: "Ya",
             cancelButtonText: "Batal",
             position: "top",
-            toast: "true",
-             customClass: {
-    popup: "rounded-xl",
-    title: "text-center" // ✅ rata tengah
-  }     
-           
-        })
-        .then((result) => {
-            if (result.isConfirmed) {
-                // Simulasi penghapusan dari database
+            toast: true,
+            customClass: {
+                popup: "rounded-xl",
+                title: "text-center"
+            }     
+        });
+        
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(`http://localhost:3000/api/notifikasi?user_id=${userId}&notifikasi_id=${id}`);
+                
+                // Update local state
                 setNotifikasi(notifikasi.filter((item) => item.id !== id));
-
-                // Tampilkan pesan berhasil
+                
                 Swal.fire({
                     title: "Notifikasi berhasil dihapus.",
                     icon: "success",
                     timer: 1500,
                     showConfirmButton: false,
-                    toast: "true",
-                    position : "top"
+                    toast: true,
+                    position: "top"
+                });
+            } catch (error) {
+                console.error("Error deleting notification:", error);
+                Swal.fire({
+                    title: "Gagal menghapus notifikasi",
+                    text: "Terjadi kesalahan saat menghapus notifikasi",
+                    icon: "error",
+                    confirmButtonText: "Tutup",
                 });
             }
-            // Jika dibatalkan, tidak melakukan apa-apa (otomatis kembali ke daftar)
-        });
+        }
     };
 
-    
+    if (loading) {
+        return (
+            <div className="p-6">
+                <h2 className="mb-4 text-2xl font-semibold">Notifikasi</h2>
+                <p>Memuat notifikasi...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6">
-            <h2 className="mb-4 text-2xl font-semibold">Notifikasi </h2>
+            <h2 className="mb-4 text-2xl font-semibold">Notifikasi</h2>
             <div className="space-y-4">
                 {notifikasi.length > 0 ? (
                     notifikasi.map((notif) => (

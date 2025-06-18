@@ -248,7 +248,7 @@ const MasyarakatDashboardPage = () => {
                         transition={{ type: "spring", stiffness: 300 }}
                         className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
                         >
-                        <Link to="analytics" className="flex flex-col h-full">
+                        <Link to="/masyarakat/analytics" className="flex flex-col h-full">
                             <img
                             src="/image/keramaian.jpeg"
                             alt="Fitur 1"
@@ -265,7 +265,7 @@ const MasyarakatDashboardPage = () => {
                         transition={{ type: "spring", stiffness: 300 }}
                         className="flex flex-col justify-between rounded-lg bg-white p-4 shadow-lg h-full min-h-[350px]"
                         >
-                        <Link to="reports" className="flex flex-col h-full">
+                        <Link to="/masyarakat/reports" className="flex flex-col h-full">
                             <img
                             src="/image/sampah.jpg"
                             alt="Fitur 2"
