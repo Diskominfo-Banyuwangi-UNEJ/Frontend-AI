@@ -5,10 +5,7 @@ import withReactContent from "sweetalert2-react-content";
 import axios from "axios";
 import { 
   Plus, 
-  Edit, 
-  Trash2, 
   Eye, 
-  Download, 
   X,  
   ChevronDown, 
   ChevronUp,
@@ -18,21 +15,26 @@ import {
   MapPin,
   User,
   Camera,
-  Calendar
+  Calendar,
+  ImageIcon
 } from "lucide-react";
 
 const MySwal = withReactContent(Swal);
 
 const PengaduanPage = () => {
+  // State untuk data pengaduan
   const [pengaduanList, setPengaduanList] = useState([]);
+  const [filteredPengaduan, setFilteredPengaduan] = useState([]);
+  
+  // State untuk filter
   const [filter, setFilter] = useState({ 
-      created_at: "", 
-      kategori: "" 
-    });
+    created_at: "", 
+    jenis_pengaduan: "" 
+  });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
+  // State untuk form
   const [isLoading, setIsLoading] = useState(true);
-  
   const [formData, setFormData] = useState({
     nama_pelapor: "",
     lokasi_kejadian: "",
@@ -41,40 +43,23 @@ const PengaduanPage = () => {
     created_at: new Date().toISOString().slice(0, 10),
     foto: null
   });
-  const [isEditing, setIsEditing] = useState(false);  
   const [showForm, setShowForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [useGPS, setUseGPS] = useState(false);
-  const [gpsLoading, setGpsLoading] = useState(false);
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
-  const formVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 }
-  };
-
-  // Fetch data
+  // Fetch data pengaduan dari API
   const fetchPengaduan = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(`http://localhost:3000/api/pengaduan/getAll`);
-      setPengaduanList(response.data.data || []);
+      
+      // Format tanggal untuk konsistensi
+      const formattedData = response.data.data.map(item => ({
+        ...item,
+        created_at: new Date(item.created_at).toISOString().slice(0, 10)
+      }));
+      
+      setPengaduanList(formattedData || []);
+      setFilteredPengaduan(formattedData || []);
     } catch (error) {
       console.error("Error fetching data:", error);
       MySwal.fire({
@@ -89,39 +74,64 @@ const PengaduanPage = () => {
     }
   };
 
+  // Jalankan fetch data saat komponen pertama kali render
   useEffect(() => {
     fetchPengaduan();
   }, []);
 
+  // Fungsi untuk handle perubahan filter
   const handleFilterChange = (e) => {
-      setFilter({ ...filter, [e.target.name]: e.target.value });
-    };
-  
-    const filteredPengaduan = pengaduanList.filter((pengaduan) => {
-      return (
-        (!filter.created_at || pengaduan.created_at.includes(filter.created_at)) &&
-        (!filter.kategori || pengaduan.kategori === filter.kategori)
-      );
-    });
-  
-    useEffect(() => {
-      if ((filter.created_at || filter.kategori) && filteredPengaduan.length === 0) {
-        MySwal.fire({
-          icon: "info",
-          title: "Pengaduan tidak ditemukan",
-          toast: true,
-          position: "top",
-          timer: 2500,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-      }
-    }, [filteredPengaduan, filter]);
+    const { name, value } = e.target;
+    setFilter(prev => ({ ...prev, [name]: value }));
+  };
 
+  // Efek untuk melakukan filter data ketika filter berubah
+  useEffect(() => {
+    const filtered = pengaduanList.filter((pengaduan) => {
+      const matchesDate = !filter.created_at || 
+                         pengaduan.created_at.includes(filter.created_at);
+      const matchesJenis = !filter.jenis_pengaduan || 
+                          pengaduan.jenis_pengaduan === filter.jenis_pengaduan;
+      
+      return matchesDate && matchesJenis;
+    });
+    
+    setFilteredPengaduan(filtered);
+    
+    // Tampilkan pesan jika tidak ada hasil
+    if (filtered.length === 0 && (filter.created_at || filter.jenis_pengaduan)) {
+      MySwal.fire({
+        icon: "info",
+        title: "Pengaduan tidak ditemukan",
+        toast: true,
+        position: "top",
+        timer: 2500,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    }
+  }, [filter, pengaduanList]);
+
+  // Fungsi untuk melihat foto
+  const handleOpenImage = (url) => {
+    if (url) {
+      window.open(url, "_blank");
+    } else {
+      Swal.fire({
+        icon: "info",
+        title: "Tidak Ada Foto",
+        text: "Foto kejadian belum tersedia.",
+        background: "#f8fafc",
+      });
+    }
+  };
+
+  // Fungsi untuk handle perubahan form
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Fungsi untuk handle upload file
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith('image/')) {
@@ -147,125 +157,20 @@ const PengaduanPage = () => {
     }
   };
 
-  const handleSimpan = async () => {
-      const { nama_pelapor, lokasi_kejadian, jenis_pengaduan, deskripsi_pengaduan, foto,created_at } = formData;
-  
-      if (!nama_pelapor || !lokasi_kejadian || !jenis_pengaduan || !deskripsi_pengaduan   || !foto  ||!status || !created_at) {
-        MySwal.fire({
-          icon: "error",
-          title: "Data tidak lengkap",
-          text: "Semua field wajib diisi!",
-          timer: 3000,
-          showConfirmButton: false,
-          position: "top",
-          toast: true,
-          background: "#f8fafc"
-        });
-        return;
-      }
-  
-      try {
-        setIsSubmitting(true);
-        const payload = {
-          judul_laporan: formData.judul_laporan,
-          deskripsi_pengaduan: formData.deskripsi_pengaduan,
-          kategori: formData.kategori,
-          status: formData.status,
-          created_at: formData.created_at,
-          estimasi: formData.estimasi, // Tambahkan ini
-          filePdf: formData.filePdf
-        };
-  
-        let response;
-        if (isEditing) {
-          response = await axios.put(
-            `http://localhost:3000/api/laporan/updatePengaduan/${selectedLaporan.id}`,
-            payload,
-            { headers: { "Content-Type": "application/json" } }
-          );
-        } else {
-          response = await axios.post(
-            `http://localhost:3000/api/pengaduan/createPengaduan`,
-            payload,
-            { headers: { "Content-Type": "application/json" } }
-          );
-        }
-  
-        await MySwal.fire({
-          icon: "success",
-          title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
-          text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
-          timer: 2000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-  
-        resetForm();
-        fetchLaporan();
-      } catch (error) {
-        console.error("Error menyimpan laporan:", error);
-        MySwal.fire({
-          icon: "error",
-          title: "Gagal",
-          text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
-          timer: 3000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    };
-  
-    const resetForm = () => {
-      setFormData({
-        judul_laporan: "",
-        deskripsi_pengaduan: "",
-        kategori: "",
-        status: "",
-        created_at: "",
-        estimasi: 0, 
-        filePdf: null
-      });
-      setShowForm(false);
-      setIsEditing(false);
-      setSelectedLaporan(null);
-      setShowPreview(false);
-    };
-
-  const getCurrentLocation = () => {
-    setGpsLoading(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData(prev => ({
-            ...prev,
-            lokasi_kejadian: `${position.coords.latitude}, ${position.coords.longitude}`
-          }));
-          setGpsLoading(false);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          MySwal.fire({
-            icon: "error",
-            title: "Gagal mendapatkan lokasi",
-            text: "Pastikan izin lokasi telah diberikan",
-            timer: 3000
-          });
-          setGpsLoading(false);
-        }
-      );
-    } else {
-      MySwal.fire({
-        icon: "error",
-        title: "Browser tidak mendukung GPS",
-        text: "Silakan masukkan lokasi manual",
-        timer: 3000
-      });
-      setGpsLoading(false);
-    }
+  // Fungsi untuk reset form
+  const resetForm = () => {
+    setFormData({
+      nama_pelapor: "",
+      lokasi_kejadian: "",
+      jenis_pengaduan: "",
+      deskripsi_pengaduan: "",
+      created_at: new Date().toISOString().slice(0, 10),
+      foto: null
+    });
+    setShowForm(false);
   };
 
+  // Fungsi untuk submit form
   const handleSubmit = async () => {
     const { nama_pelapor, lokasi_kejadian, jenis_pengaduan, deskripsi_pengaduan } = formData;
 
@@ -285,11 +190,10 @@ const PengaduanPage = () => {
       
       const payload = {
         ...formData,
-        // Jika foto tidak diupload, hapus field foto dari payload
         ...(formData.foto ? { foto: formData.foto } : {})
       };
 
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:3000/api/pengaduan/createPengaduan`,
         payload,
         { headers: { "Content-Type": "application/json" } }
@@ -303,15 +207,7 @@ const PengaduanPage = () => {
         showConfirmButton: false
       });
 
-      setFormData({
-        nama_pelapor: "",
-        lokasi_kejadian: "",
-        jenis_pengaduan: "",
-        deskripsi_pengaduan: "",
-        created_at: new Date().toISOString().slice(0, 10),
-        foto: null
-      });
-      setShowForm(false);
+      resetForm();
       fetchPengaduan();
     } catch (error) {
       console.error("Error submitting pengaduan:", error);
@@ -328,12 +224,12 @@ const PengaduanPage = () => {
   };
 
   return (
-    <div className="min-h-screen  p-4 md:p-6">
+    <div className="min-h-screen p-4 md:p-6">
       <div className="mx-auto max-w-full">
         {/* Header */}
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800 md:text-3xl">Fitur Layanan Pengaduan </h1>
+            <h1 className="text-2xl font-bold text-gray-800 md:text-3xl">Fitur Layanan Pengaduan</h1>
             <p className="text-gray-600">Daftar Pengaduan Tumpukan Sampah dan Keramaian Masyarakat</p>
           </div>
           
@@ -347,61 +243,61 @@ const PengaduanPage = () => {
             Buat Pengaduan
           </motion.button>
         </div>
-        {/* Filter Section */}
-                <motion.div 
-                  className="mb-6 rounded-lg bg-white p-4 shadow-sm"
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                >
-                  <button
-                    onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="flex items-center gap-2 text-slate-700"
-                  >
-                    <Filter size={18} />
-                    <span>Filter Pengaduan</span>
-                    {isFilterOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                  
-                  <AnimatePresence>
-                    {isFilterOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="mt-4 grid gap-4 md:grid-cols-2"
-                      >
-                        <div>
-                          <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
-                          <input
-                            type="date"
-                            name="created_at"
-                            value={filter.created_at}
-                            onChange={handleFilterChange}
-                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                          />
-                        </div>
-                        
-                        
-                        <div>
-                          <label className="mb-1 block text-sm font-medium text-slate-700">Jenis</label>
-                          <select
-                            name="kategori"
-                            value={filter.kategori}
-                            onChange={handleFilterChange}
-                            className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                          >
-                            <option value="">Semua Jenis</option>
-                            <option value="KERAMAIAN">Keramaian</option>
-                            <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
-                          </select>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
 
-        {/* Pengaduan Form Modal */}
+        {/* Filter Section */}
+        <motion.div 
+          className="mb-6 rounded-lg bg-white p-4 shadow-sm"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+        >
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="flex items-center gap-2 text-slate-700"
+          >
+            <Filter size={18} />
+            <span>Filter Pengaduan</span>
+            {isFilterOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          </button>
+          
+          <AnimatePresence>
+            {isFilterOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-4 grid gap-4 md:grid-cols-2"
+              >
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Tanggal</label>
+                  <input
+                    type="date"
+                    name="created_at"
+                    value={filter.created_at}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-700">Jenis Pengaduan</label>
+                  <select
+                    name="jenis_pengaduan"
+                    value={filter.jenis_pengaduan}
+                    onChange={handleFilterChange}
+                    className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="">Semua Jenis</option>
+                    <option value="KERAMAIAN">Keramaian</option>
+                    <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
+                  </select>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Form Modal */}
         <AnimatePresence>
           {showForm && (
             <motion.div
@@ -410,31 +306,22 @@ const PengaduanPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {/* Backdrop */}
               <motion.div
                 className="fixed inset-0 bg-black bg-opacity-50"
                 onClick={resetForm}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
               />
-
+              
               <motion.div
                 className="relative mx-auto my-8 w-full max-w-md rounded-xl bg-white shadow-xl"
-                variants={formVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                transition={{ type: "spring", damping: 25 }}
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
               >
-                {/* Modal Header */}
                 <div className="sticky top-0 z-10 border-b bg-white p-4">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-800">
-                      Formulir Pengaduan
-                    </h2>
+                    <h2 className="text-lg font-semibold text-gray-800">Formulir Pengaduan</h2>
                     <button
-                      onClick={() => setShowForm(false)}
+                      onClick={resetForm}
                       className="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                     >
                       <X size={20} />
@@ -442,10 +329,8 @@ const PengaduanPage = () => {
                   </div>
                 </div>
 
-                {/* Scrollable Form Content */}
                 <div className="max-h-[70vh] overflow-y-auto p-4">
                   <div className="space-y-3">
-                    {/* Nama Pelapor */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Nama Pelapor <span className="text-red-500">*</span>
@@ -459,64 +344,31 @@ const PengaduanPage = () => {
                           name="nama_pelapor"
                           value={formData.nama_pelapor}
                           onChange={handleFormChange}
-                          placeholder="Nama lengkap Anda"
                           className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
                           required
                         />
                       </div>
                     </div>
 
-                    {/* Lokasi Kejadian */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Lokasi Kejadian <span className="text-red-500">*</span>
                       </label>
-                      <div className="flex gap-2">
-                        <div className="relative flex-grow">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                            <MapPin className="h-4 w-4 text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            name="lokasi_kejadian"
-                            value={formData.lokasi_kejadian}
-                            onChange={handleFormChange}
-                            placeholder="Alamat atau titik koordinat"
-                            className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
-                            required
-                            disabled={useGPS}
-                          />
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                          <MapPin className="h-4 w-4 text-gray-400" />
                         </div>
-                        {/* <button
-                          type="button"
-                          onClick={() => {
-                            setUseGPS(!useGPS);
-                            if (!useGPS) {
-                              getCurrentLocation();
-                            } else {
-                              setFormData(prev => ({ ...prev, lokasi_kejadian: "" }));
-                            }
-                          }}
-                          className="flex items-center justify-center rounded-lg bg-gray-100 px-3 text-xs font-medium text-gray-700 hover:bg-gray-200"
-                        >
-                          {gpsLoading ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <>
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {useGPS ? "Manual" : "GPS"}
-                            </>
-                          )}
-                        </button> */}
+                        <input
+                          type="text"
+                          name="lokasi_kejadian"
+                          value={formData.lokasi_kejadian}
+                          onChange={handleFormChange}
+                          className="block w-full rounded-lg border border-gray-300 p-2 pl-9 text-sm focus:border-blue-500 focus:ring-blue-500"
+                          required
+                        />
                       </div>
-                      {useGPS && formData.lokasi_kejadian && (
-                        <p className="mt-1 text-xs text-gray-500">
-                          Lokasi GPS: {formData.lokasi_kejadian}
-                        </p>
-                      )}
                     </div>
 
-                    {/* Jenis Pengaduan */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Jenis Pengaduan <span className="text-red-500">*</span>
@@ -534,7 +386,6 @@ const PengaduanPage = () => {
                       </select>
                     </div>
 
-                    {/* Deskripsi */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Deskripsi Pengaduan <span className="text-red-500">*</span>
@@ -544,13 +395,11 @@ const PengaduanPage = () => {
                         value={formData.deskripsi_pengaduan}
                         onChange={handleFormChange}
                         rows={3}
-                        placeholder="Jelaskan kejadian secara singkat dan jelas"
                         className="block w-full rounded-lg border border-gray-300 p-2 text-sm focus:border-blue-500 focus:ring-blue-500"
                         required
-                      ></textarea>
+                      />
                     </div>
 
-                    {/* Tanggal Kejadian */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Tanggal Kejadian
@@ -569,7 +418,6 @@ const PengaduanPage = () => {
                       </div>
                     </div>
 
-                    {/* Upload Foto */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-gray-700">
                         Upload Bukti Foto
@@ -592,19 +440,12 @@ const PengaduanPage = () => {
                           </span>
                         )}
                       </div>
-                      <p className="mt-1 text-xs text-gray-500">
-                        Unggah foto bukti kejadian (maks. 5MB)
-                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Sticky Footer with Submit Button */}
                 <div className="sticky bottom-0 border-t bg-white p-4">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
+                  <button
                     onClick={handleSubmit}
                     disabled={isSubmitting}
                     className="flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-70"
@@ -617,7 +458,7 @@ const PengaduanPage = () => {
                     ) : (
                       "Kirim Pengaduan"
                     )}
-                  </motion.button>
+                  </button>
                 </div>
               </motion.div>
             </motion.div>
@@ -630,14 +471,18 @@ const PengaduanPage = () => {
             <div className="flex h-64 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
             </div>
-          ) : pengaduanList.length === 0 ? (
+          ) : filteredPengaduan.length === 0 ? (
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-lg font-medium text-gray-800">
-                Belum ada pengaduan
+                {filter.created_at || filter.jenis_pengaduan ? 
+                 "Tidak ada pengaduan yang sesuai filter" : 
+                 "Belum ada pengaduan"}
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Silakan buat pengaduan baru untuk memulai
+                {filter.created_at || filter.jenis_pengaduan ? 
+                 "Coba ubah kriteria filter Anda" : 
+                 "Silakan buat pengaduan baru untuk memulai"}
               </p>
             </div>
           ) : (
@@ -645,31 +490,18 @@ const PengaduanPage = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      No
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Nama Pelapor
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Jenis
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Deskripsi
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Lokasi
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Tanggal
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Aksi
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">No</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nama Pelapor</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Jenis</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Deskripsi</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Lokasi</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Tanggal</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Bukti Foto</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {pengaduanList.map((pengaduan, index) => (
+                  {filteredPengaduan.map((pengaduan, index) => (
                     <tr key={pengaduan.id} className="hover:bg-gray-50">
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">
                         {index + 1}
@@ -681,15 +513,13 @@ const PengaduanPage = () => {
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
                           pengaduan.jenis_pengaduan === 'KERAMAIAN' 
                             ? 'bg-green-100 text-green-800'
-                            : pengaduan.jenis_pengaduan === 'TUMPUKAN_SAMPAH'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
+                            : 'bg-blue-100 text-blue-800'
                         }`}>
                           {pengaduan.jenis_pengaduan}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {pengaduan.deskripsi_pengaduan || "-"}
+                        {pengaduan.deskripsi_pengaduan}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                         {pengaduan.lokasi_kejadian}
@@ -697,21 +527,30 @@ const PengaduanPage = () => {
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         {new Date(pengaduan.created_at).toLocaleDateString('id-ID')}
                       </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 text-center">
+                        <button
+                          onClick={() => handleOpenImage(pengaduan.foto?.data)}
+                          className="p-2 hover:bg-gray-100 rounded-full transition"
+                          title="Lihat Foto Kejadian"
+                        >
+                          <ImageIcon className="w-6 h-6 text-gray-600" />
+                        </button>
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                         <button
                           onClick={() => {
                             MySwal.fire({
-                              title: `Pengaduan dari ${pengaduan.nama_pelapor}`,
+                              title: `Detail Pengaduan`,
                               html: `
                                 <div class="text-left space-y-2">
+                                  <p><strong>Pelapor:</strong> ${pengaduan.nama_pelapor}</p>
                                   <p><strong>Jenis:</strong> ${pengaduan.jenis_pengaduan}</p>
                                   <p><strong>Lokasi:</strong> ${pengaduan.lokasi_kejadian}</p>
                                   <p><strong>Tanggal:</strong> ${new Date(pengaduan.created_at).toLocaleDateString('id-ID')}</p>
                                   <p><strong>Deskripsi:</strong> ${pengaduan.deskripsi_pengaduan}</p>
-                                  ${pengaduan.foto ? `<img src="${pengaduan.foto.data}" alt="Bukti Foto" class="mt-2 rounded-lg border border-gray-200" />` : ''}
+                                  ${pengaduan.foto?.data ? `<img src="${pengaduan.foto.data}" class="mt-2 rounded-lg border border-gray-200 max-h-60 mx-auto" />` : ''}
                                 </div>
                               `,
-                              showConfirmButton: true,
                               confirmButtonColor: "#3b82f6"
                             });
                           }}

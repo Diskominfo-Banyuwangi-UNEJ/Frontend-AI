@@ -15,9 +15,8 @@ import {
   ChevronDown, 
   ChevronUp,
   Loader2,
-  CheckCircle,
-  AlertCircle,
-  FileText
+  FileText,
+  File
 } from "lucide-react";
 
 const MySwal = withReactContent(Swal);
@@ -49,86 +48,70 @@ const LaporanPage = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+  const token = Cookies.get("authToken");
+
+  const handleOpenFile = (fileData) => {
+  if (fileData && fileData.data) {
+    // Open PDF in new tab
+    window.open(fileData.data, "_blank");
+  } else {
+    Swal.fire({
+      icon: "info",
+      title: "Tidak Ada File",
+      text: "File laporan belum tersedia.",
+      background: "#f8fafc",
+    });
+  }
+};
+
+  // Fetch admin list
+  const fetchAdminList = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const admins = response.data.data.filter(user => 
+        user.role.toUpperCase() === 'ADMIN'
+      );
+      setAdminList(admins);
+    } catch (error) {
+      console.error("Error fetching admin list:", error);
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+  // Fetch laporan data
+  const fetchLaporan = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setLaporanList(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal memuat data",
+        text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
+        background: "#f8fafc",
+        timer: 3000,
+        showConfirmButton: false
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-
-  const formVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.95 }
-  };
-
-  const token = Cookies.get("authToken");
-console.log("Token di komponen ini:", token);
-  
-  // Const Admin
-  const fetchAdminList = async () => {
-  try {
-    const response = await axios.get('http://localhost:3000/api/users', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    console.log('Full response:', response.data); // Debugging
-    
-    // Filter hanya user dengan role ADMIN (case insensitive)
-    const admins = response.data.data.filter(user => 
-      user.role.toUpperCase() === 'ADMIN'
-    );
-    
-    console.log('Filtered admins:', admins); // Debugging
-    setAdminList(admins);
-  } catch (error) {
-    console.error("Error fetching admin list:", error);
-  }
-};
-
-
-  // Fetch data
- const fetchLaporan = async () => {
-  try {
-    setIsLoading(true);
-    const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    setLaporanList(response.data.data || []);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    MySwal.fire({
-      icon: "error",
-      title: "Gagal memuat data",
-      text: error.response?.data?.message || "Terjadi kesalahan saat memuat data",
-      background: "#f8fafc",
-      timer: 3000,
-      showConfirmButton: false
-    });
-  } finally {
-    setIsLoading(false);
-  }
-};
 
   useEffect(() => {
     fetchLaporan();
-    fetchAdminList(); // Pastikan ini dijalankan
-
+    fetchAdminList();
   }, []);
 
+  // Filter handling
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
@@ -141,20 +124,7 @@ console.log("Token di komponen ini:", token);
     );
   });
 
-  useEffect(() => {
-    if ((filter.created_at || filter.status || filter.kategori) && filteredLaporan.length === 0) {
-      MySwal.fire({
-        icon: "info",
-        title: "Laporan tidak ditemukan",
-        toast: true,
-        position: "top",
-        timer: 2500,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
-    }
-  }, [filteredLaporan, filter]);
-
+  // Form handling
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -186,84 +156,86 @@ console.log("Token di komponen ini:", token);
     }
   };
 
+  // Save/Update laporan
   const handleSimpan = async () => {
-  const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
+    const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
 
-  if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
-    MySwal.fire({
-      icon: "error",
-      title: "Data tidak lengkap",
-      text: "Semua field wajib diisi!",
-      timer: 3000,
-      showConfirmButton: false,
-      position: "top",
-      toast: true,
-      background: "#f8fafc"
-    });
-    return;
-  }
-
-  try {
-    setIsSubmitting(true);
-    const payload = {
-      judul_laporan: formData.judul_laporan,
-      deskripsi: formData.deskripsi,
-      kategori: formData.kategori,
-      status: formData.status,
-      created_at: formData.created_at,
-      estimasi: formData.estimasi,
-      filePdf: formData.filePdf,
-      admin_id: formData.admin_id 
-    };
-
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    };
-
-    let response;
-    if (isEditing) {
-      response = await axios.put(
-        `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
-        payload,
-        config
-      );
-    } else {
-      response = await axios.post(
-        `http://localhost:3000/api/laporan/createLaporan`,
-        payload,
-        config
-      );
+    if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
+      MySwal.fire({
+        icon: "error",
+        title: "Data tidak lengkap",
+        text: "Semua field wajib diisi!",
+        timer: 3000,
+        showConfirmButton: false,
+        position: "top",
+        toast: true,
+        background: "#f8fafc"
+      });
+      return;
     }
 
-    await MySwal.fire({
-      icon: "success",
-      title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
-      text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
-      timer: 2000,
-      showConfirmButton: false,
-      background: "#f8fafc"
-    });
+    try {
+      setIsSubmitting(true);
+      const payload = {
+        judul_laporan: formData.judul_laporan,
+        deskripsi: formData.deskripsi,
+        kategori: formData.kategori,
+        status: formData.status,
+        created_at: formData.created_at,
+        estimasi: formData.estimasi,
+        filePdf: formData.filePdf,
+        admin_id: formData.admin_id 
+      };
 
-    resetForm();
-    fetchLaporan();
-  } catch (error) {
-    console.error("Error menyimpan laporan:", error);
-    MySwal.fire({
-      icon: "error",
-      title: "Gagal",
-      text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
-      timer: 3000,
-      showConfirmButton: false,
-      background: "#f8fafc"
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      };
 
+      let response;
+      if (isEditing) {
+        response = await axios.put(
+          `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
+          payload,
+          config
+        );
+      } else {
+        response = await axios.post(
+          `http://localhost:3000/api/laporan/createLaporan`,
+          payload,
+          config
+        );
+      }
+
+      await MySwal.fire({
+        icon: "success",
+        title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
+        text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+
+      resetForm();
+      fetchLaporan();
+    } catch (error) {
+      console.error("Error menyimpan laporan:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Terjadi kesalahan saat menyimpan laporan",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Reset form
   const resetForm = () => {
     setFormData({
       judul_laporan: "",
@@ -281,6 +253,7 @@ console.log("Token di komponen ini:", token);
     setShowPreview(false);
   };
 
+  // Edit laporan
   const handleEdit = (laporan) => {
     setIsEditing(true);
     setSelectedLaporan(laporan);
@@ -289,56 +262,59 @@ console.log("Token di komponen ini:", token);
       deskripsi: laporan.deskripsi,
       kategori: laporan.kategori,
       status: laporan.status,
-      created_at: laporan.created_at,
-      estimasi: laporan.estimasi || 0, 
-      filePdf: laporan.filePdf || null
+      created_at: laporan.created_at.split('T')[0], // Fix date format for input
+      estimasi: laporan.estimasi || 0,
+      filePdf: laporan.filePdf || null,
+      admin_id: laporan.admin_id || ""
     });
     setShowForm(true);
   };
 
+  // Delete laporan
   const handleDelete = async (id) => {
-  const result = await MySwal.fire({
-    title: "Hapus laporan?",
-    text: "Anda tidak dapat mengembalikan data yang sudah dihapus!",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#ef4444",
-    cancelButtonColor: "#64748b",
-    confirmButtonText: "Ya, hapus!",
-    cancelButtonText: "Batal",
-    background: "#f8fafc"
-  });
+    const result = await MySwal.fire({
+      title: "Hapus laporan?",
+      text: "Anda tidak dapat mengembalikan data yang sudah dihapus!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#64748b",
+      confirmButtonText: "Ya, hapus!",
+      cancelButtonText: "Batal",
+      background: "#f8fafc"
+    });
 
-  if (result.isConfirmed) {
-    try {
-      await axios.delete(`http://localhost:3000/api/laporan/deleteLaporan/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
-      MySwal.fire({
-        icon: "success",
-        title: "Terhapus!",
-        text: "Laporan berhasil dihapus",
-        timer: 2000,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
-    } catch (error) {
-      console.error("Error deleting:", error);
-      MySwal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: error.response?.data?.message || "Gagal menghapus laporan",
-        timer: 3000,
-        showConfirmButton: false,
-        background: "#f8fafc"
-      });
+    if (result.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:3000/api/laporan/deleteLaporan/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        setLaporanList(prev => prev.filter(laporan => laporan.id !== id));
+        MySwal.fire({
+          icon: "success",
+          title: "Terhapus!",
+          text: "Laporan berhasil dihapus",
+          timer: 2000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      } catch (error) {
+        console.error("Error deleting:", error);
+        MySwal.fire({
+          icon: "error",
+          title: "Gagal",
+          text: error.response?.data?.message || "Gagal menghapus laporan",
+          timer: 3000,
+          showConfirmButton: false,
+          background: "#f8fafc"
+        });
+      }
     }
-  }
-};
+  };
 
+  // View details
   const handleDetail = (laporan) => {
     MySwal.fire({
       title: laporan.judul_laporan,
@@ -357,36 +333,38 @@ console.log("Token di komponen ini:", token);
     });
   };
 
+  // Status change
   const handleStatusChange = async (e, laporanId) => {
-  const newStatus = e.target.value;
-  try {
-    await axios.put(
-      `http://localhost:3000/api/laporan/updateStatus/${laporanId}`,
-      { status: newStatus },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    const newStatus = e.target.value;
+    try {
+      await axios.put(
+        `http://localhost:3000/api/laporan/updateStatus/${laporanId}`,
+        { status: newStatus },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
         }
-      }
-    );
-    setLaporanList(prev => 
-      prev.map(lap => 
-        lap.id === laporanId ? { ...lap, status: newStatus } : lap
-      )
-    );
-  } catch (error) {
-    console.error("Error updating status:", error);
-    MySwal.fire({
-      icon: "error",
-      title: "Gagal",
-      text: error.response?.data?.message || "Gagal mengupdate status",
-      timer: 3000,
-      showConfirmButton: false,
-      background: "#f8fafc"
-    });
-  }
-};
+      );
+      setLaporanList(prev => 
+        prev.map(lap => 
+          lap.id === laporanId ? { ...lap, status: newStatus } : lap
+        )
+      );
+    } catch (error) {
+      console.error("Error updating status:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Gagal mengupdate status",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    }
+  };
 
+  // Status color
   const getStatusColor = (status) => {
     switch (status) {
       case "diterima":
@@ -412,7 +390,7 @@ console.log("Token di komponen ini:", token);
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">Fitur Manajemen Laporan</h1>
-            <p className="text-slate-600">Daftar Pelaporan Tumpukan Sampah dan Keramaian </p>
+            <p className="text-slate-600">Daftar Pelaporan Tumpukan Sampah dan Keramaian</p>
           </div>
           
           <motion.button
@@ -426,9 +404,10 @@ console.log("Token di komponen ini:", token);
                 deskripsi: "",
                 kategori: "",
                 status: "",
-                created_at: "",
-                estimasi: "",
-                filePdf: null
+                created_at: new Date().toISOString().split('T')[0], // Set default date
+                estimasi: 0,
+                filePdf: null,
+                admin_id: ""
               });
             }}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
@@ -507,12 +486,7 @@ console.log("Token di komponen ini:", token);
         </motion.div>
 
         {/* Data Table */}
-        <motion.div
-          className="rounded-lg bg-white shadow-sm"
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-        >
+        <div className="rounded-lg bg-white shadow-sm">
           {isLoading ? (
             <div className="flex h-64 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
@@ -530,65 +504,27 @@ console.log("Token di komponen ini:", token);
                   ? "Coba ubah filter pencarian Anda" 
                   : "Buat laporan baru untuk memulai"}
               </p>
-              {!(filter.created_at || filter.status || filter.kategori) && (
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  <Plus className="mr-1 h-4 w-4" />
-                  Buat Laporan
-                </button>
-              )}
             </div>
           ) : (
-            
-            
-            
-            
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      No
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Penanggung Jawab
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Judul
-                    </th>
-                   
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Deskripsi
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Jenis
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Tanggal
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Estimasi
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      File
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                      Aksi
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">No</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Penanggung Jawab</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Judul</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Deskripsi</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Jenis</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Tanggal</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Estimasi</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">File</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {filteredLaporan.map((laporan, index) => (
-                    <motion.tr
-                      key={laporan.id}
-                      variants={itemVariants}
-                      className="hover:bg-slate-50"
-                    >
+                    <tr key={laporan.id} className="hover:bg-slate-50">
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {index + 1}
                       </td>
@@ -598,9 +534,9 @@ console.log("Token di komponen ini:", token);
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {laporan.judul_laporan}
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-500 max-w-xs overflow-hidden text-ellipsis">
-  {laporan.deskripsi || '-'}
-</td>
+                      <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">
+                        {laporan.deskripsi || '-'}
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm capitalize text-slate-500">
                         {laporan.kategori}
                       </td>
@@ -619,22 +555,27 @@ console.log("Token di komponen ini:", token);
                         {new Date(laporan.created_at).toLocaleDateString("id-ID")}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-  {laporan.estimasi ? `${laporan.estimasi} hari` : '-'}
-</td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                        {laporan.filePdf ? (
-                          <a
-                            href={laporan.filePdf.data}
-                            download={laporan.filePdf.name}
-                            className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
-                          >
-                            <Download className="mr-1 h-4 w-4" />
-                            {laporan.filePdf.name}
-                          </a>
-                        ) : (
-                          "-"
-                        )}
+                        {laporan.estimasi ? `${laporan.estimasi} hari` : '-'}
                       </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                      <button
+                        onClick={() => handleOpenFile(laporan.filePdf)}
+                         className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                        title={laporan.filePdf ? "Lihat File" : "Tidak ada file"}
+                      >
+                        {laporan.filePdf ? (
+                          <>
+                            <FileText className="mr-1 h-5 w-5" />
+                            <span>Lihat File</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="mr-1 h-5 w-5 text-gray-400" />
+                            <span className="text-gray-500"></span>
+                          </>
+                        )}
+                      </button>
+                    </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                         <div className="flex space-x-2">
                           <button
@@ -660,259 +601,243 @@ console.log("Token di komponen ini:", token);
                           </button>
                         </div>
                       </td>
-                    </motion.tr>
+                    </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-        </motion.div>
-      </div>
+        </div>
 
-    {/* Form Modal */}
-     <AnimatePresence>
-      {showForm && (
-        <motion.div
-          className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-        >
-          {/* Backdrop */}
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-50"
-            onClick={resetForm}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          />
-
-          {/* Form Container */}
-          <motion.div
-            className="relative w-full max-w-2xl mx-auto my-8 rounded-xl bg-white shadow-xl"
-            variants={formVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ type: "spring", damping: 25 }}
-          >
-            {/* Close Button */}
-            <button
-              onClick={resetForm}
-              className="absolute -right-2 -top-2 z-10 rounded-full bg-white p-1 shadow-md hover:bg-gray-100"
+        {/* Form Modal */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             >
-              <X size={20} className="text-gray-600" />
-            </button>
-
-            {/* Form Content */}
-            <div className="max-h-[80vh] overflow-y-auto p-6">
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold text-slate-800">
-                  {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
-                </h2>
-              </div>
-
-              {/* Admin Penanggung Jawab */}
-              <div className="mb-4">
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Admin Penanggung Jawab
-                </label>
-                <select
-                  name="admin_id"
-                  value={formData.admin_id}
-                  onChange={handleFormChange}
-                  className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  required
-                >
-                  <option value="">Pilih Admin</option>
-                  {adminList.length > 0 ? (
-                    adminList.map(admin => (
-                      <option key={admin.username} value={admin.username}>
-                        {admin.name_lengkap || admin.username}
-                      </option>
-                    ))
-                  ) : (
-                    <option value="" disabled>Tidak ada admin tersedia</option>
-                  )}
-                </select>
-              </div>
-
-              <div className="space-y-4">
-                {/* Judul Laporan */}
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Judul Laporan
-                  </label>
-                  <input
-                    type="text"
-                    name="judul_laporan"
-                    value={formData.judul_laporan}
-                    onChange={handleFormChange}
-                    placeholder="Masukkan judul laporan"
-                    className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                </div>
-
-                {/* Isi Laporan */}
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Isi Laporan
-                  </label>
-                  <textarea
-                    name="deskripsi"
-                    value={formData.deskripsi}
-                    onChange={handleFormChange}
-                    rows={4}
-                    placeholder="Tulis isi laporan secara detail"
-                    className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                  ></textarea>
-                </div>
-
-                {/* Jenis Laporan dan Status */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Jenis Laporan
-                    </label>
-                    <select
-                      name="kategori"
-                      value={formData.kategori}
-                      onChange={handleFormChange}
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+              <motion.div
+                className="fixed inset-0 bg-black bg-opacity-50"
+                onClick={resetForm}
+              />
+              
+              <motion.div
+                className="relative w-full max-w-2xl mx-auto my-8 rounded-xl bg-white shadow-xl"
+                initial={{ scale: 0.95 }}
+                animate={{ scale: 1 }}
+                exit={{ scale: 0.95 }}
+              >
+                <div className="sticky top-0 z-10 border-b bg-white p-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold text-slate-800">
+                      {isEditing ? "Edit Laporan" : "Buat Laporan Baru"}
+                    </h2>
+                    <button
+                      onClick={resetForm}
+                      className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                     >
-                      <option value="">Pilih Kategori Laporan</option>
-                      <option value="KERAMAIAN">Keramaian</option>
-                      <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Status
-                    </label>
-                    <select
-                      name="status"
-                      value={formData.status}
-                      onChange={handleFormChange}
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                      <option value="">Pilih Status</option>
-                      <option value="diterima">Diterima</option>
-                      <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                      <option value="selesai">Selesai</option>
-                    </select>
+                      <X size={20} />
+                    </button>
                   </div>
                 </div>
 
-                {/* Tanggal dan Estimasi */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Tanggal
-                    </label>
-                    <input
-                      type="date"
-                      name="created_at"
-                      value={formData.created_at}
-                      onChange={handleFormChange}
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Estimasi Penyelesaian (hari)
-                    </label>
-                    <input
-                      type="number"
-                      name="estimasi"
-                      value={formData.estimasi}
-                      onChange={handleFormChange}
-                      min="0"
-                      className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                {/* File PDF */}
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    File PDF (Opsional)
-                  </label>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                    className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:border-indigo-500 focus:ring-indigo-500"
-                  />
-                  {formData.filePdf && (
-                    <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
-                      <span className="truncate text-sm text-slate-700">
-                        {formData.filePdf.name}
-                      </span>
-                      <button
-                        onClick={() => setShowPreview(!showPreview)}
-                        className="ml-2 text-sm text-indigo-600 hover:text-indigo-800"
+                <div className="max-h-[80vh] overflow-y-auto p-6">
+                  <div className="space-y-4">
+                    {/* Admin Penanggung Jawab */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Admin Penanggung Jawab
+                      </label>
+                      <select
+                        name="admin_id"
+                        value={formData.admin_id}
+                        onChange={handleFormChange}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        required
                       >
-                        {showPreview ? "Sembunyikan" : "Lihat"}
-                      </button>
+                        <option value="">Pilih Admin</option>
+                        {adminList.map(admin => (
+                          <option key={admin.username} value={admin.username}>
+                            {admin.name_lengkap || admin.username}
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                  )}
-                </div>
 
-                {/* PDF Preview */}
-                {showPreview && formData.filePdf && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="overflow-hidden rounded-lg border border-slate-200"
-                  >
-                    <iframe
-                      src={formData.filePdf.data}
-                      title="PDF Preview"
-                      className="h-96 w-full"
-                    />
-                  </motion.div>
-                )}
+                    {/* Judul Laporan */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Judul Laporan
+                      </label>
+                      <input
+                        type="text"
+                        name="judul_laporan"
+                        value={formData.judul_laporan}
+                        onChange={handleFormChange}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
 
-                {/* Action Buttons */}
-                <div className="flex justify-end gap-2 pt-6">
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={resetForm}
-                    className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
-                  >
-                    Batal
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="button"
-                    onClick={handleSimpan}
-                    disabled={isSubmitting}
-                    className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : isEditing ? (
-                      "Update Laporan"
-                    ) : (
-                      "Simpan Laporan"
+                    {/* Deskripsi */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Deskripsi
+                      </label>
+                      <textarea
+                        name="deskripsi"
+                        value={formData.deskripsi}
+                        onChange={handleFormChange}
+                        rows={4}
+                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        required
+                      />
+                    </div>
+
+                    {/* Jenis dan Status */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
+                          Jenis Laporan
+                        </label>
+                        <select
+                          name="kategori"
+                          value={formData.kategori}
+                          onChange={handleFormChange}
+                          className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          required
+                        >
+                          <option value="">Pilih Jenis</option>
+                          <option value="KERAMAIAN">Keramaian</option>
+                          <option value="TUMPUKAN_SAMPAH">Tumpukan Sampah</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
+                          Status
+                        </label>
+                        <select
+                          name="status"
+                          value={formData.status}
+                          onChange={handleFormChange}
+                          className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          required
+                        >
+                          <option value="">Pilih Status</option>
+                          <option value="diterima">Diterima</option>
+                          <option value="dalam pengerjaan">Dalam Pengerjaan</option>
+                          <option value="selesai">Selesai</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Tanggal dan Estimasi */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
+                          Tanggal
+                        </label>
+                        <input
+                          type="date"
+                          name="created_at"
+                          value={formData.created_at}
+                          onChange={handleFormChange}
+                          className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="mb-1 block text-sm font-medium text-slate-700">
+                          Estimasi (hari)
+                        </label>
+                        <input
+                          type="number"
+                          name="estimasi"
+                          value={formData.estimasi}
+                          onChange={handleFormChange}
+                          min="0"
+                          className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* File PDF */}
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        File PDF (Opsional)
+                      </label>
+                      <input
+                        type="file"
+                        accept="application/pdf"
+                        onChange={handleFileChange}
+                        className="w-full rounded-lg border border-slate-300 p-2 text-sm file:mr-4 file:rounded file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100"
+                      />
+                      {formData.filePdf && (
+                        <div className="mt-2 flex items-center justify-between rounded-lg bg-slate-50 p-2">
+                          <span className="flex items-center text-sm text-slate-700">
+                            <File className="mr-2 h-4 w-4" />
+                            {formData.filePdf.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowPreview(!showPreview)}
+                            className="text-sm text-indigo-600 hover:text-indigo-800"
+                          >
+                            {showPreview ? "Sembunyikan" : "Lihat"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* PDF Preview */}
+                    {showPreview && formData.filePdf && (
+                      <div className="mt-4 rounded-lg border border-slate-200">
+                        <iframe
+                          src={formData.filePdf.data}
+                          className="h-96 w-full"
+                          title="PDF Preview"
+                        />
+                      </div>
                     )}
-                  </motion.button>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={resetForm}
+                      className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSimpan}
+                      disabled={isSubmitting}
+                      className="flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:opacity-70"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : isEditing ? (
+                        "Update Laporan"
+                      ) : (
+                        "Simpan Laporan"
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </motion.div>
   );
 };

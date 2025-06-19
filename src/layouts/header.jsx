@@ -19,6 +19,8 @@ export const Header = ({ collapsed, setCollapsed }) => {
     const { logout, userRole } = useAuth();
     const navigate = useNavigate();
     const [hasNotification, setHasNotification] = useState(false);
+    const [formErrors, setFormErrors] = useState({});
+
 
     // Check if user is public (MASYARAKAT or not logged in)
     const isPublicUser = !userRole || userRole === 'MASYARAKAT';
@@ -59,6 +61,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
         status: '',
         username: '',
         email: '',
+        password: ''
     });
 
     // Initialize edit data when userData is available
@@ -69,7 +72,8 @@ export const Header = ({ collapsed, setCollapsed }) => {
                 nama_pimpinan: userData.nama_pimpinan,
                 status: userData.status,
                 username: userData.username,
-                email: userData.email
+                email: userData.email,
+                password: userData.password
             });
         }
     }, [userData]);
@@ -82,26 +86,77 @@ export const Header = ({ collapsed, setCollapsed }) => {
     const handleBellClick = () => {
         navigate("/notifikasi");
     };
+     const validateForm = () => {
+    const errors = {};
+    if (!editData.name_lengkap) errors.name_lengkap = 'Leader name is required';
+    if (!editData.username) errors.username = 'Username is required';
+    if (!editData.email) {
+      errors.email = 'Email is required';
+    } else if (!/^\S+@\S+\.\S+$/.test(editData.email)) {
+      errors.email = 'Invalid email format';
+    }
+    if (!editData.password) {
+      errors.password = 'Password is required';
+    } else if (editData.password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
 
-    const handleSave = async () => {
-        try {
-            const response = await axios.put(
-                'http://localhost:3000/api/users',
-                editData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
-                    }
-                }
-            );
-            setUserData(response.data.data);
-            setShowEditForm(false);
-            alert('Data berhasil diperbarui');
-        } catch (error) {
-            console.error('Error updating user data:', error);
-            alert('Gagal memperbarui data');
-        }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+    const handleSave = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
+
+  try {
+    const payload = {
+      name_lengkap: editData.name_lengkap,
+      email: editData.email,
+      username: editData.username,
+      password: editData.password,
+      role: editData.status,
+      nama_instansi: editData.nama_instansi,
     };
+
+    await axios.put(`http://localhost:3000/api/users/${currentEditId}`, payload, {
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Data akun berhasil diperbarui',
+      timer: 2000,
+      showConfirmButton: false,
+      background: '#f8fafc',
+    });
+
+    // Reset form & status setelah update
+    setIsFormVisible(false);
+    setIsEditMode(false);
+    setCurrentEditId(null);
+    setEditData({
+      nama_instansi: '',
+      name_lengkap: '',
+      status: '',
+      username: '',
+      email: '',
+      password: '',
+    });
+
+    fetchAkunList();
+  } catch (error) {
+    console.error('Gagal memperbarui akun:', error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal!',
+      text: error.response?.data?.message || 'Gagal memperbarui akun',
+      background: '#f8fafc',
+    });
+  }
+};
+
 
     const handleLogout = () => {
         logout();
@@ -137,43 +192,16 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     <div className="w-[400px] rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
                         <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">Mengubah Data Akun</h2>
                         <div className="space-y-4">
-                            <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Masukkan nama lengkap, termasuk gelar.</p>
+                              <div>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Tulis nama pimpinan instansi.</p>
                                 <input
-                                    id="nama_instansi"
-                                    name="nama_instansi"
-                                    value={editData.nama_instansi}
+                                    id="name_lengkap"
+                                    name="name_lengkap"
+                                    value={editData.name_lengkap}
                                     onChange={handleInputChange}
                                     placeholder="Contoh: Pak Aziz M.Pd."
                                     className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
                                 />
-                            </div>
-
-                            <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Tulis nama instansi sesuai dokumen resmi.</p>
-                                <input
-                                    id="nama_pimpinan"
-                                    name="nama_pimpinan"
-                                    value={editData.nama_pimpinan}
-                                    onChange={handleInputChange}
-                                    placeholder="Contoh: Diskominfo"
-                                    className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
-                                />
-                            </div>
-
-                            <div>
-                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Role pengguna.</p>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    value={editData.status}
-                                    onChange={handleInputChange}
-                                    className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
-                                    disabled
-                                >
-                                    <option value="ADMIN">Admin</option>
-                                    <option value="PEMERINTAH">Pemerintah</option>
-                                </select>
                             </div>
 
                             <div>
@@ -196,6 +224,17 @@ export const Header = ({ collapsed, setCollapsed }) => {
                                     value={editData.email}
                                     onChange={handleInputChange}
                                     placeholder="Contoh: admintampan@mail.com"
+                                    className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
+                                />
+                            </div>
+                            <div>
+                                <p className="mb-1 text-xs text-slate-600 dark:text-slate-400">Password</p>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    value={editData.password}
+                                    onChange={handleInputChange}
+                                    placeholder="Contoh: admin123"
                                     className="input-field w-full rounded border p-2 text-sm dark:bg-slate-800 dark:text-white"
                                 />
                             </div>

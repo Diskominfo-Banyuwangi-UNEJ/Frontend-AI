@@ -4,6 +4,8 @@ import { AuthContext } from "@/contexts/auth-context";
 import login5 from "@/assets/login5.png";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { Eye, EyeOff } from "lucide-react"; // Import ikon mata
+
 
 // Fungsi helper untuk mendapatkan user by email
 const getUserByEmail = async (email, token) => {
@@ -32,6 +34,8 @@ export default function LoginForm() {
     const [isLoading, setIsLoading] = useState(false);
     const { login } = useContext(AuthContext);
     const navigate = useNavigate();
+        const [showPassword, setShowPassword] = useState(false); // State untuk mengontrol visibilitas password
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -116,15 +120,22 @@ export default function LoginForm() {
                             />
                         </div>
 
-                        <div className="flex flex-col gap-1 mt-4 text-sm">
+                         <div className="flex flex-col gap-1 mt-4 text-sm relative">
                             <label>Password</label>
                             <input
-                                type="password"
+                                type={showPassword ? "text" : "password"} // Mengubah tipe input berdasarkan state
                                 className="rounded-md border border-gray-300 p-2 outline-none focus:border-cyan-400 focus:bg-slate-50"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                             />
+                            <button
+                                type="button"
+                                className="absolute right-2 top-8"
+                                onClick={() => setShowPassword(!showPassword)} // Toggle visibilitas password
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />} {/* Ikon mata */}
+                            </button>
                         </div>
 
                        

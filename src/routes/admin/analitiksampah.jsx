@@ -896,12 +896,22 @@ const handleSimpan = async () => {
                                     <td className="px-4 py-2">{item.longitude || '-'}</td>
                                     <td className="px-4 py-2">{item.presentase ? `${item.presentase}%` : '-'}</td>
                                     <td className="px-4 py-2">{item.status || '-'}</td>
-                                    <td className="px-4 py-2">
-                                        {item.url_cctv ? (
-                                            <a href={item.url_cctv} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                                                Lihat Live
-                                            </a>
-                                        ) : 'Tidak Ada'}
+                                    <td className="px-4 py-2 text-center">
+                                      {item.url_cctv ? (
+                                        <a 
+                                          href={item.url_cctv} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer" 
+                                          className="inline-block p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                                          title="Lihat Live CCTV"
+                                        >
+                                          <Video className="w-5 h-5" />
+                                        </a>
+                                      ) : (
+                                        <span className="text-gray-400">
+                                          <Video className="w-5 h-5 inline-block" />
+                                        </span>
+                                      )}
                                     </td>
                                     <td className="px-4 py-2 flex gap-2">
                                         <button 
