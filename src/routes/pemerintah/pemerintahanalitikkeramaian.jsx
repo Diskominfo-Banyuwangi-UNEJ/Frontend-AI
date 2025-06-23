@@ -298,7 +298,7 @@ const handleFormChange = (e) => {
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="title">Analytics Keramaian</h1>
-            <h1 className="mt-3 text-center font-extrabold">CCTV Keramaian</h1>
+            <h1 className="mt-3 font-extrabold text-center">CCTV Keramaian</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {/* Card Status Low */}
             <motion.div
@@ -307,7 +307,7 @@ const handleFormChange = (e) => {
                 className="card"
             >
                 <div className="card-header">
-                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                <div className="p-2 text-blue-500 rounded-lg w-fit bg-blue-500/20">
                     <Video size={26} />
                 </div>
                 <p className="card-title">Jumlah CCTV</p>
@@ -336,7 +336,7 @@ const handleFormChange = (e) => {
                 className="card"
             >
                 <div className="card-header">
-                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                <div className="p-2 text-blue-500 rounded-lg w-fit bg-blue-500/20">
                     <CheckCircle2 size={26} />
                 </div>
                 <p className="card-title">CCTV Berfungsi</p>
@@ -365,7 +365,7 @@ const handleFormChange = (e) => {
                 className="card"
             >
                 <div className="card-header">
-                <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500">
+                <div className="p-2 text-blue-500 rounded-lg w-fit bg-blue-500/20">
                     <AlertTriangle size={26} />
                 </div>
                 <p className="card-title">CCTV Rusak</p>
@@ -388,18 +388,18 @@ const handleFormChange = (e) => {
             </motion.div>
             </div>
 
-                                                  <h1 className="font-bold text-center mt-4">Status Keramaian</h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center mt-1">
+                                                  <h1 className="mt-4 font-bold text-center">Status Keramaian</h1>
+            <div className="grid grid-cols-1 gap-4 mt-1 text-center md:grid-cols-3">
 
             {/* Status Low (Merah) */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.1 }}
-        className="bg-green-100 border-l-4 border-r-4 border-green-500 rounded-xl p-4 shadow-lg"
+        className="p-4 bg-green-100 border-l-4 border-r-4 border-green-500 shadow-lg rounded-xl"
       >
         <h3 className="text-lg font-semibold text-green-600">🟢 Status Sepi</h3>
-        <p className="text-gray-700 mt-1">Rentang: 1-20 orang</p>
+        <p className="mt-1 text-gray-700">Rentang: 1-20 orang</p>
       </motion.div>
 
       {/* Status Normal (Kuning) */}
@@ -407,10 +407,10 @@ const handleFormChange = (e) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.3 }}
-        className="bg-yellow-100 border-l-4 border-r-4 border-yellow-500 rounded-xl p-4 shadow-lg"
+        className="p-4 bg-yellow-100 border-l-4 border-r-4 border-yellow-500 shadow-lg rounded-xl"
       >
         <h3 className="text-lg font-semibold text-yellow-600">🟡 Status Normal</h3>
-        <p className="text-gray-700 mt-1">Rentang: 21-50 orang</p>
+        <p className="mt-1 text-gray-700">Rentang: 21-50 orang</p>
       </motion.div>
 
       {/* Status High (Hijau) */}
@@ -418,10 +418,10 @@ const handleFormChange = (e) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.5 }}
-        className="bg-red-100 border-l-4 border-r-4 border-red-500 rounded-xl p-4 shadow-lg"
+        className="p-4 bg-red-100 border-l-4 border-r-4 border-red-500 shadow-lg rounded-xl"
       >
         <h3 className="text-lg font-semibold text-red-600">🔴 Status Padat</h3>
-        <p className="text-gray-700 mt-1">Rentang: &gt; 51 orang</p>
+        <p className="mt-1 text-gray-700">Rentang: &gt; 51 orang</p>
       </motion.div>
     </div>
     
@@ -433,14 +433,14 @@ const handleFormChange = (e) => {
 
           
 
-            <h1 className="mt-4 text-center font-bold">Analisis Keramaian Harian dan Bulanan</h1>
+            <h1 className="mt-4 font-bold text-center">Analisis Keramaian Harian dan Bulanan</h1>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <div className="card col-span-1 md:col-span-2 lg:col-span-4">
+                <div className="col-span-1 card md:col-span-2 lg:col-span-4">
                     <div className="card-header">
                         <p className="card-title">Grafik Per Bulan Keramaian</p>
                         
                     </div>
-                    <div className="card-body p-0">
+                    <div className="p-0 card-body">
                         <ResponsiveContainer
                             width="100%"
                             height={300}
@@ -504,7 +504,7 @@ const handleFormChange = (e) => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-                <div className="card col-span-1 md:col-span-2 lg:col-span-3">
+                <div className="col-span-1 card md:col-span-2 lg:col-span-3">
                     <div className="card-header">
                         <p className="card-title">Presentase Status Per Hari</p>
                        
@@ -542,12 +542,12 @@ const handleFormChange = (e) => {
                     </div>
                 </div>
             </div>
-            <h1 className="mb-2 mt-8 text-center font-bold">
+            <h1 className="mt-8 mb-2 font-bold text-center">
                 Sebaran CCTV Keramaian Kabupaten Banyuwangi
                 </h1>
                 <div className="card col-span-full">
                 {/* Kalau kamu punya header, pastikan z-index-nya lebih tinggi */}
-                {/* <div className="card-header z-50 relative">
+                {/* <div className="relative z-50 card-header">
                     <p className="card-title">Sebaran CCTV Tumpukan Sampah Kabupaten Banyuwangi</p>
                 </div> */}
                 <div className="card-body h-[400px] overflow-hidden p-0 relative z-0">
@@ -577,11 +577,11 @@ const handleFormChange = (e) => {
 
         {!showJavanaTable && (
                         <div className="flex justify-center">
-                            <div className="card p-6 text-center bg-white">
+                            <div className="p-6 text-center bg-white card">
                                 <p className="mb-4 text-lg font-medium text-gray-700">Klik tombol di bawah ini untuk melihat detail informasi dari CCTV</p>
                                 <button
                                     onClick={() => setShowJavanaTable(true)}
-                                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-800"
+                                    className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-800"
                                 >
                                     Informasi CCTV
                                 </button>
@@ -608,15 +608,15 @@ const handleFormChange = (e) => {
                         initial={{ y: -20, scale: 0.98 }}
                         animate={{ y: 0, scale: 1 }}
                         exit={{ y: 20, scale: 0.98 }}
-                        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800"
+                        className="w-full max-w-md p-6 bg-white shadow-2xl rounded-xl dark:bg-slate-800"
                         >
-                        <div className="mb-6 flex items-center justify-between">
+                        <div className="flex items-center justify-between mb-6">
                             <h3 className="text-xl font-semibold text-slate-800 dark:text-white">
                             Tambah Data CCTV
                             </h3>
                             <button
                             onClick={() => setShowForm(false)}
-                            className="rounded-full p-1 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
+                            className="p-1 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-700"
                             >
                             <X size={20} />
                             </button>
@@ -629,7 +629,7 @@ const handleFormChange = (e) => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                {/* <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {/* <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Nomor
                                 </label>
                                 <input
@@ -643,7 +643,7 @@ const handleFormChange = (e) => {
                                 </div> 
 
                                 <div>
-                                {/* <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {/* <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Timestamp
                                 </label>
                                 <input
@@ -657,7 +657,7 @@ const handleFormChange = (e) => {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Lokasi CCTV
                                 </label>
                                 <input
@@ -671,7 +671,7 @@ const handleFormChange = (e) => {
                             </div>
 
                                 <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Alamat
                                 </label>
                                 <input
@@ -686,7 +686,7 @@ const handleFormChange = (e) => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Latitude
                                 </label>
                                 <input
@@ -700,7 +700,7 @@ const handleFormChange = (e) => {
                                 </div>
 
                                 <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                     Longitude
                                 </label>
                                 <input
@@ -715,7 +715,7 @@ const handleFormChange = (e) => {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Presentase Sampah (%)
                                 </label>
                                 <input
@@ -731,7 +731,7 @@ const handleFormChange = (e) => {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Status Sampah
                                 </label>
                                 <select
@@ -749,7 +749,7 @@ const handleFormChange = (e) => {
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                <label className="block mb-1 text-sm font-medium text-slate-700 dark:text-slate-300">
                                 Live CCTV URL
                                 </label>
                                 <input
@@ -788,10 +788,10 @@ const handleFormChange = (e) => {
                     )}
         
                       {/* CCTV Data Table */}
-                      <div className="card-body p-0">
+                      <div className="p-0 card-body">
                         <div className="relative h-[500px] w-full flex-shrink-0 overflow-auto rounded-none [scrollbar-width:_thin]">
                           <table className="table">
-                                <thead className="bg-gray-100 dark:bg-slate-700 text-xs uppercase">
+                                <thead className="text-xs uppercase bg-gray-100 dark:bg-slate-700">
                                 <tr>
                                 <th scope="col" className="px-4 py-3">No</th>
                                 <th scope="col" className="px-4 py-3">Timestamp</th>
@@ -830,18 +830,18 @@ const handleFormChange = (e) => {
         
                         {/* Pagination */}
                         <div className="flex items-center justify-between px-4 py-3 border-t">
-                          <div className="flex-1 flex justify-between sm:hidden">
+                          <div className="flex justify-between flex-1 sm:hidden">
                             <button
                               onClick={() => handlePageChange(currentPage - 1)}
                               disabled={currentPage === 1}
-                              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                               Previous
                             </button>
                             <button
                               onClick={() => handlePageChange(currentPage + 1)}
                               disabled={currentPage === totalPages}
-                              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                              className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                             >
                               Next
                             </button>
@@ -856,14 +856,14 @@ const handleFormChange = (e) => {
                               </p>
                             </div>
                             <div>
-                              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                              <nav className="inline-flex -space-x-px rounded-md shadow-sm isolate" aria-label="Pagination">
                                 <button
                                   onClick={() => handlePageChange(currentPage - 1)}
                                   disabled={currentPage === 1}
-                                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                                  className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-l-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 >
                                   <span className="sr-only">Previous</span>
-                                  <ChevronLeft className="h-5 w-5" />
+                                  <ChevronLeft className="w-5 h-5" />
                                 </button>
                                 
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -883,10 +883,10 @@ const handleFormChange = (e) => {
                                 <button
                                   onClick={() => handlePageChange(currentPage + 1)}
                                   disabled={currentPage === totalPages}
-                                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                                  className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-r-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                                 >
                                   <span className="sr-only">Next</span>
-                                  <ChevronRight className="h-5 w-5" />
+                                  <ChevronRight className="w-5 h-5" />
                                 </button>
                               </nav>
                             </div>
