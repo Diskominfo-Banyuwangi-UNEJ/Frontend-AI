@@ -35,11 +35,11 @@ const LaporanPage = () => {
     judul_laporan: "",
     deskripsi: "",
     kategori: "",
-    status: "",
+    status_pengerjaan: "DITERIMA",
     created_at: "",
     estimasi: 0,
     filePdf: "",
-    admin_id: "" 
+    id_user: ""
   });
   
   const [isEditing, setIsEditing] = useState(false);
@@ -51,20 +51,18 @@ const LaporanPage = () => {
   const token = Cookies.get("authToken");
 
   const handleOpenFile = (fileData) => {
-  if (fileData && fileData.data) {
-    // Open PDF in new tab
-    window.open(fileData.data, "_blank");
-  } else {
-    Swal.fire({
-      icon: "info",
-      title: "Tidak Ada File",
-      text: "File laporan belum tersedia.",
-      background: "#f8fafc",
-    });
-  }
-};
+    if (fileData && fileData.data) {
+      window.open(fileData.data, "_blank");
+    } else {
+      Swal.fire({
+        icon: "info",
+        title: "Tidak Ada File",
+        text: "File laporan belum tersedia.",
+        background: "#f8fafc",
+      });
+    }
+  };
 
-  // Fetch admin list
   const fetchAdminList = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/users', {
@@ -81,13 +79,16 @@ const LaporanPage = () => {
     }
   };
 
-  // Fetch laporan data
   const fetchLaporan = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(`http://localhost:3000/api/laporan/getAllLaporan`, {
         headers: {
           'Authorization': `Bearer ${token}`
+        },
+        params: {
+          status: filter.status,
+          kategori: filter.kategori
         }
       });
       setLaporanList(response.data.data || []);
@@ -109,22 +110,12 @@ const LaporanPage = () => {
   useEffect(() => {
     fetchLaporan();
     fetchAdminList();
-  }, []);
+  }, [filter.status, filter.kategori]);
 
-  // Filter handling
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
 
-  const filteredLaporan = laporanList.filter((laporan) => {
-    return (
-      (!filter.created_at || laporan.created_at.includes(filter.created_at)) &&
-      (!filter.status || laporan.status === filter.status) &&
-      (!filter.kategori || laporan.kategori === filter.kategori)
-    );
-  });
-
-  // Form handling
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -156,15 +147,14 @@ const LaporanPage = () => {
     }
   };
 
-  // Save/Update laporan
   const handleSimpan = async () => {
-    const { judul_laporan, deskripsi, kategori, status, created_at } = formData;
+    const { judul_laporan, deskripsi, kategori, status_pengerjaan, created_at, id_user } = formData;
 
-    if (!judul_laporan || !deskripsi || !kategori || !status || !created_at) {
+    if (!judul_laporan || !deskripsi || !kategori || !created_at || !id_user) {
       MySwal.fire({
         icon: "error",
         title: "Data tidak lengkap",
-        text: "Semua field wajib diisi!",
+        text: "Semua field wajib diisi kecuali file PDF!",
         timer: 3000,
         showConfirmButton: false,
         position: "top",
@@ -180,12 +170,15 @@ const LaporanPage = () => {
         judul_laporan: formData.judul_laporan,
         deskripsi: formData.deskripsi,
         kategori: formData.kategori,
-        status: formData.status,
+        status_pengerjaan: formData.status_pengerjaan,
         created_at: formData.created_at,
         estimasi: formData.estimasi,
-        filePdf: formData.filePdf,
-        admin_id: formData.admin_id 
+        id_user: formData.id_user
       };
+
+      if (formData.filePdf) {
+        payload.filePdf = formData.filePdf;
+      }
 
       const config = {
         headers: {
@@ -235,17 +228,16 @@ const LaporanPage = () => {
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       judul_laporan: "",
       deskripsi: "",
       kategori: "",
-      status: "",
+      status_pengerjaan: "DITERIMA",
       created_at: "",
-      estimasi: 0, 
+      estimasi: 0,
       filePdf: null,
-      admin_id: ""
+      id_user: ""
     });
     setShowForm(false);
     setIsEditing(false);
@@ -253,7 +245,6 @@ const LaporanPage = () => {
     setShowPreview(false);
   };
 
-  // Edit laporan
   const handleEdit = (laporan) => {
     setIsEditing(true);
     setSelectedLaporan(laporan);
@@ -261,16 +252,15 @@ const LaporanPage = () => {
       judul_laporan: laporan.judul_laporan,
       deskripsi: laporan.deskripsi,
       kategori: laporan.kategori,
-      status: laporan.status,
-      created_at: laporan.created_at.split('T')[0], // Fix date format for input
+      status_pengerjaan: laporan.status_pengerjaan,
+      created_at: laporan.created_at.split('T')[0],
       estimasi: laporan.estimasi || 0,
       filePdf: laporan.filePdf || null,
-      admin_id: laporan.admin_id || ""
+      id_user: laporan.id_user || ""
     });
     setShowForm(true);
   };
 
-  // Delete laporan
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
       title: "Hapus laporan?",
@@ -314,7 +304,6 @@ const LaporanPage = () => {
     }
   };
 
-  // View details
   const handleDetail = (laporan) => {
     MySwal.fire({
       title: laporan.judul_laporan,
@@ -322,7 +311,7 @@ const LaporanPage = () => {
         <div class="text-left space-y-2">
           <p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>
           <p><strong>Jenis:</strong> ${laporan.kategori}</p>
-          <p><strong>Status:</strong> <span class="capitalize">${laporan.status}</span></p>
+          <p><strong>Status:</strong> <span class="capitalize">${laporan.status_pengerjaan.toLowerCase()}</span></p>
           <p><strong>Tanggal:</strong> ${new Date(laporan.created_at).toLocaleDateString("id-ID")}</p>
           ${laporan.filePdf ? `<p><strong>File:</strong> ${laporan.filePdf.name}</p>` : ''}
         </div>
@@ -333,13 +322,12 @@ const LaporanPage = () => {
     });
   };
 
-  // Status change
   const handleStatusChange = async (e, laporanId) => {
     const newStatus = e.target.value;
     try {
-      await axios.put(
-        `http://localhost:3000/api/laporan/updateStatus/${laporanId}`,
-        { status: newStatus },
+      await axios.patch(
+        `http://localhost:3000/api/laporan/updateStatusLaporan/${laporanId}`,
+        { status_pengerjaan: newStatus },
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -348,7 +336,7 @@ const LaporanPage = () => {
       );
       setLaporanList(prev => 
         prev.map(lap => 
-          lap.id === laporanId ? { ...lap, status: newStatus } : lap
+          lap.id === laporanId ? { ...lap, status_pengerjaan: newStatus } : lap
         )
       );
     } catch (error) {
@@ -364,18 +352,55 @@ const LaporanPage = () => {
     }
   };
 
-  // Status color
+  const handleDownload = async (id, format) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/laporan/downloadLaporan/${id}/${format}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          responseType: 'blob'
+        }
+      );
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `laporan_${id}.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading:", error);
+      MySwal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: error.response?.data?.message || "Gagal mengunduh laporan",
+        timer: 3000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
-      case "diterima":
+      case "DITERIMA":
         return "bg-blue-100 text-blue-800";
-      case "dalam pengerjaan":
+      case "DALAM_PENGERJAAN":
         return "bg-yellow-100 text-yellow-800";
-      case "selesai":
+      case "SELESAI":
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const formatKategori = (kategori) => {
+    return kategori === "KERAMAIAN" ? "Keramaian" : 
+           kategori === "TUMPUKAN_SAMPAH" ? "Tumpukan Sampah" : 
+           kategori;
   };
 
   return (
@@ -403,11 +428,11 @@ const LaporanPage = () => {
                 judul_laporan: "",
                 deskripsi: "",
                 kategori: "",
-                status: "",
-                created_at: new Date().toISOString().split('T')[0], // Set default date
+                status_pengerjaan: "DITERIMA",
+                created_at: new Date().toISOString().split('T')[0],
                 estimasi: 0,
                 filePdf: null,
-                admin_id: ""
+                id_user: ""
               });
             }}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
@@ -461,9 +486,9 @@ const LaporanPage = () => {
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="">Semua Status</option>
-                    <option value="diterima">Diterima</option>
-                    <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                    <option value="selesai">Selesai</option>
+                    <option value="DITERIMA">Diterima</option>
+                    <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                    <option value="SELESAI">Selesai</option>
                   </select>
                 </div>
                 
@@ -491,7 +516,7 @@ const LaporanPage = () => {
             <div className="flex h-64 items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
             </div>
-          ) : filteredLaporan.length === 0 ? (
+          ) : laporanList.length === 0 ? (
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-2 text-lg font-medium text-slate-800">
@@ -511,7 +536,6 @@ const LaporanPage = () => {
                 <thead className="bg-slate-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">No</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Penanggung Jawab</th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Judul</th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Deskripsi</th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">Jenis</th>
@@ -523,13 +547,10 @@ const LaporanPage = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
-                  {filteredLaporan.map((laporan, index) => (
+                  {laporanList.map((laporan, index) => (
                     <tr key={laporan.id} className="hover:bg-slate-50">
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {index + 1}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                        {laporan.admin_name || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-900">
                         {laporan.judul_laporan}
@@ -537,18 +558,18 @@ const LaporanPage = () => {
                       <td className="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">
                         {laporan.deskripsi || '-'}
                       </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm capitalize text-slate-500">
-                        {laporan.kategori}
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        {formatKategori(laporan.kategori)}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm">
                         <select
-                          value={laporan.status}
+                          value={laporan.status_pengerjaan}
                           onChange={(e) => handleStatusChange(e, laporan.id)}
-                          className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${getStatusColor(laporan.status)}`}
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(laporan.status_pengerjaan)}`}
                         >
-                          <option value="diterima">Diterima</option>
-                          <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                          <option value="selesai">Selesai</option>
+                          <option value="DITERIMA">Diterima</option>
+                          <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                          <option value="SELESAI">Selesai</option>
                         </select>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
@@ -558,24 +579,33 @@ const LaporanPage = () => {
                         {laporan.estimasi ? `${laporan.estimasi} hari` : '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                      <button
-                        onClick={() => handleOpenFile(laporan.filePdf)}
-                         className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
-                        title={laporan.filePdf ? "Lihat File" : "Tidak ada file"}
-                      >
-                        {laporan.filePdf ? (
-                          <>
-                            <FileText className="mr-1 h-5 w-5" />
-                            <span>Lihat File</span>
-                          </>
-                        ) : (
-                          <>
-                            <FileText className="mr-1 h-5 w-5 text-gray-400" />
-                            <span className="text-gray-500"></span>
-                          </>
-                        )}
-                      </button>
-                    </td>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleOpenFile(laporan.filePdf)}
+                            className="inline-flex items-center text-indigo-600 hover:text-indigo-900"
+                            title={laporan.filePdf ? "Lihat File" : "Tidak ada file"}
+                          >
+                            {laporan.filePdf ? (
+                              <>
+                                <FileText className="mr-1 h-5 w-5" />
+                                <span>Lihat</span>
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="mr-1 h-5 w-5 text-gray-400" />
+                                <span className="text-gray-500"></span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => handleDownload(laporan.id, 'pdf')}
+                            className="inline-flex items-center text-green-600 hover:text-green-900"
+                            title="Download PDF"
+                          >
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                         <div className="flex space-x-2">
                           <button
@@ -651,15 +681,17 @@ const LaporanPage = () => {
                         Admin Penanggung Jawab
                       </label>
                       <select
-                        name="admin_id"
-                        value={formData.admin_id}
-                        onChange={handleFormChange}
+                        name="id_user"
+                        value={formData.id_user}
+                        onChange={e =>
+                          setFormData({ ...formData, id_user: parseInt(e.target.value) || "" })
+                        }
                         className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                         required
                       >
                         <option value="">Pilih Admin</option>
                         {adminList.map(admin => (
-                          <option key={admin.username} value={admin.username}>
+                          <option key={admin.id} value={admin.id}>
                             {admin.name_lengkap || admin.username}
                           </option>
                         ))}
@@ -720,16 +752,15 @@ const LaporanPage = () => {
                           Status
                         </label>
                         <select
-                          name="status"
-                          value={formData.status}
+                          name="status_pengerjaan"
+                          value={formData.status_pengerjaan}
                           onChange={handleFormChange}
                           className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                           required
                         >
-                          <option value="">Pilih Status</option>
-                          <option value="diterima">Diterima</option>
-                          <option value="dalam pengerjaan">Dalam Pengerjaan</option>
-                          <option value="selesai">Selesai</option>
+                          <option value="DITERIMA">Diterima</option>
+                          <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                          <option value="SELESAI">Selesai</option>
                         </select>
                       </div>
                     </div>

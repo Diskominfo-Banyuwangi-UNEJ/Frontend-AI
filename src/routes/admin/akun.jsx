@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { Plus, PencilLine, Trash, Loader2, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
@@ -22,23 +21,29 @@ const AkunPage = () => {
   
   // Form data
   const [formData, setFormData] = useState({
-    nama_instansi: '',
     name_lengkap: '',
-    status: '',
     username: '',
     email: '',
     password: '',
+    role: 'PEMERINTAH',
+    nama_instansi: 'KOMINFO'
   });
   
   const [formErrors, setFormErrors] = useState({});
   const formRef = useRef(null);
+  const token = Cookies.get('authToken');
+  
 
   // Fetch data from API
   const fetchAkunList = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:3000/api/users');
-      setAkunList(response.data.data || []); 
+      const response = await axios.get('http://localhost:3000/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      setAkunList(response.data.data || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -62,12 +67,12 @@ const AkunPage = () => {
     setIsCreateModalOpen(true);
     setFormErrors({});
     setFormData({
-      nama_instansi: '',
       name_lengkap: '',
-      status: '',
       username: '',
       email: '',
       password: '',
+      role: 'PEMERINTAH',
+      nama_instansi: 'KOMINFO'
     });
   };
 
@@ -76,12 +81,12 @@ const AkunPage = () => {
     if (akunToEdit) {
       setCurrentEditId(id);
       setFormData({
-        nama_instansi: akunToEdit.nama_instansi || '',
         name_lengkap: akunToEdit.name_lengkap || '',
-        status: akunToEdit.role || '',
         username: akunToEdit.username || '',
         email: akunToEdit.email || '',
-        password: '', 
+        password: '',
+        role: akunToEdit.role || '',
+        nama_instansi: akunToEdit.nama_instansi || ''
       });
       setIsEditModalOpen(true);
       setFormErrors({});
@@ -112,15 +117,16 @@ const AkunPage = () => {
   // Form validation
   const validateForm = () => {
     const errors = {};
-    if (!formData.nama_instansi) errors.nama_instansi = 'Institution is required';
-    if (!formData.name_lengkap) errors.name_lengkap = 'Leader name is required';
-    if (!formData.status) errors.status = 'Status is required';
+    
+    if (!formData.name_lengkap) errors.name_lengkap = 'Full name is required';
     if (!formData.username) errors.username = 'Username is required';
+    
     if (!formData.email) {
       errors.email = 'Email is required';
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       errors.email = 'Invalid email format';
     }
+    
     if (!isEditModalOpen && !formData.password) {
       errors.password = 'Password is required';
     } else if (formData.password && formData.password.length < 6) {
@@ -132,60 +138,65 @@ const AkunPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    try {
-      const payload = {
-        name_lengkap: formData.name_lengkap,
-        email: formData.email,
-        username: formData.username,
-        role: formData.status,
-        nama_instansi: formData.nama_instansi,
-      };
+  try {
+    const payload = {
+      name_lengkap: formData.name_lengkap,
+      email: formData.email,
+      username: formData.username,
+      role: formData.role,
+      nama_instansi: formData.nama_instansi
+    };
 
-      // Only include password if it's being changed (edit) or creating new
-      if (formData.password) {
-        payload.password = formData.password;
-      }
-
-      if (isEditModalOpen) {
-        // Edit mode - PUT request
-        await axios.put(`http://localhost:3000/api/users/${currentEditId}`, payload);
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Account updated successfully',
-          timer: 2000,
-          showConfirmButton: false,
-          background: '#f8fafc',
-        });
-      } else {
-        // Create mode - POST request
-        await axios.post('http://localhost:3000/api/users', payload);
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Account created successfully',
-          timer: 2000,
-          showConfirmButton: false,
-          background: '#f8fafc',
-        });
-      }
-
-      closeModals();
-      fetchAkunList();
-    } catch (error) {
-      console.error('Failed to submit form:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Error!',
-        text: error.response?.data?.message || 'Failed to submit form',
-        background: '#f8fafc',
-      });
+    // Tambahkan password hanya jika ada
+    if (formData.password) {
+      payload.password = formData.password;
     }
-  };
 
+    const config = {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    };
+
+    let response;
+    if (isEditModalOpen && currentEditId) { // Pastikan currentEditId ada
+      response = await axios.put(
+        `http://localhost:3000/api/users/${currentEditId}`, 
+        payload,
+        config
+      );
+    } else {
+      response = await axios.post(
+        'http://localhost:3000/api/users',
+        payload,
+        config
+      );
+    }
+
+    // Handle success
+    closeModals();
+    fetchAkunList();
+    
+  } catch (error) {
+    console.error('Error details:', error);
+    let errorMessage = error.response?.data?.message || error.message;
+    
+    if (error.response?.status === 401) {
+      errorMessage = "Unauthorized - Please login again";
+    }
+    
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: errorMessage,
+      background: '#f8fafc',
+    });
+  }
+};
   // Delete account
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -201,8 +212,14 @@ const AkunPage = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:3000/api/users/${id}/`);
+        await axios.delete(`http://localhost:3000/api/users/${id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
         setAkunList(prev => prev.filter(akun => akun.id !== id));
+
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
@@ -364,24 +381,10 @@ const AkunPage = () => {
                   <th 
                     scope="col" 
                     className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
-                    onClick={() => requestSort('nama_instansi')}
-                  >
-                    <div className="flex items-center">
-                      Institution
-                      {sortConfig.key === 'nama_instansi' && (
-                        sortConfig.direction === 'asc' ? 
-                          <ChevronUp className="ml-1 h-4 w-4" /> : 
-                          <ChevronDown className="ml-1 h-4 w-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
                     onClick={() => requestSort('name_lengkap')}
                   >
                     <div className="flex items-center">
-                      Leader Name
+                      Full Name
                       {sortConfig.key === 'name_lengkap' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -389,16 +392,10 @@ const AkunPage = () => {
                       )}
                     </div>
                   </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
-                  >
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                     Username
                   </th>
-                  <th 
-                    scope="col" 
-                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500"
-                  >
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
                     Email
                   </th>
                   <th 
@@ -407,8 +404,22 @@ const AkunPage = () => {
                     onClick={() => requestSort('role')}
                   >
                     <div className="flex items-center">
-                      Status
+                      Role
                       {sortConfig.key === 'role' && (
+                        sortConfig.direction === 'asc' ? 
+                          <ChevronUp className="ml-1 h-4 w-4" /> : 
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                      )}
+                    </div>
+                  </th>
+                  <th 
+                    scope="col" 
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500 cursor-pointer hover:bg-slate-100"
+                    onClick={() => requestSort('nama_instansi')}
+                  >
+                    <div className="flex items-center">
+                      Institution
+                      {sortConfig.key === 'nama_instansi' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
                           <ChevronDown className="ml-1 h-4 w-4" />
@@ -431,9 +442,6 @@ const AkunPage = () => {
                         {index + 1}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
-                        {akun.nama_instansi || '-'}
-                      </td>
-                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                         {akun.name_lengkap || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
@@ -450,6 +458,9 @@ const AkunPage = () => {
                         }`}>
                           {akun.role || '-'}
                         </span>
+                      </td>
+                      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
+                        {akun.nama_instansi || '-'}
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
                         <div className="flex space-x-2">
@@ -477,6 +488,7 @@ const AkunPage = () => {
                     <AnimatePresence>
                       {expandedRows[akun.id] && (
                         <motion.tr
+                          key={`expanded-${akun.id}`}
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: 'auto' }}
                           exit={{ opacity: 0, height: 0 }}
@@ -486,13 +498,15 @@ const AkunPage = () => {
                           <td colSpan="7" className="px-6 py-4">
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
-                                <p className="font-medium text-slate-700">Phone:</p>
-                                <p className="text-slate-600">{akun.no_telepon || '-'}</p>
-                              </div>
-                              <div>
                                 <p className="font-medium text-slate-700">Created At:</p>
                                 <p className="text-slate-600">
-                                  {akun.created_at ? new Date(akun.created_at).toLocaleDateString() : '-'}
+                                  {akun.created_at ? new Date(akun.created_at).toLocaleString() : '-'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="font-medium text-slate-700">Last Updated:</p>
+                                <p className="text-slate-600">
+                                  {akun.updated_at ? new Date(akun.updated_at).toLocaleString() : 'Never updated'}
                                 </p>
                               </div>
                             </div>
@@ -511,6 +525,7 @@ const AkunPage = () => {
         <AnimatePresence>
           {isCreateModalOpen && (
             <motion.div
+
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -533,8 +548,90 @@ const AkunPage = () => {
                   </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Institution */}
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name_lengkap"
+                      value={formData.name_lengkap}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter full name"
+                    />
+                    {formErrors.name_lengkap && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.username ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter username"
+                    />
+                    {formErrors.username && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.email ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter email"
+                    />
+                    {formErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.password ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter password"
+                    />
+                    {formErrors.password && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Role
+                      </label>
+                      <select
+                        name="role"
+                        value={formData.role}
+                        onChange={handleChange}
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
+                      >
+                        <option value="ADMIN">Admin</option>
+                        <option value="PEMERINTAH">Government</option>
+                      </select>
+                    </div>
+
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
                         Institution
@@ -543,109 +640,13 @@ const AkunPage = () => {
                         name="nama_instansi"
                         value={formData.nama_instansi}
                         onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.nama_instansi ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
-                        <option value="">Select Institution</option>
-                        <option value="Kominfo">Kominfo</option>
-                        <option value="Dishub">Dishub</option>
+                        <option value="KOMINFO">Kominfo</option>
+                        <option value="DISHUB">Dishub</option>
                         <option value="DLH">DLH</option>
-                        <option value="Satpol_PP">Satpol PP</option>
+                        <option value="SATPOL_PP">Satpol PP</option>
                       </select>
-                      {formErrors.nama_instansi && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.nama_instansi}</p>
-                      )}
-                    </div>
-
-                    {/* Leader Name */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Leader Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name_lengkap"
-                        value={formData.name_lengkap}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter leader name"
-                      />
-                      {formErrors.name_lengkap && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
-                      )}
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Status
-                      </label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.status ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      >
-                        <option value="">Select Status</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Pemerintah</option>
-                      </select>
-                      {formErrors.status && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>
-                      )}
-                    </div>
-
-                    {/* Username */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.username ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter username"
-                      />
-                      {formErrors.username && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.email ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter email"
-                      />
-                      {formErrors.email && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-                      )}
-                    </div>
-
-                    {/* Password */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Password
-                      </label>
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.password ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter password"
-                      />
-                      {formErrors.password && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
-                      )}
                     </div>
                   </div>
 
@@ -696,8 +697,90 @@ const AkunPage = () => {
                   </button>
                 </div>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Institution */}
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name_lengkap"
+                      value={formData.name_lengkap}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter full name"
+                    />
+                    {formErrors.name_lengkap && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Username
+                    </label>
+                    <input
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.username ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter username"
+                    />
+                    {formErrors.username && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.email ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter email"
+                    />
+                    {formErrors.email && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-slate-700">
+                      New Password (leave blank to keep current)
+                    </label>
+                    <input
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.password ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                      placeholder="Enter new password"
+                    />
+                    {formErrors.password && (
+                      <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-700">
+                        Role
+                      </label>
+                      <select
+                        name="role"
+                        value={formData.role}
+                        onChange={handleChange}
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
+                      >
+                        <option value="ADMIN">Admin</option>
+                        <option value="PEMERINTAH">Government</option>
+                      </select>
+                    </div>
+
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
                         Institution
@@ -706,109 +789,13 @@ const AkunPage = () => {
                         name="nama_instansi"
                         value={formData.nama_instansi}
                         onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.nama_instansi ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
+                        className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
-                        <option value="">Select Institution</option>
-                        <option value="Kominfo">Kominfo</option>
-                        <option value="Dishub">Dishub</option>
+                        <option value="KOMINFO">Kominfo</option>
+                        <option value="DISHUB">Dishub</option>
                         <option value="DLH">DLH</option>
-                        <option value="Satpol_PP">Satpol PP</option>
+                        <option value="SATPOL_PP">Satpol PP</option>
                       </select>
-                      {formErrors.nama_instansi && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.nama_instansi}</p>
-                      )}
-                    </div>
-
-                    {/* Leader Name */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Leader Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name_lengkap"
-                        value={formData.name_lengkap}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter leader name"
-                      />
-                      {formErrors.name_lengkap && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
-                      )}
-                    </div>
-
-                    {/* Status */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Status
-                      </label>
-                      <select
-                        name="status"
-                        value={formData.status}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.status ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      >
-                        <option value="">Select Status</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Pemerintah</option>
-                      </select>
-                      {formErrors.status && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.status}</p>
-                      )}
-                    </div>
-
-                    {/* Username */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Username
-                      </label>
-                      <input
-                        type="text"
-                        name="username"
-                        value={formData.username}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.username ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter username"
-                      />
-                      {formErrors.username && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.username}</p>
-                      )}
-                    </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.email ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter email"
-                      />
-                      {formErrors.email && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.email}</p>
-                      )}
-                    </div>
-
-                    {/* Password (optional for edit) */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        New Password (leave blank to keep current)
-                      </label>
-                      <input
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.password ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                        placeholder="Enter new password"
-                      />
-                      {formErrors.password && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.password}</p>
-                      )}
                     </div>
                   </div>
 
