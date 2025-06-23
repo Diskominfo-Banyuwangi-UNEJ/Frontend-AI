@@ -78,24 +78,7 @@ const COLORS = ["#2563eb", "#10b981", "#f59e0b"]; // biru, hijau, kuning
 
 const AnalitikSampahPage = () => {
     const { theme } = useTheme();
-    const handleDownload = () => {
-        const worksheetData = topProducts.map((item) => ({
-            No: item.number,
-            Timestamp: item.time,
-            Nama_lokasi: item.nama_lokasi,
-            Alamat: item.alamat,
-            Latitude: "-", // Asumsikan ini latitude (bisa disesuaikan)
-            Longitude: "-", // Tambahkan jika ada data longitude
-            Presentase_Sampah: "-", // Tambahkan jika ada data
-            Status_Sampah: item.status,
-            Live_CCTV: "URL / Embed", // Tambahkan info jika tersedia
-        }));
-
-        const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Data CCTV");
-        XLSX.writeFile(workbook, "data_cctv.xlsx");
-    };
+    
     const handleDownload1 = () => {
         const worksheetData = dataSampahLain.map((item, index) => ({
             No: index + 1,
@@ -171,6 +154,9 @@ const AnalitikSampahPage = () => {
       setIsLoading(false);
     }
   };
+
+  
+
 
 
   useEffect(() => {
@@ -456,36 +442,99 @@ const handleSimpan = async () => {
       </motion.div>
     </div>   
 
-         <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
+         {/* <h1 className="mb-2 mt-8 text-center font-bold">Puncak Tumpukan Sampah</h1>
+         <div className="card">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="font-semibold">Trend Volume Sampah</h2>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="border rounded pl-8 pr-2 py-1 text-sm"
+            />
+            <Calendar className="absolute left-2 top-2 h-4 w-4 text-gray-400" />
+          </div>
+          <button
+            onClick={handleDownload}
+            className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1 text-sm font-medium text-white transition hover:bg-blue-700"
+            disabled={loading || data.length === 0}
+          >
+            <Download className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      
+      <div className="h-80 w-full">
+        {loading ? (
+          <div className="h-full flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="h-full flex items-center justify-center text-red-500">
+            {error}
+          </div>
+        ) : data.length === 0 ? (
+          <div className="h-full flex items-center justify-center text-gray-500">
+            Tidak ada data untuk ditampilkan
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                type="category"
+                dataKey="time"
+                name="Waktu"
+                label={{ value: "Waktu", position: "insideBottom", offset: -5 }}
+              />
+              <YAxis
+                type="category"
+                dataKey="category"
+                name="Kategori"
+                label={{ value: "Kategori Sampah", angle: -90, position: 'insideLeft' }}
+              />
+              <Tooltip 
+                cursor={{ strokeDasharray: '3 3' }}
+                formatter={(value, name, props) => [
+                  `${value}`, 
+                  name === 'count' ? 'Jumlah' : 'Kategori'
+                ]}
+                labelFormatter={(label) => `Waktu: ${label}`}
+              />
+              <Scatter
+                name="Jumlah"
+                data={data}
+                fill={(entry) => getCategoryColor(entry.category)}
+                shape="circle"
+              />
+            </ScatterChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+      
+      <div className="flex justify-center gap-4 mt-4">
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-full bg-green-500"></div>
+          <span className="text-sm">Low</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+          <span className="text-sm">Normal</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+          <span className="text-sm">High</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <div className="w-3 h-3 rounded-full bg-gray-400"></div>
+          <span className="text-sm">Unknown</span>
+        </div>
+      </div>
+    </div> */}
 
-<div className="card">
-  <h2 className="mb-4 font-semibold">Trend Volume Sampah</h2>
-  <div className="h-80 w-full">
-    <ResponsiveContainer width="100%" height="100%">
-      <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis
-          type="category"
-          dataKey="time"
-          name="Waktu"
-          label={{ value: "Waktu", position: "insideBottom", offset: -5 }}
-        />
-        <YAxis
-          type="category"
-          dataKey="waste"
-          name="Kategori"
-          
-        />
-        <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-        <Scatter
-          name="Kategori Sampah"
-          data={wasteData}
-          fill="#ef4444"
-        />
-      </ScatterChart>
-    </ResponsiveContainer>
-  </div>
-</div>
+
 
 
             {/* Section 3: Statistik Teks */}

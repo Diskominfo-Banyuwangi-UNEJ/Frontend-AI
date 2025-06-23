@@ -190,7 +190,9 @@ const PengaduanPage = () => {
       
       const payload = {
         ...formData,
+        created_at: new Date(formData.created_at).toISOString(), 
         ...(formData.foto ? { foto: formData.foto } : {})
+        
       };
 
       await axios.post(

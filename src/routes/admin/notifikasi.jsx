@@ -3,14 +3,14 @@ import Swal from "sweetalert2";
 import axios from "axios";
 
 const Notifikasi = ({ userId }) => {
-    const [notifikasi, setNotifikasi] = useState([]);
+    const [notifikasi, setNotifikasi] = useState({ data: [], meta: {} });
     const [loading, setLoading] = useState(true);
 
     // Fetch notifications from API
     const fetchNotifikasi = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:3000/api/notifikasi?user_id=${userId}`);
+            const response = await axios.get(`http://localhost:3000/api/notifikasi?user_id=2`);
             setNotifikasi(response.data);
         } catch (error) {
             console.error("Error fetching notifications:", error);
@@ -31,7 +31,7 @@ const Notifikasi = ({ userId }) => {
 
     // Tampilkan SweetAlert jika tidak ada notifikasi
     useEffect(() => {
-        if (!loading && notifikasi.length === 0) {
+        if (!loading && notifikasi.data && notifikasi.data.length === 0) {
             Swal.fire({
                 title: "Tidak ada notifikasi baru saat ini.",
                 icon: "info",
@@ -44,13 +44,21 @@ const Notifikasi = ({ userId }) => {
     const tandaiDibaca = async (id) => {
         try {
             await axios.patch(`http://localhost:3000/api/notifikasi/${id}/status`, {
-                status: "read"
+                status: "DIBACA",
+                user_id: 2 // tambahkan ini
             });
             
             // Update local state
-            setNotifikasi(notifikasi.map((item) => 
-                item.id === id ? { ...item, read: true } : item
-            ));
+            setNotifikasi(prev => ({
+                ...prev,
+                data: prev.data.map(item => 
+                    item.id === id ? { ...item, status: "DIBACA" } : item
+                ),
+                meta: {
+                    ...prev.meta,
+                    unread_count: prev.meta.unread_count - 1
+                }
+            }));
             
             Swal.fire({
                 title: "Notifikasi ditandai sebagai dibaca",
@@ -88,30 +96,41 @@ const Notifikasi = ({ userId }) => {
         });
         
         if (result.isConfirmed) {
-            try {
-                await axios.delete(`http://localhost:3000/api/notifikasi?user_id=${userId}&notifikasi_id=${id}`);
-                
-                // Update local state
-                setNotifikasi(notifikasi.filter((item) => item.id !== id));
-                
-                Swal.fire({
-                    title: "Notifikasi berhasil dihapus.",
-                    icon: "success",
-                    timer: 1500,
-                    showConfirmButton: false,
-                    toast: true,
-                    position: "top"
-                });
-            } catch (error) {
-                console.error("Error deleting notification:", error);
-                Swal.fire({
-                    title: "Gagal menghapus notifikasi",
-                    text: "Terjadi kesalahan saat menghapus notifikasi",
-                    icon: "error",
-                    confirmButtonText: "Tutup",
-                });
+    try {
+        // Menggunakan endpoint baru dengan format yang benar
+        await axios.delete(`http://localhost:3000/api/notifikasi/${id}?user_id=2`, {
+            
+        });
+        
+        // Update local state
+        const isUnread = notifikasi.data.find(item => item.id === id)?.status === "BARU";
+        setNotifikasi(prev => ({
+            ...prev,
+            data: prev.data.filter(item => item.id !== id),
+            meta: {
+                ...prev.meta,
+                unread_count: isUnread ? prev.meta.unread_count - 1 : prev.meta.unread_count,
+                total: prev.meta.total - 1
             }
-        }
+        }));
+        
+        Swal.fire({
+            title: "Notifikasi berhasil dihapus.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+            toast: true,
+            position: "top"
+        });
+    } catch (error) {
+        console.error('Delete error:', error);
+        Swal.fire({
+            title: "Gagal menghapus notifikasi",
+            text: error.response?.data?.message || "Terjadi kesalahan pada server",
+            icon: "error"
+        });
+    }
+}
     };
 
     if (loading) {
@@ -125,22 +144,49 @@ const Notifikasi = ({ userId }) => {
 
     return (
         <div className="p-6">
-            <h2 className="mb-4 text-2xl font-semibold">Notifikasi</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">Notifikasi</h2>
+                {notifikasi.meta.unread_count > 0 && (
+                    <span className="bg-red-500 text-white text-sm font-medium px-2.5 py-0.5 rounded-full">
+                        {notifikasi.meta.unread_count} belum dibaca
+                    </span>
+                )}
+            </div>
             <div className="space-y-4">
-                {notifikasi.length > 0 ? (
-                    notifikasi.map((notif) => (
+                {notifikasi.data && notifikasi.data.length > 0 ? (
+                    [...notifikasi.data]
+                        .sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal))
+                        .map((notif) => (
                         <div
                             key={notif.id}
-                            className={`rounded-lg p-4 shadow-md ${notif.read ? "bg-gray-200" : "bg-yellow-100"}`}
+                            className={`rounded-lg p-4 shadow-md ${notif.status === "DIBACA" ? "bg-gray-100" : "bg-yellow-100 border-l-4 border-yellow-500"}`}
                         >
-                            <p>{notif.message}</p>
-                            <div className="mt-2 flex items-center justify-between">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="font-bold text-lg">{notif.judul}</h3>
+                                    <p className="text-gray-700">{notif.isi}</p>
+                                    <p className="text-sm text-gray-500 mt-1">
+                                        {new Date(notif.tanggal).toLocaleString()}
+                                    </p>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {notif.terkait.map((item, index) => (
+                                            <span key={index} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                {item.jenis.replace("_", " ")}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                    {notif.pengirim.instansi}
+                                </div>
+                            </div>
+                            <div className="mt-3 flex items-center justify-between">
                                 <button
                                     onClick={() => tandaiDibaca(notif.id)}
-                                    className={`text-sm font-medium ${notif.read ? "text-gray-500" : "text-blue-600"}`}
-                                    disabled={notif.read}
+                                    className={`text-sm font-medium ${notif.status === "DIBACA" ? "text-gray-500" : "text-blue-600"}`}
+                                    disabled={notif.status === "DIBACA"}
                                 >
-                                    {notif.read ? "Sudah dibaca" : "Tandai sebagai dibaca"}
+                                    {notif.status === "DIBACA" ? "Sudah dibaca" : "Tandai sebagai dibaca"}
                                 </button>
                                 <button
                                     onClick={() => hapusNotifikasi(notif.id)}
