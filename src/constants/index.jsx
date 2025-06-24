@@ -12,8 +12,8 @@ export const navbarLinks = {
       title: "Dashboard",
       links: [
         { label: "Dashboard", icon: Home, path: "/admin/dashboard" },
-        { label: "Analytics Keramaian", icon: ChartColumn, path: "/admin/analytics" },
-        { label: "Analytics Sampah", icon: ChartColumn, path: "/admin/reports" },
+        { label: "Analisis Keramaian", icon: ChartColumn, path: "/admin/analytics" },
+        { label: "Analisis Sampah", icon: ChartColumn, path: "/admin/reports" },
       ],
     },
     {
@@ -38,8 +38,8 @@ export const navbarLinks = {
       title: "Dashboard",
       links: [
         { label: "Dashboard", icon: Home, path: "/pemerintah/dashboard" },
-        { label: "Analytics Keramaian", icon: ChartColumn, path: "/pemerintah/analytics" },
-        { label: "Analytics Sampah", icon: ChartColumn, path: "/pemerintah/reports" },
+        { label: "Analisis Keramaian", icon: ChartColumn, path: "/pemerintah/analytics" },
+        { label: "Analisis Sampah", icon: ChartColumn, path: "/pemerintah/reports" },
       ],
     },
     {
@@ -57,8 +57,8 @@ export const navbarLinks = {
       title: "Dashboard",
       links: [
         { label: "Dashboard", icon: Home, path: "/masyarakat/dashboard" },
-        { label: "Analytics Keramaian", icon: ChartColumn, path: "/masyarakat/analytics" },
-        { label: "Analytics Sampah", icon: ChartColumn, path: "/masyarakat/reports" },
+        { label: "Analisis Keramaian", icon: ChartColumn, path: "/masyarakat/analytics" },
+        { label: "Analisis Sampah", icon: ChartColumn, path: "/masyarakat/reports" },
       ],
     },
   ],

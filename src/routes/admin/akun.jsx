@@ -155,25 +155,20 @@ const AkunPage = () => {
       payload.password = formData.password;
     }
 
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    };
+   
 
     let response;
     if (isEditModalOpen && currentEditId) { // Pastikan currentEditId ada
       response = await axios.put(
         `http://localhost:3000/api/users/${currentEditId}`, 
         payload,
-        config
+        
       );
     } else {
       response = await axios.post(
         'http://localhost:3000/api/users',
         payload,
-        config
+        
       );
     }
 
@@ -199,46 +194,74 @@ const AkunPage = () => {
 };
   // Delete account
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Yes, delete it!',
-      background: '#f8fafc',
+  // Validasi ID
+  if (!id) {
+    console.error('Invalid ID for deletion');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Invalid account ID',
     });
+    return;
+  }
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:3000/api/users/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        setAkunList(prev => prev.filter(akun => akun.id !== id));
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Account has been deleted.',
-          timer: 1500,
-          showConfirmButton: false,
-          background: '#f8fafc',
-        });
-      } catch (error) {
-        console.error('Failed to delete account:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed!',
-          text: error.response?.data?.message || 'Failed to delete account',
-          background: '#f8fafc',
-        });
-      }
+  const result = await Swal.fire({
+    title: 'Apakah Anda yakin?',
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal',
+    background: '#f8fafc',
+    customClass: {
+      popup: 'rounded-xl',
+      title: 'text-center'
     }
-  };
+  });
+
+  if (result.isConfirmed) {
+    try {
+      // Gunakan endpoint yang sama dengan notifikasi (dengan query parameter)
+      await axios.delete(`http://localhost:3000/api/users/${id}?user_id=2`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // Update state seperti di notifikasi
+      setAkunList(prev => prev.filter(akun => akun.id !== id));
+
+      // Notifikasi sukses seperti di komponen Notifikasi
+      Swal.fire({
+        title: 'Berhasil dihapus!',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top'
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      
+      // Error handling seperti di notifikasi
+      let errorMessage = 'Gagal menghapus akun';
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = 'Tidak ada respon dari server';
+      }
+      
+      Swal.fire({
+        title: 'Error',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'Tutup'
+      });
+    }
+  }
+};
 
   // Search and filter
   const filteredData = akunList.filter(akun => {

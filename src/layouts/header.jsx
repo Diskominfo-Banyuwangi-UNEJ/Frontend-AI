@@ -35,7 +35,11 @@ export const Header = ({ collapsed, setCollapsed }) => {
                             Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-                    setUserData(response.data.data);
+                    // Perbaikan di sini:
+                    const user = Array.isArray(response.data.data)
+                        ? response.data.data[0]
+                        : response.data.data;
+                    setUserData(user);
                 } catch (error) {
                     console.error('Error fetching user data:', error);
                     if (error.response?.status === 401) {
@@ -312,19 +316,19 @@ export const Header = ({ collapsed, setCollapsed }) => {
                                 <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border bg-white p-4 text-left shadow-lg dark:bg-slate-800">
                                     <div className="mb-4 space-y-5">
                                         <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Nama Lengkap: {userData?.name_lengkap}
+                                        </p>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
                                             Nama Instansi: {userData?.nama_instansi}
                                         </p>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-300">
-                                            Nama Pimpinan: {userData?.nama_pimpinan}
-                                        </p>
                                         <p className="text-sm font-medium text-green-500">
-                                            Status: {userData?.status}
+                                            Role: {userData?.role}
                                         </p>
-                                        <p className="text-sm font-medium">
-                                            Username: <span className="font-medium">{userData?.username}</span>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Username: {userData?.username}
                                         </p>
-                                        <p className="text-sm font-medium">
-                                            Email: <span className="font-medium">{userData?.email}</span>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Email: {userData?.email}
                                         </p>
                                     </div>
                                     <hr className="my-2 border-slate-300 dark:border-slate-600" />
