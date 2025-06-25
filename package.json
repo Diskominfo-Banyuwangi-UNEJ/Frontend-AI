@@ -17,6 +17,7 @@
     "clsx": "^2.1.1",
     "esbuild": "^0.25.4",
     "framer-motion": "^12.7.4",
+    "hls.js": "^1.6.5",
     "js-cookie": "^3.0.5",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.488.0",

@@ -155,25 +155,28 @@ const LandingPage = () => {
     return (
         <div className="flex flex-col gap-y-8">
             {/* Hero Section */}
-            <section
-                className="relative flex h-[80vh] flex-col items-center justify-center text-center text-white"
-                style={{
-                    backgroundImage: `url(${imagePaths[currentImage]})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    transition: "background-image 1s ease-in-out",
-                }}
-            >
-                <div className="absolute inset-0 bg-black/50" />
-                <div className="relative z-10 px-4">
-                    <h1 className="mb-4 text-5xl font-extrabold leading-tight text-white">
-                        Transformasi Pengawasan Publik Banyuwangi dengan Analitik CCTV Berbasis AI
-                    </h1>
-                    <p className="mx-auto mb-6 max-w-2xl text-xl md:text-2xl">
-                        Meningkatkan efisiensi,mempercepat respons,dan layanan publik berbasis data
-                    </p>
-                </div>
-            </section>
+            {!showPopup && (
+  <section
+    className="relative z-0 flex h-[80vh] flex-col items-center justify-center text-center text-white"
+    style={{
+      backgroundImage: `url(${imagePaths[currentImage]})`,
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      transition: "background-image 1s ease-in-out",
+    }}
+  >
+    <div className="absolute inset-0 bg-black/50" />
+    <div className="relative z-10 px-4">
+      <h1 className="mb-4 text-5xl font-extrabold leading-tight text-white">
+        Transformasi Pengawasan Publik Banyuwangi dengan Analitik CCTV Berbasis AI
+      </h1>
+      <p className="mx-auto mb-6 max-w-2xl text-xl md:text-2xl">
+        Meningkatkan efisiensi,mempercepat respons,dan layanan publik berbasis data
+      </p>
+    </div>
+  </section>
+)}
+
             <motion.section
                 className="p-6"
                 initial={{ opacity: 0, x: -100 }}

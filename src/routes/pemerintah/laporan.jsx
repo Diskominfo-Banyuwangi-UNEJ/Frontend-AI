@@ -21,11 +21,11 @@ import {
 
 const MySwal = withReactContent(Swal);
 
-const PemerintahLaporanPage = () => {
+const LaporanPage = () => {
   const [laporanList, setLaporanList] = useState([]);
   const [filter, setFilter] = useState({ 
     created_at: "", 
-    status: "", 
+    status_pengerjaan: "", 
     kategori: "" 
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -35,7 +35,7 @@ const PemerintahLaporanPage = () => {
     judul_laporan: "",
     deskripsi: "",
     kategori: "",
-    status_pengerjaan: "new",
+    status_pengerjaan: "DITERIMA",
     created_at: "",
     estimasi: 0,
     filePdf: "",
@@ -50,7 +50,6 @@ const PemerintahLaporanPage = () => {
 
   const token = Cookies.get("authToken");
 
-  // Fungsi untuk membuka file PDF
   const handleOpenFile = (fileData) => {
     if (fileData && fileData.data) {
       window.open(fileData.data, "_blank");
@@ -64,7 +63,6 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Fetch data admin
   const fetchAdminList = async () => {
     try {
       const response = await axios.get('http://localhost:3000/api/users', {
@@ -81,7 +79,6 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Fetch data laporan
   const fetchLaporan = async () => {
     try {
       setIsLoading(true);
@@ -90,7 +87,7 @@ const PemerintahLaporanPage = () => {
           'Authorization': `Bearer ${token}`
         },
         params: {
-          status: filter.status,
+          status_pengerjaan: filter.status_pengerjaan,
           kategori: filter.kategori
         }
       });
@@ -110,23 +107,19 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Efek untuk fetch data saat komponen mount atau filter berubah
   useEffect(() => {
     fetchLaporan();
     fetchAdminList();
-  }, [filter.status, filter.kategori]);
+  }, [filter.status_pengerjaan, filter.kategori]);
 
-  // Handler untuk perubahan filter
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
   };
 
-  // Handler untuk perubahan form
   const handleFormChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handler untuk perubahan file
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file && file.type === "application/pdf") {
@@ -154,10 +147,10 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Handler untuk menyimpan laporan (create/update)
   const handleSimpan = async () => {
     const { judul_laporan, deskripsi, kategori, status_pengerjaan, created_at, estimasi, filePdf } = formData;
 
+    // Jangan validasi id_user
     if (!judul_laporan || !deskripsi || !kategori || !created_at) {
       MySwal.fire({
         icon: "error",
@@ -180,8 +173,17 @@ const PemerintahLaporanPage = () => {
         kategori,
         status_pengerjaan,
         created_at,
-        estimasi: estimasi || 0,
-        filePdf: filePdf || null
+      };
+      if (estimasi) payload.estimasi = estimasi;
+      if (filePdf) payload.filePdf = filePdf;
+
+      console.log('Payload:', payload); // Debug
+
+      // Hapus token dari headers
+      const config = {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       };
 
       let response;
@@ -189,39 +191,27 @@ const PemerintahLaporanPage = () => {
         response = await axios.put(
           `http://localhost:3000/api/laporan/updateLaporan/${selectedLaporan.id}`,
           payload,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
+          config
         );
       } else {
         response = await axios.post(
           `http://localhost:3000/api/laporan/createLaporan`,
           payload,
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
+          config
         );
       }
 
-      if (response.data.status === "success") {
-        await MySwal.fire({
-          icon: "success",
-          title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
-          text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
-          timer: 2000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
+      await MySwal.fire({
+        icon: "success",
+        title: isEditing ? "Berhasil diperbarui" : "Berhasil dibuat",
+        text: `Laporan ${isEditing ? "berhasil diperbarui" : "berhasil dibuat"}`,
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#f8fafc"
+      });
 
-        resetForm();
-        fetchLaporan();
-      }
+      resetForm();
+      fetchLaporan();
     } catch (error) {
       console.error("Error menyimpan laporan:", error);
       MySwal.fire({
@@ -237,13 +227,12 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       judul_laporan: "",
       deskripsi: "",
       kategori: "",
-      status_pengerjaan: "new",
+      status_pengerjaan: "DITERIMA",
       created_at: "",
       estimasi: 0,
       filePdf: null,
@@ -255,7 +244,6 @@ const PemerintahLaporanPage = () => {
     setShowPreview(false);
   };
 
-  // Handler untuk edit laporan
   const handleEdit = (laporan) => {
     setIsEditing(true);
     setSelectedLaporan(laporan);
@@ -272,7 +260,6 @@ const PemerintahLaporanPage = () => {
     setShowForm(true);
   };
 
-  // Handler untuk delete laporan
   const handleDelete = async (id) => {
     const result = await MySwal.fire({
       title: "Hapus laporan?",
@@ -316,23 +303,14 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Handler untuk detail laporan
   const handleDetail = (laporan) => {
-    const statusLabel = laporan.status_pengerjaan === "new"
-      ? "Baru"
-      : laporan.status_pengerjaan === "progress"
-      ? "Dibaca"
-      : laporan.status_pengerjaan === "completed"
-      ? "Selesai"
-      : laporan.status_pengerjaan;
-
     MySwal.fire({
       title: laporan.judul_laporan,
       html: `
         <div class="text-left space-y-2">
           <p><strong>Deskripsi:</strong> ${laporan.deskripsi}</p>
           <p><strong>Jenis:</strong> ${laporan.kategori}</p>
-          <p><strong>Status:</strong> <span class="capitalize">${statusLabel}</span></p>
+          <p><strong>Status:</strong> <span class="capitalize">${laporan.status_pengerjaan.toLowerCase()}</span></p>
           <p><strong>Tanggal:</strong> ${new Date(laporan.created_at).toLocaleDateString("id-ID")}</p>
           ${laporan.filePdf ? `<p><strong>File:</strong> ${laporan.filePdf.name}</p>` : ''}
         </div>
@@ -343,12 +321,10 @@ const PemerintahLaporanPage = () => {
     });
   };
 
-  // Handler untuk perubahan status laporan
   const handleStatusChange = async (e, laporanId) => {
     const newStatus = e.target.value;
-    console.log("Status yang dikirim ke backend:", newStatus);
     try {
-      const response = await axios.patch(
+      await axios.patch(
         `http://localhost:3000/api/laporan/updateStatusLaporan/${laporanId}`,
         { status_pengerjaan: newStatus },
         {
@@ -357,22 +333,11 @@ const PemerintahLaporanPage = () => {
           }
         }
       );
-
-      if (response.data.status === "success") {
-        setLaporanList(prev => 
-          prev.map(lap => 
-            lap.id === laporanId ? { ...lap, status_pengerjaan: newStatus } : lap
-          )
-        );
-        MySwal.fire({
-          icon: "success",
-          title: "Berhasil",
-          text: "Status laporan berhasil diperbarui",
-          timer: 2000,
-          showConfirmButton: false,
-          background: "#f8fafc"
-        });
-      }
+      setLaporanList(prev => 
+        prev.map(lap => 
+          lap.id === laporanId ? { ...lap, status_pengerjaan: newStatus } : lap
+        )
+      );
     } catch (error) {
       console.error("Error updating status:", error);
       MySwal.fire({
@@ -386,7 +351,6 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Handler untuk download laporan
   const handleDownload = async (id, format) => {
     try {
       const response = await axios.get(
@@ -419,21 +383,19 @@ const PemerintahLaporanPage = () => {
     }
   };
 
-  // Fungsi untuk mendapatkan warna berdasarkan status
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "new":
+  const getStatusColor = (status_pengerjaan) => {
+    switch (status_pengerjaan) {
+      case "DITERIMA":
         return "bg-blue-100 text-blue-800";
-      case "progress":
+      case "DALAM_PENGERJAAN":
         return "bg-yellow-100 text-yellow-800";
-      case "completed":
+      case "SELESAI":
         return "bg-green-100 text-green-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  // Fungsi untuk memformat kategori
   const formatKategori = (kategori) => {
     return kategori === "KERAMAIAN" ? "Keramaian" : 
            kategori === "TUMPUKAN_SAMPAH" ? "Tumpukan Sampah" : 
@@ -465,7 +427,7 @@ const PemerintahLaporanPage = () => {
                 judul_laporan: "",
                 deskripsi: "",
                 kategori: "",
-                status_pengerjaan: "new",
+                status_pengerjaan: "DITERIMA",
                 created_at: new Date().toISOString().split('T')[0],
                 estimasi: 0,
                 filePdf: null,
@@ -517,15 +479,15 @@ const PemerintahLaporanPage = () => {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
                   <select
-                    name="status"
-                    value={filter.status}
+                    name="status_pengerjaan"
+                    value={filter.status_pengerjaan}
                     onChange={handleFilterChange}
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
                     <option value="">Semua Status</option>
-                    <option value="new"> Baru</option>
-                    <option value="progress">Dibaca</option>
-                    <option value="completed">Selesai</option>
+                    <option value="DITERIMA">Diterima</option>
+                    <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                    <option value="SELESAI">Selesai</option>
                   </select>
                 </div>
                 
@@ -557,12 +519,12 @@ const PemerintahLaporanPage = () => {
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-2 text-lg font-medium text-slate-800">
-                {filter.created_at || filter.status || filter.kategori 
+                {filter.created_at || filter.status_pengerjaan || filter.kategori 
                   ? "Laporan tidak ditemukan" 
                   : "Belum ada laporan"}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                {filter.created_at || filter.status || filter.kategori
+                {filter.created_at || filter.status_pengerjaan || filter.kategori
                   ? "Coba ubah filter pencarian Anda" 
                   : "Buat laporan baru untuk memulai"}
               </p>
@@ -604,9 +566,9 @@ const PemerintahLaporanPage = () => {
                           onChange={(e) => handleStatusChange(e, laporan.id)}
                           className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(laporan.status_pengerjaan)}`}
                         >
-                          <option value="new">Baru</option>
-                          <option value="progress">Dibaca</option>
-                          <option value="completed">Selesai</option>
+                          <option value="DITERIMA">Diterima</option>
+                          <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                          <option value="SELESAI">Selesai</option>
                         </select>
                       </td>
                       <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-500">
@@ -652,20 +614,7 @@ const PemerintahLaporanPage = () => {
                           >
                             <Eye className="h-4 w-4" />
                           </button>
-                          <button
-                            onClick={() => handleEdit(laporan)}
-                            className="rounded p-1 text-indigo-600 hover:bg-indigo-100"
-                            title="Edit"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(laporan.id)}
-                            className="rounded p-1 text-red-600 hover:bg-red-100"
-                            title="Hapus"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          
                         </div>
                       </td>
                     </tr>
@@ -772,9 +721,9 @@ const PemerintahLaporanPage = () => {
                           className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                           required
                         >
-                          <option value="new">Baru</option>
-                          <option value="progress">Dibaca</option>
-                          <option value="completed">Selesai</option>
+                          <option value="DITERIMA">Diterima</option>
+                          <option value="DALAM_PENGERJAAN">Dalam Pengerjaan</option>
+                          <option value="SELESAI">Selesai</option>
                         </select>
                       </div>
                     </div>
@@ -887,4 +836,4 @@ const PemerintahLaporanPage = () => {
   );
 };
 
-export default PemerintahLaporanPage;
+export default LaporanPage;

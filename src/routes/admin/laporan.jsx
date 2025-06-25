@@ -25,7 +25,7 @@ const LaporanPage = () => {
   const [laporanList, setLaporanList] = useState([]);
   const [filter, setFilter] = useState({ 
     created_at: "", 
-    status: "", 
+    status_pengerjaan: "", 
     kategori: "" 
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -87,7 +87,7 @@ const LaporanPage = () => {
           'Authorization': `Bearer ${token}`
         },
         params: {
-          status: filter.status,
+          status_pengerjaan: filter.status_pengerjaan,
           kategori: filter.kategori
         }
       });
@@ -110,7 +110,7 @@ const LaporanPage = () => {
   useEffect(() => {
     fetchLaporan();
     fetchAdminList();
-  }, [filter.status, filter.kategori]);
+  }, [filter.status_pengerjaan, filter.kategori]);
 
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
@@ -383,8 +383,8 @@ const LaporanPage = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
+  const getStatusColor = (status_pengerjaan) => {
+    switch (status_pengerjaan) {
       case "DITERIMA":
         return "bg-blue-100 text-blue-800";
       case "DALAM_PENGERJAAN":
@@ -479,8 +479,8 @@ const LaporanPage = () => {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
                   <select
-                    name="status"
-                    value={filter.status}
+                    name="status_pengerjaan"
+                    value={filter.status_pengerjaan}
                     onChange={handleFilterChange}
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
@@ -519,12 +519,12 @@ const LaporanPage = () => {
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-2 text-lg font-medium text-slate-800">
-                {filter.created_at || filter.status || filter.kategori 
+                {filter.created_at || filter.status_pengerjaan || filter.kategori 
                   ? "Laporan tidak ditemukan" 
                   : "Belum ada laporan"}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                {filter.created_at || filter.status || filter.kategori
+                {filter.created_at || filter.status_pengerjaan || filter.kategori
                   ? "Coba ubah filter pencarian Anda" 
                   : "Buat laporan baru untuk memulai"}
               </p>

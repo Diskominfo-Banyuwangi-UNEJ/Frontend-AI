@@ -12,12 +12,14 @@ import { useEffect, useRef, useState } from "react";
 
 const Layout = () => {
     const isDesktopDevice = useMediaQuery("(min-width: 768px)");
-    const [collapsed, setCollapsed] = useState(!isDesktopDevice);
+    // Selalu tertutup saat pertama kali akses website
+    const [collapsed, setCollapsed] = useState(true);
 
     const sidebarRef = useRef(null);
 
     useEffect(() => {
-        setCollapsed(!isDesktopDevice);
+        // Jika resize ke desktop, tetap tertutup (collapsed)
+        setCollapsed(true);
     }, [isDesktopDevice]);
 
     useClickOutside([sidebarRef], () => {

@@ -1,5 +1,5 @@
 import { useTheme } from "@/hooks/use-theme";
-import { Bell, ChevronsLeft, Moon, Search, Sun, Menu } from "lucide-react";
+import { Bell, ChevronsLeft, Moon, Search, Sun, Home, Menu } from "lucide-react"; // Sudah ada Home
 import profileImg from "@/assets/saya.jpg";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
@@ -192,7 +192,7 @@ export const Header = ({ collapsed, setCollapsed }) => {
     return (
         <header className="relative z-10 flex h-[60px] items-center justify-between bg-white px-4 shadow-md transition-colors dark:bg-slate-900">
             {!isPublicUser && showEditForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-50">
                     <div className="w-[400px] rounded-lg bg-white p-6 shadow-lg dark:bg-slate-900">
                         <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-white">Mengubah Data Akun</h2>
                         <div className="space-y-4">
@@ -263,15 +263,42 @@ export const Header = ({ collapsed, setCollapsed }) => {
             )}
 
             <div className="flex items-center gap-x-3">
-                <button
-                    className="btn-ghost size-10"
-                    onClick={() => setCollapsed(!collapsed)}
-                >
-                    <Menu className={collapsed && "rotate-180"} />
-                </button>
+                {/* Tombol Home khusus masyarakat */}
+                {isPublicUser && (
+                    <Link to="/masyarakat/dashboard" className="btn-ghost size-10 flex items-center justify-center">
+                        <Home size={20} />
+                    </Link>
+                )}
+
+                {/* Hanya tampilkan tombol menu jika BUKAN masyarakat */}
+                {!isPublicUser && (
+                    <button
+                        className="btn-ghost size-10"
+                        onClick={() => setCollapsed(!collapsed)}
+                    >
+                        <Menu className={collapsed && "rotate-180"} />
+                    </button>
+                )}
             </div>
 
             <div className="relative flex items-center gap-x-3">
+                {/* Tambahkan label khusus masyarakat */}
+                {isPublicUser && (
+                    <div className="flex gap-2 items-center mr-2">
+                        <Link
+                            to="/masyarakat/analytics"
+                            className="font-semibold text-blue-700 text-sm hover:underline transition"
+                        >
+                            Analisis Keramaian
+                        </Link>
+                        <Link
+                            to="/masyarakat/reports"
+                            className="font-semibold text-green-700 text-sm hover:underline transition"
+                        >
+                            Analisis Sampah
+                        </Link>
+                    </div>
+                )}
                 <button
                     className="btn-ghost size-10"
                     onClick={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -286,20 +313,23 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     />
                 </button>
 
+                {/* Notifikasi hanya untuk admin & pemerintah */}
+                {(userRole === "ADMIN" || userRole === "PEMERINTAH") && (
+                    <div className="relative">
+                        <Link 
+                            to={`/${userRole.toLowerCase()}/notifikasi`} 
+                            className="btn-ghost size-10 flex items-center justify-center"
+                        >
+                            <Bell size={20} />
+                            {hasNotification && (
+                                <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                            )}
+                        </Link>
+                    </div>
+                )}
+
                 {!isPublicUser && (
                     <>
-                        <div className="relative">
-                            <Link 
-                                to="/dashboard/notifikasi" 
-                                className="btn-ghost size-10 flex items-center justify-center"
-                            >
-                                <Bell size={20} />
-                                {hasNotification && (
-                                    <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                                )}
-                            </Link>
-                        </div>
-
                         <div className="relative" ref={profileRef}>
                             <button
                                 className="size-10 overflow-hidden rounded-full"

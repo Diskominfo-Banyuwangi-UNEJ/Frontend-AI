@@ -6,20 +6,183 @@ import * as XLSX from "xlsx";
 import { Activity,Clock,Bed,TrendingUp,Video, CheckCircle2, AlertTriangle, Download, Plus, X, Users, User, PencilLine, Trash, ChevronLeft, ChevronRight } from "lucide-react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { Select } from "antd";
+import Hls from "hls.js";
 
 const { Option } = Select;
+ // LiveCCTVPlayer component (inline, not outside)
+    const LiveCCTVPlayer = ({ src, title }) => {
+      const [isFullscreen, setIsFullscreen] = useState(false);
+      const [isLoading, setIsLoading] = useState(true);
+      const [error, setError] = useState(null);
+      const videoRef = useRef(null);
 
-// Custom marker icon
-const customMarker = new L.Icon({
-    iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-});
+      useEffect(() => {
+        if (!src) {
+          setError("URL CCTV tidak tersedia");
+          setIsLoading(false);
+          return;
+        }
+
+        let hls;
+        setIsLoading(true);
+        setError(null);
+
+        if (Hls.isSupported() && videoRef.current) {
+          hls = new Hls({
+            maxBufferLength: 30,
+            maxMaxBufferLength: 600,
+            maxBufferSize: 60 * 1000 * 1000,
+            maxBufferHole: 0.5,
+          });
+
+          hls.loadSource(src);
+          hls.attachMedia(videoRef.current);
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            setIsLoading(false);
+          });
+
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+              setIsLoading(false);
+              setError("Gagal memuat stream CCTV");
+              console.error("HLS Error:", data);
+            }
+          });
+        } else if (videoRef.current && videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
+          // Safari native HLS support
+          videoRef.current.src = src;
+          videoRef.current.addEventListener("loadedmetadata", () => {
+            setIsLoading(false);
+          });
+          videoRef.current.addEventListener("error", () => {
+            setIsLoading(false);
+            setError("Gagal memuat stream CCTV");
+          });
+        } else {
+          setIsLoading(false);
+          setError("Browser tidak mendukung pemutaran stream ini");
+        }
+
+        return () => {
+          if (hls) {
+            hls.destroy();
+          }
+        };
+      }, [src]);
+
+      const toggleFullscreen = () => {
+        if (!isFullscreen && videoRef.current) {
+          videoRef.current.requestFullscreen().catch((err) => {
+            console.error("Error attempting to enable fullscreen:", err);
+          });
+        } else {
+          document.exitFullscreen();
+        }
+        setIsFullscreen(!isFullscreen);
+      };
+
+      return (
+        <div className={`bg-gray-900 rounded-lg overflow-hidden shadow-lg ${isFullscreen ? "fixed inset-0 z-50" : "relative"}`}>
+          <div className="flex items-center justify-between bg-gray-800 px-4 py-2">
+            <h3 className="text-white font-medium truncate">{title}</h3>
+            <div className="flex space-x-2">
+              <button
+                onClick={toggleFullscreen}
+                className="text-gray-300 hover:text-white"
+                title={isFullscreen ? "Keluar dari layar penuh" : "Layar penuh"}
+              >
+                {isFullscreen ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 16h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3v-3a1 1 0 10-2 0v3H5a1 1 0 100 2zm7-13H9V0a1 1 0 10-2 0v3H4a1 1 0 100 2h3v3a1 1 0 102 0V5h3a1 1 0 100-2z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="relative pt-[56.25%]">
+            {isLoading && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                  <p className="text-white mt-2">Memuat stream...</p>
+                </div>
+              </div>
+            )}
+
+            {error && (
+              <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+                <div className="text-center p-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <p className="text-white mt-2">{error}</p>
+                </div>
+              </div>
+            )}
+
+            <video
+              ref={videoRef}
+              controls
+              autoPlay
+              muted
+              playsInline
+              className="absolute top-0 left-0 w-full h-full object-cover"
+            />
+          </div>
+
+          <div className="bg-gray-800 px-4 py-2 text-sm text-gray-400">
+            {new Date().toLocaleString("id-ID", {
+              weekday: "long",
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+            })}
+          </div>
+        </div>
+      );
+    };
+
+// Custom marker icon menggunakan SVG Lucide Video (ikon CCTV)
+const createCustomMarker = () => {
+  return L.divIcon({
+    className: "custom-marker",
+    html: `
+      <div style="
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: #2563eb22;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px #2563eb33;
+      ">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" 
+          fill="none" stroke="#2563eb" stroke-width="2" 
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect width="14" height="10" x="2" y="7" rx="2" />
+          <polygon points="22 7 16 12 22 17 22 7" />
+        </svg>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36]
+  });
+};
 
 const centerBanyuwangi = { lat: -8.2192, lng: 114.3691 };
 const COLORS = ["#10b981", "#f59e0b", "#ef4444"]; // green (sepi), yellow (normal), red (padat)
@@ -57,15 +220,16 @@ const MasyarakatAnalitikKeramaianPage = () => {
             if (res.data.keramaian.length > 0) {
                 setSelectedLocation(res.data.keramaian[0].nama_lokasi);
             }
-            
-            // Prepare pie chart data
+
+            // Pie chart: null/undefined status dianggap SEPI
             const statusCounts = res.data.keramaian.reduce((acc, location) => {
                 location.ranges.forEach(range => {
-                    acc[range.modus_status] = (acc[range.modus_status] || 0) + 1;
+                    const status = range.modus_status || "SEPI";
+                    acc[status] = (acc[status] || 0) + 1;
                 });
                 return acc;
             }, {});
-            
+
             setPieData(Object.entries(statusCounts).map(([name, value]) => ({ 
                 name, 
                 value,
@@ -383,7 +547,23 @@ const MasyarakatAnalitikKeramaianPage = () => {
             </div>
 
           
+            {/* Crowd Status Indicators */}
+            <h1 className="mt-4 font-bold text-center">Status Keramaian</h1>
+            <div className="grid grid-cols-1 gap-4 mt-1 text-center md:grid-cols-3">
+                <motion.div className="p-4 bg-green-100 border-l-4 border-r-4 border-green-500 shadow-lg rounded-xl">
+                    <h3 className="text-lg font-semibold text-green-600">🟢 Status Sepi</h3>
+                </motion.div>
 
+                <motion.div className="p-4 bg-yellow-100 border-l-4 border-r-4 border-yellow-500 shadow-lg rounded-xl">
+                    <h3 className="text-lg font-semibold text-yellow-600">🟡 Status Normal</h3>
+                </motion.div>
+
+                <motion.div className="p-4 bg-red-100 border-l-4 border-r-4 border-red-500 shadow-lg rounded-xl">
+                    <h3 className="text-lg font-semibold text-red-600">🔴 Status Padat</h3>
+                </motion.div>
+            </div>
+
+           
             <div className="flex flex-col md:flex-row gap-4 mt-4">
   {/* Status Distribution Chart - Left Side */}
   <div className="flex-1">
@@ -443,44 +623,58 @@ const MasyarakatAnalitikKeramaianPage = () => {
 </div>
 
             {/* Map Section */}
-            <h1 className="mt-8 mb-2 font-bold text-center">Sebaran CCTV  Kabupaten Banyuwangi</h1>
+            <h1 className="mt-8 mb-2 font-bold text-center">Sebaran CCTV Kabupaten Banyuwangi</h1>
             <div className="card">
-                <div className="h-[400px] w-full">
-                    <MapContainer
-                        center={centerBanyuwangi}
-                        zoom={11}
-                        scrollWheelZoom={true}
-                        style={{ height: "100%", width: "100%" }}
-                    >
-                        <TileLayer
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        />
-                        {locations.map((location, index) => (
-                            <Marker
-                                key={index}
-                                position={[parseFloat(location.latitude), parseFloat(location.longitude)]}
-                                icon={customMarker}
-                            >
-                                <Popup>
-                                    <div>
-                                        <h3 className="font-bold">{location.nama_lokasi}</h3>
-                                        <p className="text-sm">{location.alamat}</p>
-                                        {location.url_cctv && (
-                                            <button 
-                                                onClick={() => handleViewCCTV(location.url_cctv)}
-                                                className="mt-2 text-blue-600 underline"
-                                            >
-                                                Lihat CCTV Langsung
-                                            </button>
-                                        )}
-                                    </div>
-                                </Popup>
-                            </Marker>
-                        ))}
-                    </MapContainer>
+  <div className="h-[400px] w-full relative">
+    {locations.length === 0 && (
+      <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10">
+        <p className="text-gray-500">Memuat data lokasi...</p>
+      </div>
+    )}
+    <MapContainer
+      center={centerBanyuwangi}
+      zoom={11}
+      scrollWheelZoom={true}
+      style={{ height: "100%", width: "100%" }}
+    >
+      <TileLayer
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      />
+      {/* Marker CCTV Keramaian */}
+      {locations
+        .filter(location => {
+          const lat = Number(location.latitude);
+          const lng = Number(location.longitude);
+          return !isNaN(lat) && !isNaN(lng);
+        })
+        .map((location, index) => {
+          const lat = Number(location.latitude);
+          const lng = Number(location.longitude);
+          return (
+            <Marker
+              key={`marker-${location.id || index}`}
+              position={[lat, lng]}
+              icon={createCustomMarker()} // <-- ICON VIDEO
+            >
+              <Popup>
+                <div className="w-80">
+                  <LiveCCTVPlayer
+                    src={location.url_cctv}
+                    title={location.nama_lokasi}
+                  />
+                  <div className="mt-2 text-sm">
+                    <p><span className="font-medium">Alamat:</span> {location.alamat}</p>
+                    <p><span className="font-medium">Koordinat:</span> {lat.toFixed(4)}, {lng.toFixed(4)}</p>
+                  </div>
                 </div>
-            </div>
+              </Popup>
+            </Marker>
+          );
+        })}
+    </MapContainer>
+  </div>
+</div>
 
             {/* Show/Hide Table Button */}
             {!showTable && (
@@ -502,22 +696,7 @@ const MasyarakatAnalitikKeramaianPage = () => {
                 <div className="card">
                     <div className="card-header">
                         <p className="card-title">Daftar CCTV Keramaian</p>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleDownload}
-                                className="flex items-center gap-1 rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-blue-700"
-                            >
-                                <Download className="w-4 h-4" />
-                                Download
-                            </button>
-                            <button
-                                onClick={() => setShowForm(true)}
-                                className="flex items-center gap-1 rounded bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700"
-                            >
-                                <Plus className="w-4 h-4" />
-                                Tambah Data
-                            </button>
-                        </div>
+                        
                     </div>
 
                     {/* Form Modal */}
@@ -679,138 +858,129 @@ const MasyarakatAnalitikKeramaianPage = () => {
                     
                     {/* CCTV Data Table */}
                     <div className="p-0 card-body">
-                        <div className="relative w-full h-[500px] overflow-auto">
-                            <table className="table w-full">
-                                <thead className="text-xs uppercase bg-gray-100">
-                                    <tr>
-                                        <th scope="col" className="px-4 py-3">No</th>
-                                        <th scope="col" className="px-4 py-3">Nama Lokasi</th>
-                                        <th scope="col" className="px-4 py-3">Alamat</th>
-                                        <th scope="col" className="px-4 py-3">Koordinat</th>
-                                        <th scope="col" className="px-4 py-3">Live CCTV</th>
-                                        <th scope="col" className="px-4 py-3">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {crowdList.map((item, index) => (
-                                        <tr key={index} className="bg-white border-b">
-                                            <td className="px-4 py-2">{(currentPage - 1) * perPage + index + 1}</td>
-                                            <td className="px-4 py-2">{item.nama_lokasi || '-'}</td>
-                                            <td className="px-4 py-2">{item.alamat || '-'}</td>
-                                            <td className="px-4 py-2">
-                                                {item.latitude && item.longitude 
-                                                    ? `${parseFloat(item.latitude).toFixed(4)}, ${parseFloat(item.longitude).toFixed(4)}`
-                                                    : '-'}
-                                            </td>
-                                            <td className="px-4 py-2">
-                                                {item.url_cctv ? (
-                                                    <button 
-                                                        onClick={() => handleViewCCTV(item.url_cctv)}
-                                                        className="text-blue-600 underline hover:text-blue-800"
-                                                    >
-                                                        Lihat Live
-                                                    </button>
-                                                ) : 'Tidak Ada'}
-                                            </td>
-                                            <td className="flex gap-2 px-4 py-2">
-                                                <button 
-                                                    onClick={() => handleEdit(item)}
-                                                    className="p-1 text-blue-600 hover:text-blue-800"
-                                                    title="Edit"
-                                                >
-                                                    <PencilLine size={18} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleDelete(item.id)}
-                                                    className="p-1 text-red-600 hover:text-red-800"
-                                                    title="Delete"
-                                                >
-                                                    <Trash size={18} />
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        {/* Pagination */}
-                        <div className="flex items-center justify-between px-4 py-3 border-t">
-                            <div className="flex justify-between flex-1 sm:hidden">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 1}
-                                    className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage === totalPages}
-                                    className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                            
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                        Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
-                                        <span className="font-medium">{Math.min(currentPage * perPage, crowdList.length)}</span> of{' '}
-                                        <span className="font-medium">{totalPages * perPage}</span> results
-                                    </p>
-                                </div>
-                                <div>
-                                    <nav className="inline-flex -space-x-px rounded-md shadow-sm isolate" aria-label="Pagination">
-                                        <button
-                                            onClick={() => handlePageChange(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-l-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                                        >
-                                            <span className="sr-only">Previous</span>
-                                            <ChevronLeft className="w-5 h-5" />
-                                        </button>
-                                        
-                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                            let pageNum;
-                                            if (totalPages <= 5) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage <= 3) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage >= totalPages - 2) {
-                                                pageNum = totalPages - 4 + i;
-                                            } else {
-                                                pageNum = currentPage - 2 + i;
-                                            }
-                                            return pageNum;
-                                        }).map((page) => (
-                                            <button
-                                                key={page}
-                                                onClick={() => handlePageChange(page)}
-                                                className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                                                    currentPage === page
-                                                        ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
-                                                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                                                }`}
-                                            >
-                                                {page}
-                                            </button>
-                                        ))}
-                                        
-                                        <button
-                                            onClick={() => handlePageChange(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-r-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                                        >
-                                            <span className="sr-only">Next</span>
-                                            <ChevronRight className="w-5 h-5" />
-                                        </button>
-                                    </nav>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <div className="relative w-full overflow-x-auto rounded-lg shadow">
+        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
+            <thead className="bg-gray-50">
+                <tr>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">No</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Nama Lokasi</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Alamat</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Koordinat</th>
+                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Live CCTV</th>
+                </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+                {crowdList.length === 0 ? (
+                    <tr>
+                        <td colSpan={6} className="px-4 py-6 text-center text-gray-400">
+                            Tidak ada data CCTV.
+                        </td>
+                    </tr>
+                ) : (
+                    crowdList.map((item, index) => (
+                        <tr key={index} className="hover:bg-blue-50 transition">
+                            <td className="px-4 py-2">{(currentPage - 1) * perPage + index + 1}</td>
+                            <td className="px-4 py-2 font-medium text-gray-900">{item.nama_lokasi || '-'}</td>
+                            <td className="px-4 py-2">{item.alamat || '-'}</td>
+                            <td className="px-4 py-2">
+                                {item.latitude && item.longitude 
+                                    ? `${parseFloat(item.latitude).toFixed(4)}, ${parseFloat(item.longitude).toFixed(4)}`
+                                    : '-'}
+                            </td>
+                            <td className="px-4 py-2">
+                                {item.url_cctv ? (
+                                    <button 
+                                        onClick={() => handleViewCCTV(item.url_cctv)}
+                                        className="text-blue-600 underline hover:text-blue-800"
+                                    >
+                                        Lihat Live
+                                    </button>
+                                ) : <span className="text-gray-400">Tidak Ada</span>}
+                            </td>
+                          
+                        </tr>
+                    ))
+                )}
+            </tbody>
+        </table>
+    </div>
+    {/* Pagination */}
+    <div className="flex items-center justify-between px-4 py-3 border-t">
+        <div className="flex justify-between flex-1 sm:hidden">
+            <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+                Previous
+            </button>
+            <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            >
+                Next
+            </button>
+        </div>
+        
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+                <p className="text-sm text-gray-700">
+                    Showing <span className="font-medium">{(currentPage - 1) * perPage + 1}</span> to{' '}
+                    <span className="font-medium">{Math.min(currentPage * perPage, crowdList.length)}</span> of{' '}
+                    <span className="font-medium">{totalPages * perPage}</span> results
+                </p>
+            </div>
+            <div>
+                <nav className="inline-flex -space-x-px rounded-md shadow-sm isolate" aria-label="Pagination">
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-l-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    >
+                        <span className="sr-only">Previous</span>
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                            pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                        } else {
+                            pageNum = currentPage - 2 + i;
+                        }
+                        return pageNum;
+                    }).map((page) => (
+                        <button
+                            key={page}
+                            onClick={() => handlePageChange(page)}
+                            className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                                currentPage === page
+                                    ? 'bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'
+                                    : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                            }`}
+                        >
+                            {page}
+                        </button>
+                    ))}
+                    
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="relative inline-flex items-center px-2 py-2 text-gray-400 rounded-r-md ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                    >
+                        <span className="sr-only">Next</span>
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
                 </div>
             )}
             

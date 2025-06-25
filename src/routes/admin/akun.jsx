@@ -310,14 +310,14 @@ const AkunPage = () => {
         {/* Header */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Account Management</h1>
+            <h1 className="text-3xl font-bold text-slate-800">Manajemen Akun Admin dan Pemerintah</h1>
           </div>
           <button
             onClick={openCreateModal}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             <Plus size={18} />
-            Add Account
+            Tambah Akun
           </button>
         </div>
 
@@ -329,7 +329,7 @@ const AkunPage = () => {
             </div>
             <input
               type="text"
-              placeholder="Search accounts..."
+              placeholder="cari akun..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 pl-10 text-sm text-slate-900 focus:border-indigo-500 focus:ring-indigo-500"
@@ -344,7 +344,7 @@ const AkunPage = () => {
             )}
           </div>
           <div className="text-sm text-slate-600">
-            Showing {filteredData.length} of {akunList.length} accounts
+            Menampilkan {filteredData.length} dari {akunList.length} akun
           </div>
         </div>
 
@@ -385,7 +385,7 @@ const AkunPage = () => {
                   className="mt-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  Add Account
+                  Tambah Akun
                 </button>
               )}
             </div>
@@ -407,7 +407,7 @@ const AkunPage = () => {
                     onClick={() => requestSort('name_lengkap')}
                   >
                     <div className="flex items-center">
-                      Full Name
+                      Nama Pimpinan
                       {sortConfig.key === 'name_lengkap' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -441,7 +441,7 @@ const AkunPage = () => {
                     onClick={() => requestSort('nama_instansi')}
                   >
                     <div className="flex items-center">
-                      Institution
+                      Institusi
                       {sortConfig.key === 'nama_instansi' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -450,7 +450,7 @@ const AkunPage = () => {
                     </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Actions
+                    Aksi
                   </th>
                 </tr>
               </thead>
@@ -562,7 +562,7 @@ const AkunPage = () => {
                 ref={formRef}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Add New Account</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">Menambah Data Akun</h2>
                   <button
                     onClick={closeModals}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -573,7 +573,7 @@ const AkunPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Full Name
+                      Nama Pimpinan
                     </label>
                     <input
                       type="text"
@@ -581,7 +581,7 @@ const AkunPage = () => {
                       value={formData.name_lengkap}
                       onChange={handleChange}
                       className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      placeholder="Enter full name"
+                      placeholder="Masukkan nama pimpinan"
                     />
                     {formErrors.name_lengkap && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
@@ -651,13 +651,13 @@ const AkunPage = () => {
                         className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
                         <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Government</option>
+                        <option value="PEMERINTAH">Pemerintah</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Institution
+                        Institusi
                       </label>
                       <select
                         name="nama_instansi"
@@ -679,13 +679,13 @@ const AkunPage = () => {
                       onClick={closeModals}
                       className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Batal
                     </button>
                     <button
                       type="submit"
                       className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Save Account
+                      Simpan Akun
                     </button>
                   </div>
                 </form>
@@ -711,7 +711,7 @@ const AkunPage = () => {
                 ref={formRef}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Edit Account</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">Mengubah Data Akun</h2>
                   <button
                     onClick={closeModals}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -722,7 +722,7 @@ const AkunPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Full Name
+                      Nama Pimpinan
                     </label>
                     <input
                       type="text"
@@ -730,7 +730,7 @@ const AkunPage = () => {
                       value={formData.name_lengkap}
                       onChange={handleChange}
                       className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      placeholder="Enter full name"
+                      placeholder="Masukkan nama pimpinan"
                     />
                     {formErrors.name_lengkap && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
@@ -773,7 +773,7 @@ const AkunPage = () => {
 
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      New Password (leave blank to keep current)
+                      Password Baru
                     </label>
                     <input
                       type="password"
@@ -800,13 +800,13 @@ const AkunPage = () => {
                         className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
                         <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Government</option>
+                        <option value="PEMERINTAH">Pemerintah</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Institution
+                        Institusi
                       </label>
                       <select
                         name="nama_instansi"
@@ -828,13 +828,13 @@ const AkunPage = () => {
                       onClick={closeModals}
                       className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Batal
                     </button>
                     <button
                       type="submit"
                       className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Update Account
+                      Ubah Akun
                     </button>
                   </div>
                 </form>

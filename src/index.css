@@ -96,3 +96,17 @@
 html, body, #root {
     @apply h-full overflow-hidden;
 }
+
+/* Atur z-index leaflet agar popup selalu di atas tile map dan elemen lain tidak tertutup */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 0 !important;
+}
+.leaflet-popup {
+  z-index: 10000 !important;
+}
+.leaflet-marker-icon,
+.leaflet-popup-pane {
+  z-index: 1001 !important;
+}
