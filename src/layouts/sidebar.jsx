@@ -9,7 +9,14 @@ import PropTypes from "prop-types";
 
 export const Sidebar = forwardRef(({ collapsed }, ref) => {
   const { userRole } = useAuth();
-  const roleMenus = navbarLinks[userRole] || [];
+
+  // Jangan tampilkan sidebar sama sekali untuk aktor masyarakat
+  if ((userRole || "").toUpperCase() === "MASYARAKAT") return null;
+
+  // Pastikan role selalu uppercase agar cocok dengan key di navbarLinks
+  const normalizedRole = (userRole || "").toUpperCase();
+
+  const roleMenus = navbarLinks[normalizedRole] || [];
 
   return (
     <aside
