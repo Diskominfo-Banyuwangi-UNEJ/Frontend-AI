@@ -155,25 +155,20 @@ const AkunPage = () => {
       payload.password = formData.password;
     }
 
-    const config = {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    };
+   
 
     let response;
     if (isEditModalOpen && currentEditId) { // Pastikan currentEditId ada
       response = await axios.put(
         `http://localhost:3000/api/users/${currentEditId}`, 
         payload,
-        config
+        
       );
     } else {
       response = await axios.post(
         'http://localhost:3000/api/users',
         payload,
-        config
+        
       );
     }
 
@@ -199,46 +194,74 @@ const AkunPage = () => {
 };
   // Delete account
   const handleDelete = async (id) => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "You won't be able to revert this!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#64748b',
-      confirmButtonText: 'Yes, delete it!',
-      background: '#f8fafc',
+  // Validasi ID
+  if (!id) {
+    console.error('Invalid ID for deletion');
+    Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Invalid account ID',
     });
+    return;
+  }
 
-    if (result.isConfirmed) {
-      try {
-        await axios.delete(`http://localhost:3000/api/users/${id}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        setAkunList(prev => prev.filter(akun => akun.id !== id));
-
-        Swal.fire({
-          icon: 'success',
-          title: 'Deleted!',
-          text: 'Account has been deleted.',
-          timer: 1500,
-          showConfirmButton: false,
-          background: '#f8fafc',
-        });
-      } catch (error) {
-        console.error('Failed to delete account:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Failed!',
-          text: error.response?.data?.message || 'Failed to delete account',
-          background: '#f8fafc',
-        });
-      }
+  const result = await Swal.fire({
+    title: 'Apakah Anda yakin?',
+    text: "Data yang dihapus tidak dapat dikembalikan!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Ya, hapus!',
+    cancelButtonText: 'Batal',
+    background: '#f8fafc',
+    customClass: {
+      popup: 'rounded-xl',
+      title: 'text-center'
     }
-  };
+  });
+
+  if (result.isConfirmed) {
+    try {
+      // Gunakan endpoint yang sama dengan notifikasi (dengan query parameter)
+      await axios.delete(`http://localhost:3000/api/users/${id}?user_id=2`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      // Update state seperti di notifikasi
+      setAkunList(prev => prev.filter(akun => akun.id !== id));
+
+      // Notifikasi sukses seperti di komponen Notifikasi
+      Swal.fire({
+        title: 'Berhasil dihapus!',
+        icon: 'success',
+        timer: 1500,
+        showConfirmButton: false,
+        toast: true,
+        position: 'top'
+      });
+    } catch (error) {
+      console.error('Delete error:', error);
+      
+      // Error handling seperti di notifikasi
+      let errorMessage = 'Gagal menghapus akun';
+      if (error.response) {
+        errorMessage = error.response.data?.message || errorMessage;
+      } else if (error.request) {
+        errorMessage = 'Tidak ada respon dari server';
+      }
+      
+      Swal.fire({
+        title: 'Error',
+        text: errorMessage,
+        icon: 'error',
+        confirmButtonText: 'Tutup'
+      });
+    }
+  }
+};
 
   // Search and filter
   const filteredData = akunList.filter(akun => {
@@ -287,14 +310,14 @@ const AkunPage = () => {
         {/* Header */}
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">Account Management</h1>
+            <h1 className="text-3xl font-bold text-slate-800">Manajemen Akun Admin dan Pemerintah</h1>
           </div>
           <button
             onClick={openCreateModal}
             className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             <Plus size={18} />
-            Add Account
+            Tambah Akun
           </button>
         </div>
 
@@ -384,7 +407,7 @@ const AkunPage = () => {
                     onClick={() => requestSort('name_lengkap')}
                   >
                     <div className="flex items-center">
-                      Full Name
+                      Nama Pimpinan
                       {sortConfig.key === 'name_lengkap' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -418,7 +441,7 @@ const AkunPage = () => {
                     onClick={() => requestSort('nama_instansi')}
                   >
                     <div className="flex items-center">
-                      Institution
+                      Institusi
                       {sortConfig.key === 'nama_instansi' && (
                         sortConfig.direction === 'asc' ? 
                           <ChevronUp className="ml-1 h-4 w-4" /> : 
@@ -427,7 +450,7 @@ const AkunPage = () => {
                     </div>
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Actions
+                    Aksi
                   </th>
                 </tr>
               </thead>
@@ -550,7 +573,7 @@ const AkunPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Full Name
+                      Nama Pimpinan
                     </label>
                     <input
                       type="text"
@@ -558,7 +581,7 @@ const AkunPage = () => {
                       value={formData.name_lengkap}
                       onChange={handleChange}
                       className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      placeholder="Enter full name"
+                      placeholder="Masukkan nama pimpinan"
                     />
                     {formErrors.name_lengkap && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
@@ -628,13 +651,13 @@ const AkunPage = () => {
                         className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
                         <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Government</option>
+                        <option value="PEMERINTAH">Pemerintah</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Institution
+                        Institusi
                       </label>
                       <select
                         name="nama_instansi"
@@ -656,13 +679,13 @@ const AkunPage = () => {
                       onClick={closeModals}
                       className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Batal
                     </button>
                     <button
                       type="submit"
                       className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Save Account
+                      Simpan Akun
                     </button>
                   </div>
                 </form>
@@ -688,7 +711,7 @@ const AkunPage = () => {
                 ref={formRef}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Edit Account</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">Ubah Akun</h2>
                   <button
                     onClick={closeModals}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -699,7 +722,7 @@ const AkunPage = () => {
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      Full Name
+                      Nama Pimpinan
                     </label>
                     <input
                       type="text"
@@ -707,7 +730,7 @@ const AkunPage = () => {
                       value={formData.name_lengkap}
                       onChange={handleChange}
                       className={`w-full rounded-lg border p-2.5 text-sm ${formErrors.name_lengkap ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-white'}`}
-                      placeholder="Enter full name"
+                      placeholder="Masukkan nama pimpinan"
                     />
                     {formErrors.name_lengkap && (
                       <p className="mt-1 text-sm text-red-600">{formErrors.name_lengkap}</p>
@@ -777,13 +800,13 @@ const AkunPage = () => {
                         className="w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm"
                       >
                         <option value="ADMIN">Admin</option>
-                        <option value="PEMERINTAH">Government</option>
+                        <option value="PEMERINTAH">Pemerintah</option>
                       </select>
                     </div>
 
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Institution
+                        Institusi
                       </label>
                       <select
                         name="nama_instansi"
@@ -805,7 +828,7 @@ const AkunPage = () => {
                       onClick={closeModals}
                       className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Cancel
+                      Batal
                     </button>
                     <button
                       type="submit"
