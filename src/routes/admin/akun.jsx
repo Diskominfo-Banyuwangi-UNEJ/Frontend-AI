@@ -385,7 +385,7 @@ const AkunPage = () => {
                   className="mt-3 inline-flex items-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
                   <Plus className="mr-1 h-4 w-4" />
-                  Add Account
+                  Tambah Akun
                 </button>
               )}
             </div>
@@ -562,7 +562,7 @@ const AkunPage = () => {
                 ref={formRef}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Add New Account</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">Menambah Data Akun</h2>
                   <button
                     onClick={closeModals}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -711,7 +711,7 @@ const AkunPage = () => {
                 ref={formRef}
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-slate-800">Ubah Akun</h2>
+                  <h2 className="text-xl font-semibold text-slate-800">Mengubah Data Akun</h2>
                   <button
                     onClick={closeModals}
                     className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -773,7 +773,7 @@ const AkunPage = () => {
 
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700">
-                      New Password (leave blank to keep current)
+                      Password Baru
                     </label>
                     <input
                       type="password"
@@ -834,7 +834,7 @@ const AkunPage = () => {
                       type="submit"
                       className="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                      Update Account
+                      Ubah Akun
                     </button>
                   </div>
                 </form>
