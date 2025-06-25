@@ -1130,4 +1130,3 @@ const AnalitikSampahPage = () => {
     );
 };
 
-export default AnalitikSampahPage;
