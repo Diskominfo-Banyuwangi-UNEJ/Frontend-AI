@@ -145,7 +145,7 @@ const Notifikasi = ({ userId }) => {
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Notifikasi</h2>
+                <h2 className="text-2xl font-bold">Notifikasi</h2>
                 {notifikasi.meta.unread_count > 0 && (
                     <span className="bg-red-500 text-white text-sm font-medium px-2.5 py-0.5 rounded-full">
                         {notifikasi.meta.unread_count} belum dibaca
