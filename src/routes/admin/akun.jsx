@@ -329,7 +329,7 @@ const AkunPage = () => {
             </div>
             <input
               type="text"
-              placeholder="Search accounts..."
+              placeholder="cari akun..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="block w-full rounded-lg border border-slate-300 bg-white p-2.5 pl-10 text-sm text-slate-900 focus:border-indigo-500 focus:ring-indigo-500"
@@ -344,7 +344,7 @@ const AkunPage = () => {
             )}
           </div>
           <div className="text-sm text-slate-600">
-            Showing {filteredData.length} of {akunList.length} accounts
+            Menampilkan {filteredData.length} dari {akunList.length} akun
           </div>
         </div>
 
