@@ -25,7 +25,7 @@ const LaporanPage = () => {
   const [laporanList, setLaporanList] = useState([]);
   const [filter, setFilter] = useState({ 
     created_at: "", 
-    status: "", 
+    status_pengerjaan: "", 
     kategori: "" 
   });
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -87,7 +87,7 @@ const LaporanPage = () => {
           'Authorization': `Bearer ${token}`
         },
         params: {
-          status: filter.status,
+          status_pengerjaan: filter.status_pengerjaan,
           kategori: filter.kategori
         }
       });
@@ -110,7 +110,7 @@ const LaporanPage = () => {
   useEffect(() => {
     fetchLaporan();
     fetchAdminList();
-  }, [filter.status, filter.kategori]);
+  }, [filter.status_pengerjaan, filter.kategori]);
 
   const handleFilterChange = (e) => {
     setFilter({ ...filter, [e.target.name]: e.target.value });
@@ -148,13 +148,14 @@ const LaporanPage = () => {
   };
 
   const handleSimpan = async () => {
-    const { judul_laporan, deskripsi, kategori, status_pengerjaan, created_at, id_user } = formData;
+    const { judul_laporan, deskripsi, kategori, status_pengerjaan, created_at, estimasi, filePdf } = formData;
 
-    if (!judul_laporan || !deskripsi || !kategori || !created_at || !id_user) {
+    // Jangan validasi id_user
+    if (!judul_laporan || !deskripsi || !kategori || !created_at) {
       MySwal.fire({
         icon: "error",
         title: "Data tidak lengkap",
-        text: "Semua field wajib diisi kecuali file PDF!",
+        text: "Semua field wajib diisi kecuali file PDF dan estimasi!",
         timer: 3000,
         showConfirmButton: false,
         position: "top",
@@ -167,23 +168,21 @@ const LaporanPage = () => {
     try {
       setIsSubmitting(true);
       const payload = {
-        judul_laporan: formData.judul_laporan,
-        deskripsi: formData.deskripsi,
-        kategori: formData.kategori,
-        status_pengerjaan: formData.status_pengerjaan,
-        created_at: formData.created_at,
-        estimasi: formData.estimasi,
-        id_user: formData.id_user
+        judul_laporan,
+        deskripsi,
+        kategori,
+        status_pengerjaan,
+        created_at,
       };
+      if (estimasi) payload.estimasi = estimasi;
+      if (filePdf) payload.filePdf = filePdf;
 
-      if (formData.filePdf) {
-        payload.filePdf = formData.filePdf;
-      }
+      console.log('Payload:', payload); // Debug
 
+      // Hapus token dari headers
       const config = {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         }
       };
 
@@ -384,8 +383,8 @@ const LaporanPage = () => {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
+  const getStatusColor = (status_pengerjaan) => {
+    switch (status_pengerjaan) {
       case "DITERIMA":
         return "bg-blue-100 text-blue-800";
       case "DALAM_PENGERJAAN":
@@ -480,8 +479,8 @@ const LaporanPage = () => {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700">Status</label>
                   <select
-                    name="status"
-                    value={filter.status}
+                    name="status_pengerjaan"
+                    value={filter.status_pengerjaan}
                     onChange={handleFilterChange}
                     className="w-full rounded-lg border border-slate-300 p-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
                   >
@@ -520,12 +519,12 @@ const LaporanPage = () => {
             <div className="p-8 text-center">
               <FileText className="mx-auto h-12 w-12 text-slate-400" />
               <h3 className="mt-2 text-lg font-medium text-slate-800">
-                {filter.created_at || filter.status || filter.kategori 
+                {filter.created_at || filter.status_pengerjaan || filter.kategori 
                   ? "Laporan tidak ditemukan" 
                   : "Belum ada laporan"}
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                {filter.created_at || filter.status || filter.kategori
+                {filter.created_at || filter.status_pengerjaan || filter.kategori
                   ? "Coba ubah filter pencarian Anda" 
                   : "Buat laporan baru untuk memulai"}
               </p>
@@ -675,29 +674,6 @@ const LaporanPage = () => {
 
                 <div className="max-h-[80vh] overflow-y-auto p-6">
                   <div className="space-y-4">
-                    {/* Admin Penanggung Jawab */}
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-700">
-                        Admin Penanggung Jawab
-                      </label>
-                      <select
-                        name="id_user"
-                        value={formData.id_user}
-                        onChange={e =>
-                          setFormData({ ...formData, id_user: parseInt(e.target.value) || "" })
-                        }
-                        className="w-full rounded-lg border border-slate-300 p-2.5 text-sm focus:border-indigo-500 focus:ring-indigo-500"
-                        required
-                      >
-                        <option value="">Pilih Admin</option>
-                        {adminList.map(admin => (
-                          <option key={admin.id} value={admin.id}>
-                            {admin.name_lengkap || admin.username}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
                     {/* Judul Laporan */}
                     <div>
                       <label className="mb-1 block text-sm font-medium text-slate-700">
