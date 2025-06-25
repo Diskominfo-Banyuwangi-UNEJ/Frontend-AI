@@ -1,5 +1,5 @@
 import { useTheme } from "@/hooks/use-theme";
-import { Bell, ChevronsLeft, Moon, Search, Sun, Menu } from "lucide-react";
+import { Bell, ChevronsLeft, Moon, Search, Sun, Home, Menu } from "lucide-react"; // Sudah ada Home
 import profileImg from "@/assets/saya.jpg";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
@@ -35,7 +35,11 @@ export const Header = ({ collapsed, setCollapsed }) => {
                             Authorization: `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-                    setUserData(response.data.data);
+                    // Perbaikan di sini:
+                    const user = Array.isArray(response.data.data)
+                        ? response.data.data[0]
+                        : response.data.data;
+                    setUserData(user);
                 } catch (error) {
                     console.error('Error fetching user data:', error);
                     if (error.response?.status === 401) {
@@ -259,15 +263,42 @@ export const Header = ({ collapsed, setCollapsed }) => {
             )}
 
             <div className="flex items-center gap-x-3">
-                <button
-                    className="btn-ghost size-10"
-                    onClick={() => setCollapsed(!collapsed)}
-                >
-                    <Menu className={collapsed && "rotate-180"} />
-                </button>
+                {/* Tombol Home khusus masyarakat */}
+                {isPublicUser && (
+                    <Link to="/masyarakat/dashboard" className="btn-ghost size-10 flex items-center justify-center">
+                        <Home size={20} />
+                    </Link>
+                )}
+
+                {/* Hanya tampilkan tombol menu jika BUKAN masyarakat */}
+                {!isPublicUser && (
+                    <button
+                        className="btn-ghost size-10"
+                        onClick={() => setCollapsed(!collapsed)}
+                    >
+                        <Menu className={collapsed && "rotate-180"} />
+                    </button>
+                )}
             </div>
 
             <div className="relative flex items-center gap-x-3">
+                {/* Tambahkan label khusus masyarakat */}
+                {isPublicUser && (
+                    <div className="flex gap-2 items-center mr-2">
+                        <Link
+                            to="/masyarakat/analytics"
+                            className="font-semibold text-blue-700 text-sm hover:underline transition"
+                        >
+                            Analisis Keramaian
+                        </Link>
+                        <Link
+                            to="/masyarakat/reports"
+                            className="font-semibold text-green-700 text-sm hover:underline transition"
+                        >
+                            Analisis Sampah
+                        </Link>
+                    </div>
+                )}
                 <button
                     className="btn-ghost size-10"
                     onClick={() => setTheme(theme === "light" ? "dark" : "light")}
@@ -282,20 +313,23 @@ export const Header = ({ collapsed, setCollapsed }) => {
                     />
                 </button>
 
+                {/* Notifikasi hanya untuk admin & pemerintah */}
+                {(userRole === "ADMIN" || userRole === "PEMERINTAH") && (
+                    <div className="relative">
+                        <Link 
+                            to={`/${userRole.toLowerCase()}/notifikasi`} 
+                            className="btn-ghost size-10 flex items-center justify-center"
+                        >
+                            <Bell size={20} />
+                            {hasNotification && (
+                                <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+                            )}
+                        </Link>
+                    </div>
+                )}
+
                 {!isPublicUser && (
                     <>
-                        <div className="relative">
-                            <Link 
-                                to="/dashboard/notifikasi" 
-                                className="btn-ghost size-10 flex items-center justify-center"
-                            >
-                                <Bell size={20} />
-                                {hasNotification && (
-                                    <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-                                )}
-                            </Link>
-                        </div>
-
                         <div className="relative" ref={profileRef}>
                             <button
                                 className="size-10 overflow-hidden rounded-full"
@@ -312,19 +346,19 @@ export const Header = ({ collapsed, setCollapsed }) => {
                                 <div className="absolute right-0 z-50 mt-2 w-64 rounded-xl border bg-white p-4 text-left shadow-lg dark:bg-slate-800">
                                     <div className="mb-4 space-y-5">
                                         <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Nama Lengkap: {userData?.name_lengkap}
+                                        </p>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
                                             Nama Instansi: {userData?.nama_instansi}
                                         </p>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-slate-300">
-                                            Nama Pimpinan: {userData?.nama_pimpinan}
-                                        </p>
                                         <p className="text-sm font-medium text-green-500">
-                                            Status: {userData?.status}
+                                            Role: {userData?.role}
                                         </p>
-                                        <p className="text-sm font-medium">
-                                            Username: <span className="font-medium">{userData?.username}</span>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Username: {userData?.username}
                                         </p>
-                                        <p className="text-sm font-medium">
-                                            Email: <span className="font-medium">{userData?.email}</span>
+                                        <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                            Email: {userData?.email}
                                         </p>
                                     </div>
                                     <hr className="my-2 border-slate-300 dark:border-slate-600" />
