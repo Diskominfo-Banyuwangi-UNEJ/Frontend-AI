@@ -836,8 +836,5 @@ const LaporanPage = () => {
   );
 };
 
-<<<<<<< HEAD
 export default LaporanPage;
-=======
-export default LaporanPage;
->>>>>>> 5b4c138663c5cd54cbd4da45efdac67745ede8af
+

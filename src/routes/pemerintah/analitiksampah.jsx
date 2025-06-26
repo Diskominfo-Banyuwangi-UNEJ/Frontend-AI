@@ -1129,4 +1129,4 @@ const AnalitikSampahPage = () => {
         </div>
     );
 };
-
+export default AnalitikSampahPage;
