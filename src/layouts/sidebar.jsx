@@ -27,8 +27,8 @@ export const Sidebar = forwardRef(({ collapsed }, ref) => {
         collapsed ? "max-md:-left-full" : "max-md:left-0",
       )}
     >
-      <div className="flex gap-x-3 p-3 items-center">
-        <img src={logo} alt="Logo BWI" className="h-8 w-auto" />
+      <div className="flex items-center p-3 gap-x-3">
+        <img src={logo} alt="Logo BWI" className="w-auto h-8" />
         {!collapsed && (
           <p className="text-lg font-bold text-slate-900 dark:text-slate-50">
             DISKOMINFO BANYUWANGI

@@ -103,28 +103,28 @@ export default function LoginForm() {
     };
 
     return (
-        <section className="flex min-h-screen items-center justify-center bg-gradient-to-r from-white to-white font-sans">
-            <div className="flex w-full max-w-md flex-col overflow-hidden rounded-xl border bg-white shadow-lg md:max-w-2xl md:flex-row">
-                <div className="flex flex-1 flex-col justify-center gap-4 p-6">
-                    <h1 className="text-center text-2xl font-bold">Silakan Login</h1>
+        <section className="flex items-center justify-center min-h-screen font-sans bg-gradient-to-r from-white to-white">
+            <div className="flex flex-col w-full max-w-md overflow-hidden bg-white border shadow-lg rounded-xl md:max-w-2xl md:flex-row">
+                <div className="flex flex-col justify-center flex-1 gap-4 p-6">
+                    <h1 className="text-2xl font-bold text-center">Silakan Login</h1>
 
                     <form onSubmit={handleLogin}>
                         <div className="flex flex-col gap-1 text-sm">
                             <label>Email</label>
                             <input
                                 type="email"
-                                className="rounded-md border border-gray-300 p-2 outline-none focus:border-cyan-400 focus:bg-slate-50"
+                                className="p-2 border border-gray-300 rounded-md outline-none focus:border-cyan-400 focus:bg-slate-50"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                         </div>
 
-                         <div className="flex flex-col gap-1 mt-4 text-sm relative">
+                         <div className="relative flex flex-col gap-1 mt-4 text-sm">
                             <label>Password</label>
                             <input
                                 type={showPassword ? "text" : "password"} // Mengubah tipe input berdasarkan state
-                                className="rounded-md border border-gray-300 p-2 outline-none focus:border-cyan-400 focus:bg-slate-50"
+                                className="p-2 border border-gray-300 rounded-md outline-none focus:border-cyan-400 focus:bg-slate-50"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -147,7 +147,7 @@ export default function LoginForm() {
                         >
                             {isLoading ? (
                                 <span className="flex items-center justify-center">
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4 mr-2 -ml-1 text-white animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
@@ -162,7 +162,7 @@ export default function LoginForm() {
                     <img
                         src={login5}
                         alt="login5"
-                        className="h-full w-full object-cover"
+                        className="object-cover w-full h-full"
                     />
                 </div>
             </div>

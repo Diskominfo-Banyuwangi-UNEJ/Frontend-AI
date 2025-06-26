@@ -12,8 +12,6 @@ import { FaWhatsapp } from "react-icons/fa";
 import { getAuthToken, isAuthenticated } from "@/contexts/auth-context";
 
 
-
-
 const LandingPage = () => {
     const [currentImage, setCurrentImage] = useState(0);
 
@@ -36,7 +34,6 @@ const LandingPage = () => {
         setShowPopup(false); // Menutup pop-up
     };
 
-    
 
     // Peta Lokasi
     const containerStyle = {
@@ -170,7 +167,7 @@ const LandingPage = () => {
       <h1 className="mb-4 text-5xl font-extrabold leading-tight text-white">
         Transformasi Pengawasan Publik Banyuwangi dengan Analitik CCTV Berbasis AI
       </h1>
-      <p className="mx-auto mb-6 max-w-2xl text-xl md:text-2xl">
+      <p className="max-w-2xl mx-auto mb-6 text-xl md:text-2xl">
         Meningkatkan efisiensi,mempercepat respons,dan layanan publik berbasis data
       </p>
     </div>
@@ -188,8 +185,8 @@ const LandingPage = () => {
                 <div className="flex flex-col gap-6 md:flex-row">
                     {/* Tentang Sistem */}
                     <div className="flex-1">
-                        <p className="mb-6 text-left text-2xl font-bold text-blue-500">Tentang Sistem</p>
-                        <p className="mt-2 text-justify text-lg text-gray-700">
+                        <p className="mb-6 text-2xl font-bold text-left text-blue-500">Tentang Sistem</p>
+                        <p className="mt-2 text-lg text-justify text-gray-700">
                             Sistem ini adalah sistem berbasis AI yang dirancang untuk mendukung pemerintah dan masyarakat dalam meningkatkan
                             pengawasan publik, efisiensi layanan, serta mitigasi risiko lingkungan. Dengan memanfaatkan teknologi analitik video
                             berbasis kecerdasan buatan (AI), sistem ini memungkinkan pemantauan real-time dan analisis data secara otomatis dari
@@ -205,7 +202,7 @@ const LandingPage = () => {
                         transition={{ duration: 0.8 }}
                         viewport={{ once: false, amount: 0.2 }}
                     >
-                        <h2 className="mb-6 text-center text-2xl font-bold text-blue-500">Tujuan Dashboard</h2>
+                        <h2 className="mb-6 text-2xl font-bold text-center text-blue-500">Tujuan Dashboard</h2>
                         <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-1">
                             {[
                             {
@@ -227,7 +224,7 @@ const LandingPage = () => {
                                     className="flex items-start justify-start p-4 md:flex-row md:space-x-4"
                                 >
                                     {/* Icon with Border */}
-                                    <div className="mr-4 rounded-full border-2 border-blue-500 p-4 text-blue-500">{item.icon}</div>
+                                    <div className="p-4 mr-4 text-blue-500 border-2 border-blue-500 rounded-full">{item.icon}</div>
                                     {/* Keterangan */}
                                     <div className="text-left">
                                         <h3 className="text-lg font-semibold text-gray-800">{item.title}</h3>
@@ -243,10 +240,10 @@ const LandingPage = () => {
     
 
             <section className="pb-2">
-                <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">Fitur Utama</h2>
+                <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Fitur Utama</h2>
                 <div className="grid grid-cols-1 gap-6 p-6 text-center md:grid-cols-2 lg:grid-cols-3">
                     {/* Container untuk memusatkan card */}
-                    <div className="col-span-1 flex items-center justify-center gap-6 md:col-span-2 lg:col-span-3">
+                    <div className="flex items-center justify-center col-span-1 gap-6 md:col-span-2 lg:col-span-3">
                          <motion.div
                         whileHover={{ scale: 1.05 }} // Zoom out sedikit saat hover
                         transition={{ type: "spring", stiffness: 300 }}
@@ -256,9 +253,9 @@ const LandingPage = () => {
                             <img
                             src="/image/keramaian.jpeg"
                             alt="Fitur 1"
-                            className="h-48 w-full rounded-t-lg object-cover"
+                            className="object-cover w-full h-48 rounded-t-lg"
                             />
-                            <div className="mt-4 flex-grow">
+                            <div className="flex-grow mt-4">
                             <h3 className="text-lg font-semibold text-gray-800">Pemantauan Keramaian</h3>
                             </div>
                         </Link>
@@ -273,9 +270,9 @@ const LandingPage = () => {
                             <img
                             src="/image/sampah.jpg"
                             alt="Fitur 2"
-                            className="h-48 w-full rounded-t-lg object-cover"
+                            className="object-cover w-full h-48 rounded-t-lg"
                             />
-                            <div className="mt-4 flex-grow">
+                            <div className="flex-grow mt-4">
                             <h3 className="text-lg font-semibold text-gray-800">Pemantauan Tumpukan Sampah</h3>
                             </div>
                         </Link>
@@ -293,19 +290,19 @@ const LandingPage = () => {
                 transition={{ duration: 0.8 }}
                 viewport={{ once: false, amount: 0.2 }}
             >
-                <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">Dinas Komunikasi, Informatika dan Persandian Banyuwangi</h2>
+                <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">Dinas Komunikasi, Informatika dan Persandian Banyuwangi</h2>
 
                 <div className="flex flex-col items-center gap-6 md:flex-row">
                     <div className="w-full md:w-1/2">
                         <img
                             src="/image/diskominfo.jpg"
                             alt="Dinas Kominfo"
-                            className="w-full rounded-lg object-cover shadow-md"
+                            className="object-cover w-full rounded-lg shadow-md"
                         />
                     </div>
 
                     <div className="w-full md:w-1/2">
-                        <h3 className="text-center text-xl font-bold text-gray-800">Tentang Kami</h3>
+                        <h3 className="text-xl font-bold text-center text-gray-800">Tentang Kami</h3>
                         <p className="mt-2 text-justify text-gray-600">
                             Dinas Komunikasi, Informatika, dan Persandian Kabupaten Banyuwangi merupakan garda terdepan dalam transformasi digital di
                             tingkat daerah. Kami berperan strategis dalam merancang, mengelola, dan mengembangkan infrastruktur teknologi informasi
@@ -323,7 +320,7 @@ const LandingPage = () => {
 
             {/* Dinas Terkait */}
             <div className="mt-10">
-                <h2 className="mb-4 text-center text-2xl font-bold text-blue-600">DINAS TERKAIT DASHBOARD CCTV</h2>
+                <h2 className="mb-4 text-2xl font-bold text-center text-blue-600">DINAS TERKAIT DASHBOARD CCTV</h2>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                     {[
                         {
@@ -353,18 +350,18 @@ const LandingPage = () => {
                             className="no-underline"
                         >
                             <motion.div
-                                className="flex flex-col overflow-hidden rounded-xl bg-white p-6 shadow-md transition-shadow duration-300 hover:shadow-lg"
+                                className="flex flex-col p-6 overflow-hidden transition-shadow duration-300 bg-white shadow-md rounded-xl hover:shadow-lg"
                                 initial={{ y: 0 }}
                                 whileHover={{ y: -10 }}
                                 transition={{ type: "spring", stiffness: 300 }}
                             >
                                 <h3 className="text-xl font-semibold text-gray-800">{dinas.title}</h3>
                                 <p className="mt-2 text-gray-600">{dinas.desc}</p>
-                                <div className="mt-4 h-48 w-full overflow-hidden rounded-lg">
+                                <div className="w-full h-48 mt-4 overflow-hidden rounded-lg">
                                     <img
                                         src={dinas.img}
                                         alt={`Gambar ${dinas.title}`}
-                                        className="h-full w-full object-contain"
+                                        className="object-contain w-full h-full"
                                     />
                                 </div>
                             </motion.div>
@@ -399,7 +396,7 @@ const LandingPage = () => {
                         >
                             <img
                                 src={item.img}
-                                className="h-56 w-full rounded-xl object-cover shadow-md"
+                                className="object-cover w-full h-56 shadow-md rounded-xl"
                                 alt={`Berita Insight ${idx + 1}`}
                             />
                             <div className="mt-2 text-left">
@@ -412,14 +409,14 @@ const LandingPage = () => {
             </section> */}
 
             <section className="p-6">
-                <h2 className="mb-6 text-center text-2xl font-bold text-blue-600">GALERI KAMI</h2>
+                <h2 className="mb-6 text-2xl font-bold text-center text-blue-600">GALERI KAMI</h2>
                 <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2 lg:grid-cols-2">
                     {/* Foto besar di kiri */}
                     <div className="flex justify-center">
                         <motion.img
                             src="/image/galeri1.jpg" // Ganti dengan path gambar besar
                             alt="Foto Besar"
-                            className="h-full w-full object-cover shadow-lg"
+                            className="object-cover w-full h-full shadow-lg"
                             initial={{ scale: 1 }}
                             whileHover={{ scale: 1.1 }} // Zoom in saat hover
                             transition={{ type: "spring", stiffness: 300 }}
@@ -437,7 +434,7 @@ const LandingPage = () => {
                             <img
                                 src="/image/galeri2.jpg" // Ganti dengan path gambar kecil 1
                                 alt="Foto Kecil 1"
-                                className="h-48 w-full object-cover shadow-lg"
+                                className="object-cover w-full h-48 shadow-lg"
                             />
                         </motion.div>
 
@@ -450,7 +447,7 @@ const LandingPage = () => {
                             <img
                                 src="/image/galeri3.jpg" // Ganti dengan path gambar kecil 2
                                 alt="Foto Kecil 2"
-                                className="h-48 w-full object-cover shadow-lg"
+                                className="object-cover w-full h-48 shadow-lg"
                             />
                         </motion.div>
 
@@ -463,7 +460,7 @@ const LandingPage = () => {
                             <img
                                 src="/image/galeri4.jpg" // Ganti dengan path gambar kecil 3
                                 alt="Foto Kecil 3"
-                                className="h-48 w-full object-cover shadow-lg"
+                                className="object-cover w-full h-48 shadow-lg"
                             />
                         </motion.div>
 
@@ -476,14 +473,14 @@ const LandingPage = () => {
                             <img
                                 src="/image/galeri5.jpg" // Ganti dengan path gambar kecil 4
                                 alt="Foto Kecil 4"
-                                className="h-48 w-full object-cover shadow-lg"
+                                className="object-cover w-full h-48 shadow-lg"
                             />
                         </motion.div>
                     </div>
                 </div>
             </section>
-            <section className="bg-white px-6 py-10 shadow-lg">
-                <h2 className="mb-6 text-center text-2xl font-bold text-blue-800">Hubungi Kami</h2>
+            <section className="px-6 py-10 bg-white shadow-lg">
+                <h2 className="mb-6 text-2xl font-bold text-center text-blue-800">Hubungi Kami</h2>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     {/* Info Kontak */}
@@ -518,18 +515,18 @@ const LandingPage = () => {
                     rel="noopener noreferrer"
                     className="block"
                     >
-                    <div className="h-auto overflow-hidden rounded-lg shadow-md hover:opacity-90 transition-opacity duration-200">
+                    <div className="h-auto overflow-hidden transition-opacity duration-200 rounded-lg shadow-md hover:opacity-90">
                         <img
                         src="/image/petakom.png"
                         alt="Peta Lokasi Dinas Kominfo Banyuwangi"
-                        className="w-full object-cover"
+                        className="object-cover w-full"
                         />
                     </div>
                     </a>
                 </div>
 
                 {/* Optional: Styling to simulate footer-like positioning */}
-                <div className="mt-8 text-center text-sm text-gray-600">
+                <div className="mt-8 text-sm text-center text-gray-600">
                     <p>&copy; 2025 Dinas Komunikasi dan Informatika Kabupaten Banyuwangi. All rights reserved.</p>
                 </div>
             </section>

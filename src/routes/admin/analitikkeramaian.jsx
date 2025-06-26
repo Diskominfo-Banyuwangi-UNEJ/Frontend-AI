@@ -15,65 +15,134 @@ import Hls from "hls.js";
 const { Option } = Select;
  // LiveCCTVPlayer component (inline, not outside)
     const LiveCCTVPlayer = ({ src, title }) => {
-      const [isFullscreen, setIsFullscreen] = useState(false);
-      const [isLoading, setIsLoading] = useState(true);
-      const [error, setError] = useState(null);
-      const videoRef = useRef(null);
+        const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const videoRef = useRef(null);
+  const hlsRef = useRef(null);
 
-      useEffect(() => {
-        if (!src) {
-          setError("URL CCTV tidak tersedia");
+  useEffect(() => {
+    if (!src) {
+      setError("URL CCTV tidak tersedia");
+      setIsLoading(false);
+      return;
+    }
+
+    const initPlayer = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      // Hapus instance HLS sebelumnya jika ada
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+
+      const video = videoRef.current;
+      if (!video) return;
+
+      // Coba pemutaran native untuk Safari
+      if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = src;
+        video.addEventListener('loadedmetadata', () => {
           setIsLoading(false);
-          return;
-        }
-
-        let hls;
-        setIsLoading(true);
-        setError(null);
-
-        if (Hls.isSupported() && videoRef.current) {
-          hls = new Hls({
-            maxBufferLength: 30,
-            maxMaxBufferLength: 600,
-            maxBufferSize: 60 * 1000 * 1000,
-            maxBufferHole: 0.5,
-          });
-
-          hls.loadSource(src);
-          hls.attachMedia(videoRef.current);
-
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play().catch(e => {
+            setError("Gagal memulai pemutaran: " + e.message);
             setIsLoading(false);
           });
-
-          hls.on(Hls.Events.ERROR, (event, data) => {
-            if (data.fatal) {
-              setIsLoading(false);
-              setError("Gagal memuat stream CCTV");
-              console.error("HLS Error:", data);
-            }
-          });
-        } else if (videoRef.current && videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
-          // Safari native HLS support
-          videoRef.current.src = src;
-          videoRef.current.addEventListener("loadedmetadata", () => {
+        });
+        
+        video.addEventListener('error', () => {
+          // Jika native gagal, coba dengan HLS.js
+          if (Hls.isSupported()) {
+            loadWithHls();
+          } else {
+            setError("Browser tidak mendukung pemutaran stream ini");
             setIsLoading(false);
-          });
-          videoRef.current.addEventListener("error", () => {
-            setIsLoading(false);
-            setError("Gagal memuat stream CCTV");
-          });
-        } else {
-          setIsLoading(false);
-          setError("Browser tidak mendukung pemutaran stream ini");
-        }
-
-        return () => {
-          if (hls) {
-            hls.destroy();
           }
-        };
-      }, [src]);
+        });
+      } 
+      // Gunakan HLS.js untuk browser lain
+      else if (Hls.isSupported()) {
+        loadWithHls();
+      } else {
+        setError("Browser tidak mendukung pemutaran stream HLS");
+        setIsLoading(false);
+      }
+    };
+
+    const loadWithHls = () => {
+      const hls = new Hls({
+        enableWorker: true,
+        lowLatencyMode: true,
+        backBufferLength: 30,
+        xhrSetup: (xhr, url) => {
+          // Tambahkan header untuk mengatasi CORS
+          xhr.withCredentials = false;
+          xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+        }
+      });
+
+      hlsRef.current = hls;
+
+      hls.loadSource(src);
+      hls.attachMedia(videoRef.current);
+
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setIsLoading(false);
+        videoRef.current.play().catch(e => {
+          setError("Gagal memulai pemutaran: " + e.message);
+          setIsLoading(false);
+        });
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          let errorMsg = "Gagal memuat stream CCTV";
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            errorMsg = "Masalah jaringan atau CORS";
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            errorMsg = "Format media tidak didukung";
+          }
+          setError(errorMsg);
+          setIsLoading(false);
+          hls.destroy();
+        }
+      });
+    };
+
+    // Coba dulu dengan proxy, jika gagal coba langsung
+    const tryWithProxyFirst = async () => {
+      try {
+        // Coba dengan proxy URL jika tersedia
+        const proxySrc = `/api/cctv-proxy?url=${encodeURIComponent(src)}`;
+        const testResponse = await fetch(proxySrc, { method: 'HEAD' });
+        
+        if (testResponse.ok) {
+          initPlayer(proxySrc);
+        } else {
+          // Jika proxy gagal, coba langsung
+          initPlayer(src);
+        }
+      } catch {
+        // Jika semua gagal
+        initPlayer(src);
+      }
+    };
+
+    tryWithProxyFirst();
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+      }
+      const video = videoRef.current;
+      if (video) {
+        video.removeEventListener('loadedmetadata', () => {});
+        video.removeEventListener('error', () => {});
+        video.src = '';
+      }
+    };
+  }, [src]);
 
       const toggleFullscreen = () => {
         if (!isFullscreen && videoRef.current) {
@@ -88,8 +157,8 @@ const { Option } = Select;
 
       return (
         <div className={`bg-gray-900 rounded-lg overflow-hidden shadow-lg ${isFullscreen ? "fixed inset-0 z-50" : "relative"}`}>
-          <div className="flex items-center justify-between bg-gray-800 px-4 py-2">
-            <h3 className="text-white font-medium truncate">{title}</h3>
+          <div className="flex items-center justify-between px-4 py-2 bg-gray-800">
+            <h3 className="font-medium text-white truncate">{title}</h3>
             <div className="flex space-x-2">
               <button
                 onClick={toggleFullscreen}
@@ -97,11 +166,11 @@ const { Option } = Select;
                 title={isFullscreen ? "Keluar dari layar penuh" : "Layar penuh"}
               >
                 {isFullscreen ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M5 16h3v3a1 1 0 102 0v-3h3a1 1 0 100-2h-3v-3a1 1 0 10-2 0v3H5a1 1 0 100 2zm7-13H9V0a1 1 0 10-2 0v3H4a1 1 0 100 2h3v3a1 1 0 102 0V5h3a1 1 0 100-2z" clipRule="evenodd" />
                   </svg>
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
                   </svg>
                 )}
@@ -113,19 +182,19 @@ const { Option } = Select;
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
                 <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-                  <p className="text-white mt-2">Memuat stream...</p>
+                  <div className="w-8 h-8 border-b-2 border-white rounded-full animate-spin"></div>
+                  <p className="mt-2 text-white">Memuat stream...</p>
                 </div>
               </div>
             )}
 
             {error && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-                <div className="text-center p-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-4 text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
-                  <p className="text-white mt-2">{error}</p>
+                  <p className="mt-2 text-white">{error}</p>
                 </div>
               </div>
             )}
@@ -136,11 +205,11 @@ const { Option } = Select;
               autoPlay
               muted
               playsInline
-              className="absolute top-0 left-0 w-full h-full object-cover"
+              className="absolute top-0 left-0 object-cover w-full h-full"
             />
           </div>
 
-          <div className="bg-gray-800 px-4 py-2 text-sm text-gray-400">
+          <div className="px-4 py-2 text-sm text-gray-400 bg-gray-800">
             {new Date().toLocaleString("id-ID", {
               weekday: "long",
               day: "numeric",
@@ -461,23 +530,23 @@ const AnalitikKeramaianPage = () => {
     return (
         <div className="flex flex-col gap-y-4">
             <h1 className="text-2xl font-bold text-slate-800 md:text-3xl">Analisis Keramaian</h1>
-            <h1 className="mt-3 text-center font-bold">CCTV Keramaian</h1>
-                        <div className="grid grid-cols-1 mb-4 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <h1 className="mt-3 font-bold text-center">CCTV Keramaian</h1>
+                        <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-2 lg:grid-cols-3">
                             <motion.div
                                 whileHover={{ y: -10, opacity: 1 }} // Card bergerak naik dan mengubah opacity saat hover
                                 transition={{ type: "spring", stiffness: 300 }}
                                 className="card"
                             >
                                 <div className="card-header">
-                                    <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                                    <div className="p-2 text-blue-500 transition-colors rounded-lg w-fit bg-blue-500/20 dark:bg-blue-600/20 dark:text-blue-600">
                                         <Video size={26} />
                                     </div>
                                     <p className="card-title">Jumlah CCTV</p>
                                 </div>
             
-                                <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                                    <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">70</p>
-                                    <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
+                                <div className="transition-colors card-body bg-slate-100 dark:bg-slate-950">
+                                    <p className="text-3xl font-bold transition-colors text-slate-900 dark:text-slate-50">70</p>
+                                    <span className="flex items-center px-2 py-1 font-medium text-blue-500 border border-blue-500 rounded-full w-fit gap-x-2 dark:border-blue-600 dark:text-blue-600">
                                         
                                         seluruh unit terpasang
                                     </span>
@@ -490,15 +559,15 @@ const AnalitikKeramaianPage = () => {
                                 className="card"
                             >
                                 <div className="card-header">
-                                    <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                                    <div className="p-2 text-blue-500 transition-colors rounded-lg w-fit bg-blue-500/20 dark:bg-blue-600/20 dark:text-blue-600">
                                         <CheckCircle2 size={26} />
                                     </div>
                                     <p className="card-title">CCTV Berfungsi</p>
                                 </div>
             
-                                <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                                    <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">65</p>
-                                    <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
+                                <div className="transition-colors card-body bg-slate-100 dark:bg-slate-950">
+                                    <p className="text-3xl font-bold transition-colors text-slate-900 dark:text-slate-50">65</p>
+                                    <span className="flex items-center px-2 py-1 font-medium text-blue-500 border border-blue-500 rounded-full w-fit gap-x-2 dark:border-blue-600 dark:text-blue-600">
                                         Beroperasi dengan baik
                                     </span>
                                 </div>
@@ -509,15 +578,15 @@ const AnalitikKeramaianPage = () => {
                                 className="card"
                             >
                                 <div className="card-header">
-                                    <div className="w-fit rounded-lg bg-blue-500/20 p-2 text-blue-500 transition-colors dark:bg-blue-600/20 dark:text-blue-600">
+                                    <div className="p-2 text-blue-500 transition-colors rounded-lg w-fit bg-blue-500/20 dark:bg-blue-600/20 dark:text-blue-600">
                                         <AlertTriangle size={26} />
                                     </div>
                                     <p className="card-title">CCTV Rusak</p>
                                 </div>
             
-                                <div className="card-body bg-slate-100 transition-colors dark:bg-slate-950">
-                                    <p className="text-3xl font-bold text-slate-900 transition-colors dark:text-slate-50">5</p>
-                                    <span className="flex w-fit items-center gap-x-2 rounded-full border border-blue-500 px-2 py-1 font-medium text-blue-500 dark:border-blue-600 dark:text-blue-600">
+                                <div className="transition-colors card-body bg-slate-100 dark:bg-slate-950">
+                                    <p className="text-3xl font-bold transition-colors text-slate-900 dark:text-slate-50">5</p>
+                                    <span className="flex items-center px-2 py-1 font-medium text-blue-500 border border-blue-500 rounded-full w-fit gap-x-2 dark:border-blue-600 dark:text-blue-600">
                                         Perlu perbaikan
                                     </span>
                                 </div>
@@ -553,22 +622,22 @@ const AnalitikKeramaianPage = () => {
                 whileHover={{ y: -5, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300 }}
-                className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-lg overflow-hidden border border-blue-100"
+                className="overflow-hidden border border-blue-100 shadow-lg bg-gradient-to-br from-blue-50 to-white rounded-xl"
               >
                 <div className="p-5">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-blue-100/80 shadow-inner">
+                    <div className="p-3 shadow-inner rounded-xl bg-blue-100/80">
                       <Users size={24} className="text-blue-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800">Total Deteksi</h3>
                   </div>
                   <div className="mt-6 text-center">
                     <p className="text-4xl font-bold text-blue-600">{totalDetections.toFixed(0)}</p>
-                    <p className="mt-2 text-sm text-gray-500 font-medium">orang hari ini</p>
+                    <p className="mt-2 text-sm font-medium text-gray-500">orang hari ini</p>
                   </div>
                 </div>
-                <div className="bg-blue-50/50 px-5 py-3 border-t border-blue-100">
-                  <p className="text-xs text-blue-500 flex items-center gap-1">
+                <div className="px-5 py-3 border-t border-blue-100 bg-blue-50/50">
+                  <p className="flex items-center gap-1 text-xs text-blue-500">
                     <TrendingUp size={14} /> 
                     <span>Update real-time</span>
                   </p>
@@ -580,24 +649,24 @@ const AnalitikKeramaianPage = () => {
               whileHover={{ y: -5, scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
               transition={{ type: "spring", stiffness: 300 }}
-              className="bg-gradient-to-br from-red-50 to-white rounded-xl shadow-lg overflow-hidden border border-red-100"
+              className="overflow-hidden border border-red-100 shadow-lg bg-gradient-to-br from-red-50 to-white rounded-xl"
             >
               <div className="p-5">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-red-100/80 shadow-inner">
+                  <div className="p-3 shadow-inner rounded-xl bg-red-100/80">
                     <Activity size={24} className="text-red-600" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-800">Jam Puncak</h3>
                 </div>
                 <div className="mt-6 text-center">
                   <p className="text-4xl font-bold text-red-600">{peakHour.range}</p>
-                  <p className="mt-2 text-sm text-gray-500 font-medium">
+                  <p className="mt-2 text-sm font-medium text-gray-500">
                     {peakHour.avg_people_detected.toFixed(0)} orang
                   </p>
                 </div>
               </div>
-              <div className="bg-red-50/50 px-5 py-3 border-t border-red-100">
-                <p className="text-xs text-red-500 flex items-center gap-1">
+              <div className="px-5 py-3 border-t border-red-100 bg-red-50/50">
+                <p className="flex items-center gap-1 text-xs text-red-500">
                   <Clock size={14} />
                   <span>Berdasarkan data hari ini</span>
                 </p>
@@ -610,24 +679,24 @@ const AnalitikKeramaianPage = () => {
                 whileHover={{ y: -5, scale: 1.03 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 300 }}
-                className="bg-gradient-to-br from-green-50 to-white rounded-xl shadow-lg overflow-hidden border border-amber-100"
+                className="overflow-hidden border shadow-lg bg-gradient-to-br from-green-50 to-white rounded-xl border-amber-100"
               >
                 <div className="p-5">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-xl bg-green-100/80 shadow-inner">
+                    <div className="p-3 shadow-inner rounded-xl bg-green-100/80">
                       <Bed size={24} className="text-green-600" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800">Jam Sepi</h3>
                   </div>
                   <div className="mt-6 text-center">
                     <p className="text-4xl font-bold text-green-600">{lowHour.range}</p>
-                    <p className="mt-2 text-sm text-gray-500 font-medium">
+                    <p className="mt-2 text-sm font-medium text-gray-500">
                       {lowHour.avg_people_detected.toFixed(0)} orang
                     </p>
                   </div>
                 </div>
-                <div className="bg-amber-50/50 px-5 py-3 border-t border-amber-100">
-                  <p className="text-xs text-green-500 flex items-center gap-1">
+                <div className="px-5 py-3 border-t bg-amber-50/50 border-amber-100">
+                  <p className="flex items-center gap-1 text-xs text-green-500">
                     <Clock size={14} />
                     <span>Berdasarkan data hari ini</span>
                   </p>
@@ -678,11 +747,11 @@ const AnalitikKeramaianPage = () => {
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-4 mt-4">
+            <div className="flex flex-col gap-4 mt-4 md:flex-row">
   {/* Status Distribution Chart - Left Side */}
   <div className="flex-1">
-    <h1 className="font-bold text-center mb-2">Distribusi Status Keramaian</h1>
-    <div className="card p-4 bg-white rounded-lg shadow">
+    <h1 className="mb-2 font-bold text-center">Distribusi Status Keramaian</h1>
+    <div className="p-4 bg-white rounded-lg shadow card">
       <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={getSelectedLocationData()}>
@@ -708,8 +777,8 @@ const AnalitikKeramaianPage = () => {
 
   {/* Pie Chart - Right Side */}
   <div className="flex-1">
-    <h1 className="font-bold text-center mb-2">Persentase Status Keramaian</h1>
-    <div className="card p-4 bg-white rounded-lg shadow">
+    <h1 className="mb-2 font-bold text-center">Persentase Status Keramaian</h1>
+    <div className="p-4 bg-white rounded-lg shadow card">
       <div className="w-full h-80">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -741,7 +810,7 @@ const AnalitikKeramaianPage = () => {
             <div className="card">
   <div className="h-[400px] w-full relative">
     {locations.length === 0 && (
-      <div className="absolute inset-0 flex items-center justify-center bg-gray-100/50 z-10">
+      <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100/50">
         <p className="text-gray-500">Memuat data lokasi...</p>
       </div>
     )}
@@ -988,15 +1057,15 @@ const AnalitikKeramaianPage = () => {
                     {/* CCTV Data Table */}
                     <div className="p-0 card-body">
     <div className="relative w-full overflow-x-auto rounded-lg shadow">
-        <table className="min-w-full divide-y divide-gray-200 bg-white text-sm">
+        <table className="min-w-full text-sm bg-white divide-y divide-gray-200">
             <thead className="bg-gray-50">
                 <tr>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">No</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Nama Lokasi</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Alamat</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Koordinat</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Live CCTV</th>
-                    <th className="px-4 py-3 text-left font-semibold text-gray-700">Aksi</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">No</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">Nama Lokasi</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">Alamat</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">Koordinat</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">Live CCTV</th>
+                    <th className="px-4 py-3 font-semibold text-left text-gray-700">Aksi</th>
                 </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -1008,7 +1077,7 @@ const AnalitikKeramaianPage = () => {
                     </tr>
                 ) : (
                     crowdList.map((item, index) => (
-                        <tr key={index} className="hover:bg-blue-50 transition">
+                        <tr key={index} className="transition hover:bg-blue-50">
                             <td className="px-4 py-2">{(currentPage - 1) * perPage + index + 1}</td>
                             <td className="px-4 py-2 font-medium text-gray-900">{item.nama_lokasi || '-'}</td>
                             <td className="px-4 py-2">{item.alamat || '-'}</td>
@@ -1027,7 +1096,7 @@ const AnalitikKeramaianPage = () => {
                                     </button>
                                 ) : <span className="text-gray-400">Tidak Ada</span>}
                             </td>
-                            <td className="px-4 py-2 flex gap-2">
+                            <td className="flex gap-2 px-4 py-2">
                                 <button 
                                     onClick={() => handleEdit(item)}
                                     className="p-1 text-blue-600 hover:text-blue-800"
